@@ -1,12 +1,13 @@
 <?php
 require_once('singleton.lib.php');
+require_once('events.lib.php');
 require_once('mysqli.lib.php');
 
 // Prepare the needed statements for waas
 dbconn::prepare('user-validate', 'SELECT COUNT(*) FROM users WHERE is_enabled != 0 AND user=? AND password=MD5(?)');
 dbconn::prepare('user-info', 'SELECT user, is_enabled FROM users WHERE user = ? LIMIT 1'); 
 dbconn::prepare('user-resetpwd', 'UPDATE users SET password=MD5(?) WHERE user=? LIMIT 1');
-dbconn::prepare('user-add', 'INSERT INTO users (user, password) VALUES(?, MD5(?))');
+dbconn::prepare('user-create', 'INSERT INTO users (user, password) VALUES(?, MD5(?))');
 dbconn::prepare('user-all', 'SELECT user, is_enabled FROM users');
 dbconn::prepare('user-countall', 'SELECT user, is_enabled FROM users');
 dbconn::prepare('user-delete', 'DELETE FROM users WHERE user = ? LIMIT 1');
@@ -63,85 +64,40 @@ class User
 
 //! Web Application Authentication System definition
 /**
-    A static singleton object that implements the authentication
-    system of a web application. It supports user management,
-    authentication, session handling, and autoredirection after login.
+    A static IntraSessionSingleton object that implements the authentication
+    system of a web application. It supports user management and
+    authentication.
+    
+    @note Waas requires that you have properly started a php session. This can
+    be done by calling session_start() at the begining of each page.
 */  
-class waas extends singleton
+class Waas extends IntraSessionSingleton
 {
-	//! Action hooks
-	private $hooks;
-	
-	//! Current logged on user
+    //! Current logged on user
 	private $m_current_user;
-	
-	//! Login redirect url
-	private $login_redirect_url;
-	
+
+    //! An observation point for actions on Waas
+    private $events;
+    
 	//! Called automatically when waas object is constructed.
 	public function __construct()
 	{
-	    $this->hooks = array('pre-login' => false,
-	        'post-login' => false,
-	        'pre-logout' => false,
-	        'post-logout' => false
-	        );
+	    $this->events = new EventDispatcher(array(
+	        'pre-login',
+	        'post-login',
+	        'pre-logout',
+	        'post-logout'
+	        ));
 	}
 	
-	//! It calls a hook with its parameters
-	/**
-	   1st parameter is the name of the hook. 
-	   Nth parameter(s) are passed to the hook function
-	*/
-	private function call_hook()
-	{
-	    if (func_get_args() < 1)
-	        return false;
-	    
-	    $key = func_get_arg(0);
-	    if (! $this->hooks[$key])
-	        return false;
-
-	    if (func_get_args() == 1)
-	    {
-	        // Call the user function
-	        return call_user_func($this->hooks[$key]);
-	    }
-	    else
-	    {   // Call the user function with parameters
-	        $args = array_slice(func_get_args(), 1);
-	        return call_user_func_array($this->hooks[$key], $args);
-	    }
-    }
+	//! Get the events object
+	static public function events()
+	{    return self::get_instance()->events;    }
 	
-	//! Define a hook on event
-	/**
-	   @param $event The name of the hook.
-    	   Supported hooks are
-	       - @b pre-login ( Called when a login request is done and before the user gets validated )
-	       - @b post-login ( Called after a user was logged on succesfully )
-	       - @b pre-logout ( Called before a user gets logged out )
-	       - @b post-logout ( Called after the completion of logout process. )
-	       .
-	   @param $callback The hook callback function. The format is the same
-	       of general php callback function. (http://php.net/callback#language.types.callback)
-	 */
-	static public function set_hook($event, $callback)
-	{   // Get singleton instance
-		$pthis = self::get_my_instance();
-	    if (!isset($pthis->hooks[$event]))
-	    {
-	        dbg::log('waas: tried to add hook for event '. $event, 'error');
-	        return false;           // Wrong hook name
-	    }
-	    
-	    $pthis->hooks[$event] = $callback;
-	    return false;
-	}
 	
-	//! Returns the pointer to the singleton, and creates it if it is not created yet.
-	static private function get_my_instance()
-	{	return self::get_instance(__CLASS__);	}
+    //! Returns the pointer to the singleton, and creates it if it is not created yet.
+	static public function get_instance()
+	{	return self::get_class_instance(__CLASS__);	}
 	
 	//! Login a user to the current session.
 	/**
@@ -150,22 +106,18 @@ class waas extends singleton
 	       
 	   It will try to validate the credentials and if they are
 	   ok, the user will be logged on in the current session.
-	   
-	   If an autoredirect is setup, this function will try to add
-	   a "location" header with the redirection header and it will
-	   stop the execution of the script.
-	   @see set_login_autoredirect
+
 	*/
 	static public function login($user, $pass)
 	{	// Get singleton instance
-		$pthis = self::get_my_instance();
+		$pthis = self::get_instance();
 		
 		// Logout any previous user
 		if (!waas::current_user_is_anon())
 		      waas::logout();
 
-		// Call pre-login hook
-		$pthis->call_hook('pre-login');
+		// Raise event pre-login
+		$pthis->events->raise_event('pre-login');
 
 		// Check for users with that username and that password.
 		$count_records = dbconn::execute_fetch_all('user-validate', 'ss', $user, $pass);
@@ -180,58 +132,32 @@ class waas extends singleton
 		// Regenerate session id to prevent session fixation
 		session_regenerate_id();
 		
-		// Call post-login hook
-		$pthis->call_hook('post-login');
-		
-		// Visit saved url if any
-		if (!empty($pthis->login_redirect_url))
-		{
-    	  header('Location: ' . $pthis->login_redirect_url);
-	      $pthis->login_redirect_url = "";
-	      exit;
-		}
-		
+		// Raise event post-login
+		$pthis->events->raise_event('post-login');		
 		return true;
 	}
 	
 	//! Logout current user
 	/**
 	@note logout() will try to change cookies, and it is proposed
-	       to execute this before sending any real data to the user.
+	   to execute this before sending any real data to the user.
     */
 	static public function logout()
 	{   // Get singleton instance
-		$pthis = self::get_my_instance();
+		$pthis = self::get_instance();
 
-        // Call pre-logout hook
-		$pthis->call_hook('pre-logout');
+        // Skip if it is already logged out
+        if (self::current_user_is_anon())
+            return false;
+            
+        // Raise event pre-logout
+		$pthis->events->raise_event('pre-logout');
 		
 		// Unsect current user
 		unset($pthis->m_current_user);
 		
-		// Call post-logout hook
-		$pthis->call_hook('post-logout');
-	}
-	
-	//! Change the autoredirect url to follow after login
-	/**
-	   Setting a valid url, will provoke waas to redirect to this url after the next login. This will happen
-	   only one time and the url will be deleted. If you want to disable any previous url you can execute
-	   this function with an empty string.
-    */
-	static public function set_login_autoredirect($url)
-	{	// Get singleton instance
-		$pthis = self::get_my_instance();
-        $pthis->login_redirect_url = $url;
-	}
-	
-	//! Get the current redirection url
-	/**
-	   @see set_login_autoredirect()
-    */
-	static public function get_login_autoredirect()
-	{  $pthis = self::get_my_instance();
-	   return$pthis->login_redirect_url;
+		// Raise event post-logout
+		$pthis->events->raise_event('post-logout');
 	}
 	
 	//! Get current logged-in user
@@ -241,7 +167,7 @@ class waas extends singleton
 	*/
 	static public function current_user()
 	{	// Get singleton instance
-		$pthis = self::get_my_instance();
+		$pthis = self::get_instance();
 		
 		if (isset($pthis->m_current_user))
 			return $pthis->m_current_user;
@@ -251,11 +177,11 @@ class waas extends singleton
 	
 	//! Check if current user is anonymous
 	/**
-	   Anonymous is a non-loggon user.
+	   @remarks Anonymous is a non-loggon user.
 	*/
 	static public function current_user_is_anon()
 	{	// Get singleton instance
-		$pthis = self::get_my_instance();
+		$pthis = self::get_instance();
 		return (!isset($pthis->m_current_user));
 	}
 	
@@ -274,12 +200,12 @@ class waas extends singleton
 	
 	//! Add a new user to the database
 	/**
-	   It will try to register the new user in the database.
+	   It will try to create a new user in the database.
 	@return A User object of the new user or false in case of error.
 	*/
-	static public function add_user($username, $password)
+	static public function create_user($username, $password)
 	{  
-		if (!$stm = dbconn::execute('user-add', 'ss', $username, $password))
+		if (!$stm = dbconn::execute('user-create', 'ss', $username, $password))
 		{   dbg::log('error on creating user');
 		    dbg::log($stm->error);
 			return false;
@@ -294,7 +220,7 @@ class waas extends singleton
 	 */
 	static public function all_users()
 	{	// Get singleton instance
-		$pthis = self::get_my_instance();
+		$pthis = self::get_instance();
 		
 		// Get the list with all users
         $stm = dbconn::execute('user-all');
@@ -320,7 +246,7 @@ class waas extends singleton
 	//! Count all users
 	static public function count_users()
 	{	// Get singleton instance
-		$pthis = self::get_my_instance();
+		$pthis = self::get_instance();
 		
 		$res = dbconn::execute_fetch_all('user-countall');
 		if (count($res) == 1)

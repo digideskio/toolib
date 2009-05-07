@@ -11,8 +11,8 @@ dbconn::prepare('seslog-signout_others', 'UPDATE session_log SET expired = true 
 
 //! Session loging and management system
 /**
-    @note sessionlog is a singleton and there is no need to create an object of it, all the API is exported
-    in static functions.
+    @note SessionLog is a IntraSessionSingleton and there is no need to
+    create an object of it, all the API is exported in static functions.
     
     This module provides is an extension on waas and provides user session management. When a user
     is logged on the session is saved in database and can be monitored for activity.
@@ -23,7 +23,7 @@ dbconn::prepare('seslog-signout_others', 'UPDATE session_log SET expired = true 
     You can easily imlpement single singon by adding sessionlog::signout_myother_sessions() at the begining
     of application.
 */
-class sessionlog extends singleton 
+class SessionLog extends IntraSessionSingleton 
 {
     //! The id of the current session
     private $cur_session_id;
@@ -33,14 +33,14 @@ class sessionlog extends singleton
     {   // Unset the default session id
         $this->cur_session_id = false;
         
-        // Add hooks in user module
-        waas::set_hook('post-login', array('SessionLog', 'create'));
-        waas::set_hook('post-logout', array('SessionLog', 'expire'));
+        // Observe events on the Waas object
+        waas::events()->observe_event('post-login', array('SessionLog', 'create'));
+        waas::events()->observe_event('post-logout', array('SessionLog', 'expire'));
     }
     
     //! Get the current instance of the object
-	static private function get_my_instance()
-	{	return self::get_instance(__CLASS__);	}
+	static private function get_instance()
+	{	return self::get_class_instance(__CLASS__);    }
 	
     //! Creates and switchs to a new user session.
     /**
@@ -49,7 +49,7 @@ class sessionlog extends singleton
         automatically.        
     */
     static public function create()
-    {   $pthis = SessionLog::get_my_instance();
+    {   $pthis = SessionLog::get_instance();
     
         // Check if there is a user logged on
         if (!($user = waas::current_user()))
@@ -66,7 +66,7 @@ class sessionlog extends singleton
         @note This function is called automatically when a user logs out through waas.
     */        
     static public function expire()
-    {   $pthis = SessionLog::get_my_instance();
+    {   $pthis = SessionLog::get_instance();
     
         if (SessionLog::is_session_open())
         {   // Mark session as expired
@@ -79,7 +79,7 @@ class sessionlog extends singleton
     
     //! Check if there is any session open in this connection
     static public function is_session_open()
-    {   $pthis = SessionLog::get_my_instance();
+    {   $pthis = SessionLog::get_instance();
     
         return ($pthis->cur_session_id != false) ;
     }
@@ -89,7 +89,7 @@ class sessionlog extends singleton
         If there is a user session opened its last_activity timestamp is touched in database
     */
     static public function touch_current()
-    {   $pthis = SessionLog::get_my_instance();
+    {   $pthis = SessionLog::get_instance();
         // Check if there is an open session and touch the last seen timestamp
         if (SessionLog::is_session_open())
         {
@@ -109,7 +109,7 @@ class sessionlog extends singleton
         It will query the database for active sessions of this users and will return all except the current one.
     */
     static public function myother_sessions()
-    {   $pthis = SessionLog::get_my_instance();
+    {   $pthis = SessionLog::get_instance();
     
         // Check if there is an open session
         if (!SessionLog::is_session_open())
@@ -124,7 +124,7 @@ class sessionlog extends singleton
         out.
     */     
     static public function signout_myother_sessions()
-    {   $pthis = SessionLog::get_my_instance();
+    {   $pthis = SessionLog::get_instance();
     
         // Check if there is an open session
         if (!SessionLog::is_session_open())
