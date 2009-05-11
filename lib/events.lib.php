@@ -10,7 +10,7 @@
     @note There are is a special event, that you cannot raise it or declare it
         the '*'. This is an alias for @b any event.
         
-    @bExample\n
+    @b Example \n
     To understand the concept of EventDispatcher we will demonstrate it with a Cat
     Bob and Alice. Let's say Bob wants to observe TheirCat if it is hungry to feed it,
     and Alice wants to observe TheirCat to see if it is bored so that she entertains it.
@@ -49,7 +49,7 @@
     $Alice = new PetHolder();
     @endcode
     
-    Now that we have all our actors we need to declare what wants to be informed for.
+    Now that we have all our actors we need to declare who wants to be informed for.
     @code
     $TheirCat->events->observe_event('hungry', array($Bob, 'feed_pet'));
     $TheirCat->events->observe_event('bored', array($Alice, 'entertain_pet'));
@@ -92,6 +92,13 @@ class EventDispatcher
     }
     
     //! Observe an event
+    /**
+        @param $event The name of the event that you want to observe
+        @param $callback The callback function to be called when the event
+            is raised. Callback function may get parameters too depending on the event.
+            Check http://www.php.net/manual/en/language.pseudo-types.php#language.types.callback
+            for more information on how to format callback type in PHP.
+    */
     public function observe_event($event, $callback)
     {   if (! $this->event_exists($event))
             return false;
@@ -103,7 +110,16 @@ class EventDispatcher
         $this->events[$event][] = $callback;
         return true;
     }
-    
+
+    //! Observe all events of this dispatcher
+    /**
+        This is an alias for observe_event("*", $callback);
+    */
+    public function observe_all($callback)
+    {
+        return self::observe_event("*", $callback);
+    }
+
     //! Stop observing an event
     public function stop_observing_event($event, $previous_callback)
     {    if (! $this->event_exists($event))
@@ -125,16 +141,7 @@ class EventDispatcher
     */
     public function stop_observing_all($previous_callback)
     {    return self::stop_observing_event('*', $previous_callback);    }
-    
-    //! Observe all events of this dispatcher
-    /**
-        This is an alias for observe_event("*", $callback);
-    */
-    public function observe_all($callback)
-    {
-        return self::observe_event("*", $callback);
-    }
-    
+        
     //! Raise a declared event and inform all observers of it
     public function raise_event($event, $args = NULL)
     {   if ($event == '*')

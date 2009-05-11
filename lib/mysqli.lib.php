@@ -30,10 +30,10 @@ class dbconn
         @param $error_handler A callback function to call when an error is raised
             by any of the functions of dbconn. The function will get one parameter
             with the detailed message.
-        @param $delay_prepartion A flag if delayed preparation should be used to
+        @param $delayed_preparation A flag if delayed preparation should be used to
             improve performance.
     */
-	static public function init($server, $user, $pass, $schema, $error_handler = false, $delayed_preparation = false)
+	static public function init($server, $user, $pass, $schema, $error_handler = false, $delayed_preparation = true)
 	{
         // Save error handler function
         dbconn::$error_handler_func = $error_handler;
@@ -175,7 +175,7 @@ class dbconn
     
     //! A macro for binding and executing a statement
     /**
-        It must be used in the form <b> stmt_bind_and_execute($stmt_key, $bind_desc_string, $bind1, .. ,$bindN) </b> \n
+        It must be used in the form <b> dbconn::execute($stmt_key, $bind_desc_string, $bind1, .. ,$bindN) </b> \n
         If there are no parametes you can use it stmt_bind_and_execute($stmt_key)
      @return It will return false on fail or the statement handler to fetch data.
     */

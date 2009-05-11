@@ -90,7 +90,20 @@ class Waas extends IntraSessionSingleton
 	        ));
 	}
 	
-	//! Get the events object
+	//! Get the EventDispatcher object to observe events
+	/**
+	    Waas currently exports the following events
+        - @b pre-login(username, password) : Called when a login request is done and before the 
+	        validation of the credentials.
+        - @b post-login(username, password) : Called when a login request is done and the credentials
+	        were validated successfuly.
+        - @b pre-logout(): Called when a user asks to logout just before the actual
+            logout is done.
+        - @b post-logout(): Called after a user has been logged out succesfully.
+        - @b create-user(username): Called when a new user has been added to the system.
+        - @b delete-user(username): Called when a user has been removed from system.
+        .
+    */
 	static public function events()
 	{    return self::get_instance()->events;    }
 	

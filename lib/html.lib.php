@@ -1,105 +1,132 @@
 <?php
 
-//! HTML 
-class HTML
-{
-    private static $js_array;
-    private static $css_array;
-    private static $auto_render;
-    private static $body_data;
-    private static $pre_render_func;
-    public static $title;
+//! HTML Page constructor
+/**
+    This is an HTML page constructor, it will create a valid HTML doc
+    based on user suplied data.
+    
+    @par Example
+    @code
+    $mypage = new HTMLPage();
+    $mypage->title = 'My Super Duper WebSite';
+    $mypage->add_ref_jscript('/js/jquery.js');
+    $mypage->add_ref_css('/themes/fantastic.css');
+    
+    // Add data to body
+    $mypage->append_data('Hello World');
+    
+    // Render and display page
+    echo $mypage->render();
+    @endcode
+    
+    @par Capture from Output Buffer
+    It is very difficult and ugly to write a webpage and use append_data(). In that case
+    it is better to capture output buffer and append directly to body.
+    \n
+    An easy way to do it is:
+    @code
+    $mypage = new HTMLPage();
+    
+    // Auto append data to html content
+    ob_start(array($mypage, 'append_data'));
 
-	//! Add a new references to a JavaScript file
-	static public function add_ref_jscript($script)
+    // Everything echoed here will be appended to html
+    
+    // Stop capturing and echo final page
+    ob_end_clean();
+    echo $mypage->render();
+    @endcode
+    
+    @par Auto render page "trick"
+    There is a trick to autorender html page at the end of each page. The example
+    assumes that you have a file named layout.php where you create the basic layout
+    of the site and it is included from any page.
+    \n
+    @b layout.php    
+    @code
+    $mypage = new HTMLPage();
+    $mypage->title = 'My Super Duper WebSite';
+    $mypage->add_ref_jscript('/js/jquery.js');
+    $mypage->add_ref_css('/themes/fantastic.css');
+    
+    // Auto append data to html content
+    ob_start(array($mypage, 'append_data'));
+
+    // Create a guard object that on destruction it will render the mypage
+    class auto_render_html
+    {   public function __destruct()
+        {   global $mypage;
+            ob_end_clean();
+            echo $mypage->render();
+        }
+    }
+    $auto_render = new auto_render_html();
+    @endcode
+    \n
+    @b index.php
+    @code
+    require_once('layout.php');
+    
+    // Everything written here will be appended to body
+    echo 'Hello World';
+    
+    // At the end of the script all the objects will be destroyed, $auto_render too which
+    // will render the HTML page too "magically"
+    @endcode
+*/
+class HTMLPage
+{
+    //! Javascript references
+    private $js_refs = array();
+    
+    //! Style sheet references
+    private $css_refs = array();
+   
+    //! Contents of body
+    private $body_data = '';
+
+    //! Character set of body content
+    public $char_set = 'UTF-8';
+    
+    //! Title of html page
+    public $title = '';
+    
+	//! Add a javascript reference
+	public function add_ref_jscript($script)
 	{
-	    HTML::$js_array[] = sprintf('<script src="%s" language="JavaScript"></script>',
-	        $script);
+	    $this->js_refs[] = sprintf('<script src="%s" language="JavaScript"></script>', $script);
 	}
 	
-	//! Add a new reference to a CSS file
-	static public function add_ref_css($script)
+	//! Add a style sheet reference
+	public function add_ref_css($script)
 	{
-    	HTML::$css_array[] = sprintf('<link rel="stylesheet" type="text/css" href="%s">',
-	        $script);
+    	$this->css_refs[] = sprintf('<link rel="stylesheet" type="text/css" href="%s">', $script);
 	}
     
-    //! Capture any on going output and embed it in the html object
-    static public function start()
+    //! Append data in the body content
+    public function append_data($str)
     {
-  	    // Initialize variables
-	    HTML::$js_array = array();
-	    HTML::$css_array = array();
-	    HTML::$body_data = "";
-	    HTML::$title = "";
-	    HTML::$auto_render = new html_auto_render();
-	    HTML::$pre_render_func = array();
-
-        // Capture output buffer
-        ob_start();
-    }
-    
-    //! Write more body code
-    static public function append_body($str)
-    {
-        $this->body .= $str;
+        $this->body_data .= $str;
     }
 
-    //! Display html output
-    static public function render()
-    {   // Call preprender function
-    	foreach(HTML::$pre_render_func as $func)
-            call_user_func($func);
-            		
-        // Get body data
-        $body_data = ob_get_clean();
+    //! Render html code and return a string with the whole page
+    public function render()
+    {   // DocType
+        $r = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><html><head>';
+        
+        // Character set
+        $r .= '<meta http-equiv="Content-type" value="text/html; charset=' . $this->char_set . '" />';
 
-        // Print header
-        echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><html><head>';
-        echo '<meta http-equiv="Content-type" value="text/html; charset=UTF-8" />';
-
-        echo '<title>';
-        echo HTML::$title;
-        echo '</title>';
-        foreach (HTML::$css_array as $css_ref)
-            echo $css_ref;
-        foreach (HTML::$js_array as $js_ref)
-            echo $js_ref;
-        echo '</head><body><div id="wrapper">';
-        echo $body_data;
-        echo '</div></body></html>';
-    }
-    
-    //! Tell the HTML object to skip auto rendering at the end of script
-    static public function skip_autorender()
-    {   HTML::$auto_render->render_at_end = false;    }
-    
-    //! Push a pre-render hook
-    static public function push_prerender_hook($func)
-    {	 array_push(HTML::$pre_render_func, $func);	
-    }
-    
-    //! Pop a pre-render hook
-    static public function pop_prerender_hook()
-    {	 return array_pop(HTML::$pre_render_func);	}
-};
-
-//! This object is used to detect the end of a page so that html is all printed out
-class html_auto_render
-{
-    public $render_at_end;
-
-    public function __construct()
-    {   $this->render_at_end = true;
-    }
-    
-    // When the object is destroyed it renders HTML
-    public function __destruct()
-    {   if ($this->render_at_end)
-            HTML::render();
+        // Title
+        $r .= '<title>' . $this->title . '</title>';
+        foreach ($this->css_refs as $css_ref)
+            $r .= $css_ref;
+        foreach ($this->js_refs as $js_ref)
+            $r .= $js_ref;
+        $r .= '</head><body><div id="wrapper">';
+        $r .= $this->body_data;
+        $r .= '</div></body></html>';
+        return $r;
     }
 };
-
-if (!(isset($html_no_autostart) && ($html_no_autostart == true)))
-    HTML::start();
 ?>

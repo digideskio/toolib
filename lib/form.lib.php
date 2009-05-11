@@ -1,28 +1,161 @@
 <?php
-/*************************************************************
-    @title A fast way to create forms with input validation
-    
-    
- *************************************************************/
 
-//! A base function to create forms
+//! An abstract web form constructor
+/**
+    Form provides a fast way to create input forms with server-side validation. It
+    supports multiple types of input and an abstract way to create your own custom
+    types. At the same time it provides form validation from mandatory fields to
+    regular expressions checks for text boxes. If form is properly validated,
+    developper can add custom code for finally processing data using special functions
+    in the derived class.
+    
+    @par Special Functions
+    Special functions are function that can be declared in the derived class, and get
+    executed in special cases. There is no explicit dependency on these functions and
+    Form will work too without declaring any of them, however you should probably define
+    at least one to add some "real" functionality on the Form.
+    \n\n
+    - @b on_post():\n
+        Called when form received data from the user. It does not guarantee that the form
+        is properly validated.
+    - @b on_valid():\n
+        It is called when form received data from user and all the fields are valid. This
+        function is called after on_post()
+    - @b on_nopost():\n
+        Called when the form was requested using GET and no data where posted from the user.
+        (When user see the form for the first time)
+    .
+
+    @par Example
+    To create a form object you must create a derived class that will initialize Form
+    and populate any special function that it needs.
+    @code
+    class NewUserForm extends Form
+    {
+        public __construct()
+        {    Form::__construct(
+                array(
+                    'username' => array('display' => 'Username'),
+                    'password1' => array('display' => 'Password', type='password'),
+                    'password2' => array('display' => 'Retype password', type='password')
+                ),
+                array('title' => 'New user', 'submit' => 'create')
+        }
+        
+        public function on_valid()
+        {
+            // Add your code here
+        }
+    }
+    
+    // Display form
+    $nufrm = new NewUserForm();
+    @endcode
+    
+    @par Flow Chart
+    Form using the same object, it displays the form, accepts user input, validates
+    data and executes user defined code for form events. I will try to visualize
+    the order of events and data processing.\n\n    
+    @b Life-Cycle: The form's life-cycle limits in the constructor and only there.
+    @code
+    
+    $nufrm = new NewUserForm();    // < Here, any input data is processed, is validated,
+                                   ///  user events are executed and finally the form is rendered.
+    @endcode
+    \n
+    A detailed flow chart is followed, displaying what happens inside the constructor of Form.
+    @verbatim
+   ( Form Constructor Start )
+            |
+            V
+           / \
+        /       \         +------------------+
+      / User Post \ ----->| Call on_nopost() |
+      \   Data    /  NO   +------------------+
+        \       /                  V
+           \ /                     |
+            |                      |
+            V                      |
+  +---------------------+          |
+  |  Process User Data  |          |
+  | (validate regexp,   |          |
+  |  validate mandatory |          |
+  |  data, save values) |          |
+  +---------------------+          |
+            |                      |
+            V                      |
+  +---------------------+          |
+  |    Call on_post()   |          |
+  | (Here user can do   |          |
+  |  extra validations  |          |
+  |  and invalidate any |          |
+  |  fields)            |          |
+  +---------------------+          |
+            |                      |
+            V                      |
+           / \                     |
+        /       \                  V
+      /  Is Form  \ -------------->+
+      \   VALID?  /  NO            |
+        \       /                  |
+           \ /                     |
+            |                      |
+            V                      |
+  +---------------------+          |
+  |   Call on_valid()   |          |
+  +---------------------+          |
+            |                      V
+            +<---------------------+
+            |                      
+            V                      
+           / \                     
+        /       \                  
+      /  Is Form  \ -------->+
+      \  Visible? /  NO      |
+        \       /            |
+           \ /               |
+            |                |
+            V                |
+    +-------------------+    |
+    |  Render Form      |    |
+    +-------------------+    |
+            |                V
+            +<---------------+
+            V
+  ( Form Constructor End )
+    @endverbatim
+    @todo
+        - Add support for multiple buttons
+        .
+*/
 class Form
 {
+    //! An array with all fields
     private $fields;
+    
+    //! The id of the form
     private $form_id;
+    
+    //! The options of the form
     protected $options;
+
+    //! Internal increment for creating unique form ids.
     private static $last_autoid = 0;
     
     //! Construct the form object
     /**
-        @param $fields an array with parameters
-        array() with all options
-        - display: The text that will be displayed in front of the input
-        - type: [Default=text] The type of input control. ('text', 'password', 'dropbox', 'radio', 'checkbox', 'line', 'custom', 'list')
+        @param $fields An associative array with all fields of the form, fields must be given in the same
+            order that will be rendered too. The key of each of record defines the unique id of the field
+            and the value is another associative array with the parameters of the field.\n
+        <b> The supported field parameters are: </b>
+        - display: The text that will be displayed at the left of the input
+        - type: [Default=text] The type of input control. Currently implemented are
+            ('text', 'password', 'dropbox', 'radio', 'checkbox', 'line', 'custom')
         - options: [Default=array()]
-            An array with all options in case of type that can accept options (dropbox, radio).
+            An array with all the value options that will be displayed to user.
+            This is only needed for types that have mandatory options like (dropbox, radio).
             The array is given in format array(key1 => text1, key2 => text2)
-            - key: The key name of this option. The result of the field is the @bkey value of the selected option.
+            - key: The key name of this option. The result of the field is the @b key value of the selected option.
             - text: [Default: key] The text to be displayed for this option.
             .
         - mustselect: [Default: true] If the type of input has options, it force you to set an option
@@ -31,13 +164,30 @@ class Form
         - hint: [Optional] A hint message for this input.
         - regcheck: [Optional] A regular expression that field must pass to be valid.
         - onerror: [Optional] The error that will be displayed if regcheck fails.
-        .
+        .\n\n
+        A small example for $fields is the following
+        @code
+        new Form(
+            array(
+                'name' => array('display' => 'Name', type='text'),
+                'sex' => array('display' => 'Sex', type='radio', options = array('m' => 'Male', 'f' => 'Female'))
+            )
+        );
+        @endcode
         
-        @param $options parameters
-        - title The title of the form
-        - submit The caption of the submit button
-        - class An array with extra classes
-        .
+        @param $options An associative array with the options of the form.\n
+        Valid array keys are:
+        - title The title of the form.
+        - submit The caption of the submit button.
+        - css [Default = array()] An array with extra classes
+        .\n\n
+        @p Example:
+        @code
+        new Form(
+            array(... fields ...),
+            array('title' => 'My Duper Form', 'submit' => 'Ok')
+        );
+        @endcode
     */
     public function __construct($fields = array(), $options = array())
     {   $this->fields = $fields;
@@ -45,8 +195,8 @@ class Form
         $this->form_id = 'form_gen_' . (Form::$last_autoid ++);
         
         // Initialize default values for options
-        if (!isset($this->options['class']))
-            $this->options['class'] = array();
+        if (!isset($this->options['css']))
+            $this->options['css'] = array();
         
         // Initialize default values for fields
         foreach($this->fields as & $field)
@@ -131,7 +281,11 @@ class Form
             $this->on_valid();
     }
 
-    //! Get a value of a field
+    //! Get the user given value of a field
+    /**
+        If a this is the first time viewing the firm, the
+        function will return the predefined value of this field. (if any)
+    */
     protected function get_field_value($fname)
     {
         if (isset($this->fields[$fname]) && (isset($this->fields[$fname]['value'])) )
@@ -158,7 +312,11 @@ class Form
         }
     }
     
-    //! Check if all fields of form are valid
+    //! Check if form is valid
+    /**
+        It will check if all fields are valid, and if they are,
+        it will return true.
+    */
     public function is_valid()
     {   foreach($this->fields as $k => $field)
             if(!$this->is_field_valid($k))
@@ -166,7 +324,11 @@ class Form
         return true;
     }
     
-    //! Set error on a field
+    //! Set the error message of a field
+    /**
+        This does not invalidates fields, it just changes
+        the error message.
+    */
     protected function set_field_error($fname, $error)
     {
         if(!isset($this->fields[$fname]))
@@ -174,14 +336,24 @@ class Form
         $this->fields[$fname]['error'] = $error;
     }
     
-    //! Get a refernece to a field
+    //! Get a refernece to the internal field object
+    /**
+       The reference returned will be an array
+       with the parameters of the fields, for 
+       the parameterse of the field you can see
+       __construct().
+   */
     public function field($fname)
     {   if(!isset($this->fields[$fname]))
             return false;
         return $this->fields[$fname];
     }
     
-    //! Set a field display
+    //! Change the display text of a field
+    /**
+        Display text is the text on the left of the field
+        that describes it.
+    */
     public function set_field_display($fname, $display)
     {   if(!isset($this->fields[$fname]))
             return false;
@@ -192,7 +364,7 @@ class Form
     private function render()
     {   echo '<form method="post">';
         echo '<div class="ui-form';
-        foreach($this->options['class'] as $cls)
+        foreach($this->options['css'] as $cls)
             echo ' ' . esc_html($cls);
         echo '">';
         echo '<input type="hidden" name="submited_form_id" value="' . esc_html($this->form_id) .'">';
@@ -270,7 +442,12 @@ class Form
         echo '</form>';
     }
     
-    //! Dont display the form
+    //! Don't display the form
+    /**
+        Makes the form hidden and will not render. You can use
+        this function from any special function to prevent
+        form rendering.
+    */
     public function hide()
     {
         $this->options['hideform'] = true;

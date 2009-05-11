@@ -1,6 +1,6 @@
 <?php
 
-// ABC of the intra-session 'Singleton' design pattern.
+//! ABC of the intra-session 'Singleton' design pattern.
 abstract class IntraSessionSingleton
 {
 	//! Reference to the instaces repository
