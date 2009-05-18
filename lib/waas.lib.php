@@ -24,15 +24,35 @@ class User
 	public $is_enabled;
 
 	//! A user handler object
+	private function __construct(){}
+
+	//! Add a new user to the database
 	/**
-		User objects are created ONLY by WAAS. Don't try to create yours.
+	   It will try to create a new user in the database.
+	@return A User object of the new user or false in case of error.
 	*/
-	public function __construct($username, $is_enabled = NULL)
+	public static function create($username, $password)
+	{    if (!$stm = dbconn::execute('user-create', 'ss', $username, $password))
+			return false;
+			
+		return User::open($username);
+	}
+    //! Get a user object of an existing user
+	/**
+	    @return A User object on success. Or false on error.
+	*/	   
+	public static function open($username)
 	{
-		// Save data
-		$this->username = $username;
-		$this->is_enabled = $is_enabled;
-    }
+		$user = dbconn::execute_fetch_all('user-info', 's', $username);
+        if (count($user) != 1)
+            return false;
+
+        // Create user object            
+	    $u =  new User();
+		$u->username = $user[0]['user'];
+		$u->is_enabled = $user[0]['is_enabled'];
+		return $u;
+	}
 	
 	//! Reset password of user
 	public function reset_password($new_password)
@@ -100,8 +120,6 @@ class Waas extends IntraSessionSingleton
         - @b pre-logout(): Called when a user asks to logout just before the actual
             logout is done.
         - @b post-logout(): Called after a user has been logged out succesfully.
-        - @b create-user(username): Called when a new user has been added to the system.
-        - @b delete-user(username): Called when a user has been removed from system.
         .
     */
 	static public function events()
@@ -135,12 +153,10 @@ class Waas extends IntraSessionSingleton
 		// Check for users with that username and that password.
 		$count_records = dbconn::execute_fetch_all('user-validate', 'ss', $user, $pass);
 		if ($count_records[0][0] != 1)
-		{     dbg::log('Failed to login');
 		      return false;
-	    }
 
 		// Retrieve and save detailed info of user
-		$pthis->m_current_user = $pthis->get_user($user);
+		$pthis->m_current_user = User::open($user);
 		
 		// Regenerate session id to prevent session fixation
 		session_regenerate_id();
@@ -196,35 +212,6 @@ class Waas extends IntraSessionSingleton
 	{	// Get singleton instance
 		$pthis = self::get_instance();
 		return (!isset($pthis->m_current_user));
-	}
-	
-	//! Get a handler of registered user
-	/**
-	   Itt will return a User object of the user with the supplied username.
-	   If there is no user with that username the function will return false.
-	*/	   
-	static public function get_user($username)
-	{	
-	   $user = dbconn::execute_fetch_all('user-info', 's', $username);
-	   if (count($user) == 1)
-	       return new User($user[0]['user'], $user[0]['is_enabled']);
-	   return false;
-	}
-	
-	//! Add a new user to the database
-	/**
-	   It will try to create a new user in the database.
-	@return A User object of the new user or false in case of error.
-	*/
-	static public function create_user($username, $password)
-	{  
-		if (!$stm = dbconn::execute('user-create', 'ss', $username, $password))
-		{   dbg::log('error on creating user');
-		    dbg::log($stm->error);
-			return false;
-	    }
-			
-		return waas::get_user($username);
 	}
 	
 	//! Get the list of all users of the system

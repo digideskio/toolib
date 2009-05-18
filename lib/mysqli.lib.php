@@ -10,7 +10,7 @@
 class dbconn
 {
     //! Connection handler
-	static public $dbconn;
+	static private $dbconn;
 
     //! The array with all statemenets
     static private $stmts;
@@ -156,7 +156,7 @@ class dbconn
     static public function query($query)
     {   // Query db connection
         if (!$res = dbconn::$dbconn->query($query))
-            dbconn::raise_error('dbconn::query() error on executing query.' . dbconn::$dbconn->error);
+            dbconn::raise_error('dbconn::query(' . $query . ') error on executing query.' . dbconn::$dbconn->error);
 
         return $res;
     }
@@ -190,7 +190,7 @@ class dbconn
        	// Check if statement exist
        	if (!isset(dbconn::$stmts[$key]))
        	{
-       	    dbconn::raise_error('dbconn::execute() The supplied statement must first be prepared using dbconn::prepare().');
+       	    dbconn::raise_error('dbconn::execute(' . $key . ') The supplied statement must first be prepared using dbconn::prepare().');
        	    return false;
        	}
        	

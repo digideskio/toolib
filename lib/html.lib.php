@@ -9,7 +9,7 @@
     @code
     $mypage = new HTMLPage();
     $mypage->title = 'My Super Duper WebSite';
-    $mypage->add_ref_jscript('/js/jquery.js');
+    $mypage->add_ref_js('/js/jquery.js');
     $mypage->add_ref_css('/themes/fantastic.css');
     
     // Add data to body
@@ -31,6 +31,7 @@
     ob_start(array($mypage, 'append_data'));
 
     // Everything echoed here will be appended to html
+    echo 'Hello world';
     
     // Stop capturing and echo final page
     ob_end_clean();
@@ -46,7 +47,7 @@
     @code
     $mypage = new HTMLPage();
     $mypage->title = 'My Super Duper WebSite';
-    $mypage->add_ref_jscript('/js/jquery.js');
+    $mypage->add_ref_js('/js/jquery.js');
     $mypage->add_ref_css('/themes/fantastic.css');
     
     // Auto append data to html content
@@ -71,7 +72,7 @@
     echo 'Hello World';
     
     // At the end of the script all the objects will be destroyed, $auto_render too which
-    // will render the HTML page too "magically"
+    // will render the HTML page "magically"
     @endcode
 */
 class HTMLPage
@@ -92,7 +93,7 @@ class HTMLPage
     public $title = '';
     
 	//! Add a javascript reference
-	public function add_ref_jscript($script)
+	public function add_ref_js($script)
 	{
 	    $this->js_refs[] = sprintf('<script src="%s" language="JavaScript"></script>', $script);
 	}
