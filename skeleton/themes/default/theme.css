@@ -4,6 +4,12 @@ body {
 	background-color: #878790;
 }
 
+h1 { font: bold 18pt Helvetica; }
+h2 { font: bold 16pt Helvetica; }
+h3 { font: bold 14pt Helvetica; }
+h4 { font: bold 12pt Helvetica; }
+
+pre { font: normal 9pt Monospace; }
 body > div {
 	background-color: white;
 	margin: 10px;

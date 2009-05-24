@@ -95,7 +95,7 @@ class HTMLPage
 	//! Add a javascript reference
 	public function add_ref_js($script)
 	{
-	    $this->js_refs[] = sprintf('<script src="%s" language="JavaScript"></script>', $script);
+	    $this->js_refs[] = sprintf('<script src="%s" type="text/javascript"></script>', $script);
 	}
 	
 	//! Add a style sheet reference
@@ -116,7 +116,7 @@ class HTMLPage
         $r = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><html><head>';
         
         // Character set
-        $r .= '<meta http-equiv="Content-type" value="text/html; charset=' . $this->char_set . '" />';
+        $r .= '<meta http-equiv="Content-type" content="text/html; charset=' . $this->char_set . '" >';
 
         // Title
         $r .= '<title>' . $this->title . '</title>';
