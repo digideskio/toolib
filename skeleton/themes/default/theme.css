@@ -1,0 +1,185 @@
+* { margin: 0px; padding: 0px; font: 10pt Helvetica; }
+
+body {
+	background-color: #878790;
+}
+
+body > div {
+	background-color: white;
+	margin: 10px;
+	min-height:  400px;
+}
+
+.ui-clickable {
+	cursor:  pointer;
+}
+
+a {
+	text-decoration: none;
+	font-weight: bold;
+	color: #232323;
+}
+
+div.ui-menu {
+	display: inline-block;
+	margin-top: 22px;
+	margin-left: 180px;
+}
+
+div.ui-menu a{
+	color: white;
+}
+
+div.ui-menu span {
+	background-color: #545454;
+	color: white;
+	padding: 5px 7px;
+	margin: 0px 8px;
+	font-size: 13pt;
+	font-weight: bold;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    -webkit-border-top-left-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+}
+
+div.ui-menu span.ui-selected{
+	background-color: #ffffff;
+}
+
+div.ui-menu span.ui-selected a{
+	color: #232345;
+}
+
+div.ui-menu > span:hover{
+	background-color: #efefef;
+}
+
+div.ui-menu > span:hover a{
+	color: #232345;
+}
+
+/***************************
+   UI-Form
+ ***************************/
+
+div.ui-form > table
+{
+    border-spacing: 0px;
+    padding: 15px;
+    margin: 3px;
+    border: 2px solid #888888;
+    -moz-border-radius: 12px;
+    -webkit-border-radius: 12px;
+}
+
+div.ui-form th
+{
+    text-align: left;
+    padding: 10px 10px 10px 0px;
+    font-size: 16pt;
+    font-weight: bold;
+    color: #161632;
+}
+
+div.ui-form td
+{
+    padding: 5px 3px 5px 3px;
+    vertical-align: top;
+}
+
+
+span.ui-form-hint
+{
+    color: #9999AA;
+    font-style: italic;
+    font-size: 10pt;
+}
+
+span.ui-form-error
+{
+    color: #FF0000;
+    font-weight: bold;
+    font-size: 10pt;
+}
+
+
+/*************************
+   Organize divisions
+ **********************/
+body
+{
+    height:100%;
+    min-width:950px;
+}
+
+div#wrapper
+{
+    margin: 0px 15px;
+    background-color: #ffffff;
+    min-width: 800px;
+}
+
+div#navigation
+{
+    background-color: #353535;
+    color: #ffffff;
+    padding-left: 10px;
+/*    -moz-border-radius-bottomleft: 10px;
+    -moz-border-radius-bottomright: 10px;
+    -webkit-border-bottom-left-radius: 10px;
+    -webkit-border-bottom-right-radius: 10px;*/
+    height: 45px;
+}
+
+span#site-title{
+	position: absolute;
+	font-weight: bold;
+	font-size: 16pt;
+	top: 10px;
+	left: 40px;
+}
+div#login-panel
+{
+    position: absolute;
+    top: 10px;
+    right: 45px;
+}
+
+div#login-panel a
+{
+    color: #ffffff;
+}
+
+div#main
+{
+    padding: 10px 15px 10px 10px;
+    float: left;
+    min-width: 500px;
+    width: 75%;
+    min-height: 500px;
+}
+
+div#footer
+{
+    clear: both;
+    text-align: center;
+    border-top: 1px solid #999999;
+    color: #999999;
+    font-size: 9pt;
+    padding: 3px 0px 3px 0px;
+    margin: 10px 0px 0px 0px;
+}
+
+.ui-register
+{
+    margin: 30px auto 30px auto;
+    width: 300px;
+}
+
+.ui-login
+{
+    margin: 50px auto;
+    width: 300px;
+    Height: 100px;
+}

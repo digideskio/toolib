@@ -100,7 +100,6 @@ class SessionLog extends IntraSessionSingleton
         
             // Touch timestamp
             dbconn::execute('seslog-touch', 's', $pthis->cur_session_id);
-            dbg::log('Session log, touched');
         }
     }
     

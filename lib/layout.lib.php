@@ -78,8 +78,7 @@ class LayoutSection
 	    are capturing the ob and will stop them.
 	*/
 	public function get_from_ob()
-	{   dbg::log('Layout('. $this->name .')::switch_here()');
-	    $this->stop_capturing_ob();
+	{   $this->stop_capturing_ob();
         
         LayoutSection::$ob_capturing = true;
 	    ob_start(array($this, 'append_data'));    // Start a new one

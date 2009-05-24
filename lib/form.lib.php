@@ -242,8 +242,6 @@ class Form
         foreach($this->fields as $k => & $field)
         {   if (isset($_POST[$k]))
                 $field['value'] = $_POST[$k];
-            else
-                $field['value'] = "";
 
             // Regcheck
             $field['valid'] = true;
