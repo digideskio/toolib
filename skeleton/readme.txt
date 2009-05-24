@@ -27,3 +27,10 @@ A. Installation
 
 
 visit http://phplibs.kmfa.net/api.php for more information
+
+
+TroubleShoot:
+-----------------------
+
+* Page is rendered without style (white page with black letters no graphics)
+  > Edit config.inc.php and properly configure the $GS_site_root to reflect the relative root of your site.

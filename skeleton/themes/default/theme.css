@@ -27,9 +27,13 @@ a {
 }
 
 div.ui-menu {
-	display: inline-block;
-	margin-top: 22px;
-	margin-left: 180px;
+	position: absolute;
+	top:  20px;
+	left:  200px;
+	height: 500px;
+/*	display: inline-block;*/
+
+
 }
 
 div.ui-menu a{
@@ -38,6 +42,7 @@ div.ui-menu a{
 
 div.ui-menu span {
 	background-color: #545454;
+	display: inline-block;
 	color: white;
 	padding: 5px 7px;
 	margin: 0px 8px;

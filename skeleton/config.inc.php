@@ -19,8 +19,8 @@ $GS_db_schema = 'test';
 $GS_site_title = 'My New Site';
 
 // Path of this site
-$GS_site_root = '/phplibs/skeleton';
+$GS_site_root = '/skeleton';
 
 // Path to the libraries (relative or absolute)
-$GS_libs = '../';
+$GS_libs = '';
 ?>
