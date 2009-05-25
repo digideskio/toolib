@@ -30,10 +30,7 @@ div.ui-menu {
 	position: absolute;
 	top:  20px;
 	left:  200px;
-	height: 500px;
 /*	display: inline-block;*/
-
-
 }
 
 div.ui-menu a{
@@ -136,10 +133,6 @@ div#navigation
     background-color: #353535;
     color: #ffffff;
     padding-left: 10px;
-/*    -moz-border-radius-bottomleft: 10px;
-    -moz-border-radius-bottomright: 10px;
-    -webkit-border-bottom-left-radius: 10px;
-    -webkit-border-bottom-right-radius: 10px;*/
     height: 45px;
 }
 
