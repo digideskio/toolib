@@ -68,7 +68,7 @@ function dateSmartDiffFormat($ndate)
 }
 
 // Sample a part of the text and return the result with three dots at the end (if needed)
-function sampleText($text, $length)
+function text_sample($text, $length)
 {	$text_length = strlen($text);
 	
 	if ($text_length < $length)
@@ -97,6 +97,20 @@ function esc_js($str)
     $str = mb_ereg_replace("<", "\\x3C", $str); // for inclusion in HTML
     $str = mb_ereg_replace(">", "\\x3E", $str);
     return $str;
+}
+
+//! Escape new lines for html
+function esc_nl_html($str)
+{	$str = mb_ereg_replace("\r\n", "<br>", $str);
+	$str = mb_ereg_replace("\n", "<br>", $str);
+	$str = mb_ereg_replace("\r", "<br>", $str);
+	return $str;
+}
+
+// Find links in html text and linkfy them
+function linkify_urls($text, $replace_text = '<a href="${0}" target="_blank">${0}</a>')
+{
+	return preg_replace('/((?:http|ftp):\/\/[^\s\<\>]*)/im', $replace_text, $text);
 }
 
 //! Assure that a GET parameter is set and return it

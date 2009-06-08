@@ -150,27 +150,33 @@ class Form
         <b> The supported field parameters are: </b>
         - display: The text that will be displayed at the left of the input
         - type: [Default=text] The type of input control. Currently implemented are
-            ('text', 'password', 'dropbox', 'radio', 'checkbox', 'line', 'custom')
-        - options: [Default=array()]
-            An array with all the value options that will be displayed to user.
+            ('text', 'textarea', 'password', 'dropbox', 'radio', 'checkbox', 'line', 'custom')
+        - optionlist: [Default=array()]
+            An array with all the value options that will be displayed at this control.
             This is only needed for types that have mandatory options like (dropbox, radio).
             The array is given in format array(key1 => text1, key2 => text2)
             - key: The key name of this option. The result of the field is the @b key value of the selected option.
             - text: [Default: key] The text to be displayed for this option.
             .
-        - mustselect: [Default: true] If the type of input has options, it force you to set an option
+        - htmlattribs: [Default=array()]
+        	An array with extra attributes that you want to add at the input html element. For example you may
+        	want to define a custom maxlength of an input box this can be done by defining array('maxlength' => '20')
+        	in htmlattribs.\n htmlattribs is an associative array that the key is the html attribute name and
+        	value is the html attribute value.
         - value: [Optional] A predefined value for the input that will be displayed, or the key of the selection.
+        - mustselect: [Default: true] If the type of input has options, it force you to set an option
         - usepost: [Default=true, Exception type=password] If true it will assign value the posted one from user.
-        - hint: [Optional] A hint message for this input.
+        - hint: [Optional] A hint message for this field.
         - regcheck: [Optional] A regular expression that field must pass to be valid.
-        - onerror: [Optional] The error that will be displayed if regcheck fails.
+        - onerror: [Optional] The error that will be displayed if field is not valid (either by regchek or by manually
+        	using invalidate_field() function ).
         .\n\n
         A small example for $fields is the following
         @code
         new Form(
             array(
                 'name' => array('display' => 'Name', type='text'),
-                'sex' => array('display' => 'Sex', type='radio', options = array('m' => 'Male', 'f' => 'Female'))
+                'sex' => array('display' => 'Sex', type='radio', optionlist = array('m' => 'Male', 'f' => 'Female'))
             )
         );
         @endcode
@@ -180,13 +186,40 @@ class Form
         - title The title of the form.
         - submit The caption of the submit button.
         - css [Default = array()] An array with extra classes
+        - renderonconstruct [Default = true] The form is render immediatly at the constructor of the Form. If
+        	you set it false you can render the form using render() function of the created object at any place in your page.
         .\n\n
         @p Example:
-        @code
-        new Form(
+        @code        
+        Form::__construct(
             array(... fields ...),
             array('title' => 'My Duper Form', 'submit' => 'Ok')
         );
+        @endcode\n\n
+        @p Another example with @b renderonconstruct set to @b false:        
+        @code
+        
+        class MyForm extends Form
+	    {
+	        public __construct()
+	        {    Form::__construct(
+            array(... fields ...),
+            array('title' => 'My Duper Form', 'submit' => 'Ok', 'renderonconstruct' = false)
+	        }
+	        
+	        public function on_valid()
+	        {
+	            // Add your code here
+	        }
+	    }
+	    
+	    // Create process and process input
+	    $nufrm = new MyForm();
+	    
+	    echo 'this will be displayed before the form';
+	    
+	    // Now render the form here
+	    $nufrm->render();	    
         @endcode
     */
     public function __construct($fields = array(), $options = array())
@@ -197,7 +230,10 @@ class Form
         // Initialize default values for options
         if (!isset($this->options['css']))
             $this->options['css'] = array();
-        
+
+        if (!isset($this->options['renderonconstruct']))
+            $this->options['renderonconstruct'] = true;
+                    
         // Initialize default values for fields
         foreach($this->fields as & $field)
         {   // Type
@@ -208,14 +244,17 @@ class Form
             if (!isset($field['usepost']))
                 $field['usepost'] = ($field['type'] == 'password')?false:true;
                 
-            // Options
-            if (!isset($field['options']))
-                $field['options'] = array();
-            
+            // optionlist
+            if (!isset($field['optionlist']))
+                $field['optionlist'] = array();
+
+            // Must select
+            if (!isset($field['htmlattribs']))
+                $field['htmlattribs'] = array();
+                            
             // Must select
             if (!isset($field['mustselect']))
                 $field['mustselect'] = true;
-            
         }
         unset($field);
         
@@ -223,7 +262,8 @@ class Form
         $this->process_post();
         
         // Render the form
-        $this->render();
+        if ($this->options['renderonconstruct'])
+	        $this->render();
     }
     
     //! Process the posted data
@@ -357,9 +397,19 @@ class Form
             return false;
         $this->fields[$fname]['display'] = $display;
     }
-        
+    
+    //! Internal function to render extra html attributes of a field
+    private function _extra_attribs($field)
+    {	$attributes = $field['htmlattribs'];
+    
+    	$extra_attribs = '';
+    	foreach($attributes as $attr_name => $attr_value)
+    		$extra_attribs .= esc_html($attr_name) . '="' . esc_html($attr_value) . '" ';
+		return $extra_attribs;
+    }
+    
     //! Render the form
-    private function render()
+    public function render()
     {   echo '<form method="post">';
         echo '<div class="ui-form';
         foreach($this->options['css'] as $cls)
@@ -380,8 +430,7 @@ class Form
                 echo ' colspan="2"><hr>';
                 continue;
             }
-            
-        
+
             // Show input pertype
             if (isset($field['error']) || isset($field['hint']))
                   echo ' rowspan="2" ';
@@ -390,22 +439,27 @@ class Form
             {
             case 'text':
             case 'password':
-                echo '<input name="' . esc_html($id) . '" type="' . esc_html($field['type']) . '" ';
+                echo '<input ' . $this->_extra_attribs($field) . ' name="' . esc_html($id) . '" type="' . esc_html($field['type']) . '" ';
                 if (($field['usepost']) && isset($field['value'])) echo 'value="' . esc_html($field['value']) . '"';
                 echo '>';
                 break;
+            case 'textarea':
+                echo '<textarea ' . $this->_extra_attribs($field) . ' name="' . esc_html($id) . '" >';
+                if (($field['usepost']) && isset($field['value'])) echo esc_html($field['value']);
+                echo '</textarea>';
+                break;
             case 'radio':
-                foreach($field['options'] as $opt_key => $opt_text)
+                foreach($field['optionlist'] as $opt_key => $opt_text)
                 {
-                    echo '<input name="' . esc_html($id) . '" ';
+                    echo '<input ' . $this->_extra_attribs($field) . ' name="' . esc_html($id) . '" ';
                     if (($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))
                         echo 'checked="checked" ';
                     echo 'type="radio" value="' . esc_html($opt_key) . '">&nbsp;' . esc_html($opt_text) . '&nbsp;&nbsp;&nbsp;&nbsp;';
                 }
                 break;
             case 'dropbox':
-                echo '<select name="' . esc_html($id) . '">';
-                foreach($field['options'] as $opt_key => $opt_text)
+                echo '<select ' . $this->_extra_attribs($field) . ' name="' . esc_html($id) . '">';
+                foreach($field['optionlist'] as $opt_key => $opt_text)
                 {
                     echo '<option ';
                     if (($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))
@@ -415,7 +469,7 @@ class Form
                 echo '</select>';
                 break;
             case 'checkbox':
-                echo '<input type="checkbox" name="' . esc_html($id) .'" ';
+                echo '<input ' . $this->_extra_attribs($field) . ' type="checkbox" name="' . esc_html($id) .'" ';
                 if (($field['usepost']) && isset($field['value']) && ($field['value'] == 'on'))
                         echo 'checked="checked" ';
                 echo '>';
