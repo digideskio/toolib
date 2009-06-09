@@ -39,7 +39,7 @@
                     'password1' => array('display' => 'Password', type='password'),
                     'password2' => array('display' => 'Retype password', type='password')
                 ),
-                array('title' => 'New user', 'submit' => 'create')
+                array('title' => 'New user', 'buttons' => array('create' => array())
         }
         
         public function on_valid()
@@ -184,7 +184,20 @@ class Form
         @param $options An associative array with the options of the form.\n
         Valid array keys are:
         - title The title of the form.
-        - submit The caption of the submit button.
+        - buttons [Default = array('submit' => array())\n
+        	An associative array of all form buttons. Each item of array has a unique key and an array with parameters
+        	of the button. Valid parameters are:
+        	- display [Default same as button id]: The text on the buttom.
+        	- type [Default=submit] Three types are valid "submit", "reset" and "button". Submit and reset are
+        		self-explained types. Button is a general type that does nothing, but you can enchanch it
+        		with "onclick" parameter of buttons
+        	- onclick [Default=""] Custom user defined javascript that will be executed when user clicks
+        		on this button.
+        	- htmlattribs: [Default=array()]
+        		An array with extra attributes that you want to add at the input html element.\n
+        		htmlattribs is given as an associative array where the key is the html attribute name and
+	        	value is the html attribute value.
+        	.
         - css [Default = array()] An array with extra classes
         - renderonconstruct [Default = true] The form is render immediatly at the constructor of the Form. If
         	you set it false you can render the form using render() function of the created object at any place in your page.
@@ -204,7 +217,7 @@ class Form
 	        public __construct()
 	        {    Form::__construct(
             array(... fields ...),
-            array('title' => 'My Duper Form', 'submit' => 'Ok', 'renderonconstruct' = false)
+            array('title' => 'My Duper Form', 'renderonconstruct' = false, 'buttons' => array('ok' => array('display' => 'Ok'))
 	        }
 	        
 	        public function on_valid()
@@ -233,7 +246,10 @@ class Form
 
         if (!isset($this->options['renderonconstruct']))
             $this->options['renderonconstruct'] = true;
-                    
+
+		if (!isset($this->options['buttons']))
+            $this->options['buttons'] = array('submit' => array());
+            
         // Initialize default values for fields
         foreach($this->fields as & $field)
         {   // Type
@@ -257,6 +273,28 @@ class Form
                 $field['mustselect'] = true;
         }
         unset($field);
+        
+        // Initialize default values for buttons
+        foreach($this->options['buttons'] as $but_id => & $button)
+        {
+        	// Type
+        	if (!isset($button['type']))
+        		$button['type'] = 'submit';
+
+			// Display
+        	if (!isset($button['display']))
+        		$button['display'] = $but_id;
+
+			// Onclick event
+        	if (!isset($button['onclick']))
+        		$button['onclick'] = '';
+        	
+        	// Onclick event
+        	if (!isset($button['htmlattribs']))
+        		$button['htmlattribs'] = array();
+        	
+        }
+        unset($button);
         
         // Process post
         $this->process_post();
@@ -486,9 +524,32 @@ class Form
                 echo '<tr><td><span class="ui-form-hint">' . esc_html($field['hint']) . '</span>';
         }
         
-        // Render button
-        echo '<tr><td colspan="2"><input type="submit"' . 
-            (isset($this->options['submit'])?'value="' . esc_html($this->options['submit']) . '"':'') . '>';
+        // Render buttons
+        echo '<tr><td colspan="2">';
+        foreach($this->options['buttons'] as $but_id => $but_parm)
+        {
+        	echo '<input ';
+        	
+        	// Type
+			if ($but_parm['type'] == 'submit')
+				echo 'type="submit"';
+			else if ($but_parm['type'] == 'reset')
+				echo 'type="reset"';
+			else
+				echo 'type="button"';
+			
+			// Onclick
+			if ($but_parm['onclick'] != '')
+				echo ' onclick="' . $but_parm['onclick'] . '"';
+			
+			// Extra attributes
+			foreach($but_parm['htmlattribs'] as $attr_name => $attr_value)
+				echo ' ' . esc_html($attr_name) . '="' . esc_html($attr_value) . '"';
+
+			// Standard parameters
+			echo ' name="' . esc_html($but_id) . '" value ="' . esc_html($but_parm['display']) .'">';
+        }
+        
         echo '</table>';
         echo '</div>';
         echo '</form>';

@@ -1,0 +1,211 @@
+body, html {
+	background-color: #1E283B;
+}
+
+body > div {
+	background-color: white;
+}
+
+h1 {  color: #354668; }
+h2 {  color: #354668; }
+h3 {  color: #354668; }
+h4 {  color: #354668; }
+h5 {  color: #354668; }
+h6 {  color: #354668; }
+
+.ui-clickable {
+	cursor:  pointer;
+}
+
+a {
+	text-decoration: none;
+	font-weight: bold;
+	color: #6488c9;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+/***************************
+   UI-Menu
+ ***************************/
+
+div.ui-menu {
+	color: white;
+}
+
+
+div.ui-menu span {
+/*	background-color: #2B374E; */
+	background: #1E283B;
+	color: #dedeef;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    -webkit-border-top-left-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+
+}
+
+div.ui-menu a:hover
+{
+	text-decoration: none;
+}
+
+div.ui-menu span.ui-selected{
+	background: #ffffff;
+	color: #232345;
+}
+
+div.ui-menu span:hover{
+	background: #efefef;
+	color: #232345;
+}
+
+/***************************
+   UI-Form
+ ***************************/
+
+div.ui-form > table
+{
+    background-color: #e1ecfa;
+	border-bottom:  1px solid #787878;
+	border-right:  1px solid  #787878;
+	border-top:  1px solid #dedeff;
+	border-left:  1px solid  #dedeff;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+}
+
+div.ui-form th
+{
+    color: #354668;
+    text-align: left;
+    padding: 0px 5px 15px 5px;
+    margin: 30px;
+/*	border-bottom: 1px solid #8da2c9;*/
+}
+
+div.ui-form td
+{
+    vertical-align: top;
+}
+
+div.ui-form input
+{
+	height: 20px;
+}
+
+div.ui-form td[colspan="2"]
+{
+    text-align: right;
+}
+
+span.ui-form-hint
+{
+    color: #9999AA;
+    font-style: italic;
+}
+
+span.ui-form-error
+{
+    color: #FF0000;
+}
+
+
+/***************************
+   UI-Grid
+ ***************************/
+
+div.ui-grid caption
+{
+	font-style: italic;
+	text-align: right;
+}
+
+div.ui-grid > table
+{
+	border-left: 1px solid #c1cada;
+}
+div.ui-grid > table th
+{
+	color: #4f5b72;
+	border-right: 1px solid #c1cada;
+	border-bottom: 1px solid #c1cada;
+	border-top: 1px solid #c1cada;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	text-align: left;
+	background: #cad5ea url('images/bg_header.jpg') no-repeat;
+}
+
+div.ui-grid > table td
+{
+	border-right: 1px solid #c1cada;
+	border-bottom: 1px solid #c1cada;
+	background: #fff;
+	color: #6d7d9b;
+}
+
+div.ui-grid > table tr.ui-even td
+{
+	background: #f5f7fa;
+	color: #6d7d9b;
+
+}
+
+div.ui-grid > table tr:hover td
+{
+	background: #e1e6ef;
+	color: #b3b49d;
+}
+
+/********************
+	UI-Small-banner
+ ********************/
+.ui-small-banner
+{
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	background-color: #6488c9;
+}
+
+.ui-small-banner a
+{
+	color: #ffffff;
+}
+
+/*************************
+   Organize divisions
+ **********************/
+
+div#wrapper
+{
+    background-color: #ffffff;
+}
+
+div#navigation
+{
+    background: #1E283B url('images/navigation-bg-blue.png') repeat-x bottom center ;
+    color: #ffffff;
+}
+
+div#login-panel a
+{
+    color: #ffffff;
+}
+
+
+div#footer
+{
+    text-align: center;
+    border-top: 1px solid #999999;
+    font-size: 9pt;
+	color: #999999;
+}
+
+div#footer a
+{
+    font-size: 9pt;
+	color: #999999;
+}
+

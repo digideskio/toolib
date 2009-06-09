@@ -1,0 +1,262 @@
+body, html{
+	min-width: 950px;
+}
+
+table caption
+{
+	font-style: italic;
+	text-align: right;
+}
+/********************
+	Issues UI
+ ********************/
+
+div.ui-issues
+{
+	margin: 10px 50px 10px;
+}
+
+.ui-issue-fixed, .ui-issue-fixed td
+{
+	text-decoration: line-through;
+}
+
+.ui-issue-open, .ui-issue-open td
+{
+	font-weight: bold;
+}
+
+/***********************
+  UI-Issues-right-panel
+ **********************/
+div.ui-issues-right-panel
+{
+	position: absolute;
+	top:  90px;
+	right: 20px;
+
+}
+
+div.ui-statistics-chart
+{
+	margin: 10px 0px;
+}
+
+/********************
+	UI-Issue(FORM)
+ ********************/
+.ui-form-issue
+{
+	width: 500px;
+	margin: 30px auto;
+}
+
+.ui-form-issue table
+{
+	width: 500px;
+}
+
+.ui-form-issue table input[type="text"]
+{
+	width: 400px;
+}
+
+.ui-form-issue table textarea
+{
+	width: 400px;
+	height: 150px;
+	font-family: monospace;
+}
+
+/********************
+	UI-Issue (VIEW)
+ ********************/
+.ui-issue
+{
+	float:  left;
+	width:  600px;
+	padding: 15px 30px;
+}
+
+.ui-issue h1
+{
+	color: #354668;
+	font-size: 18pt;
+	padding: 10px 0px 10px 0px;
+	text-align:  left;
+}
+
+.ui-issue table
+{
+	background-color: #e1ecfa;
+	border-bottom:  1px solid #787878;
+	border-right:  1px solid  #787878;
+	border-top:  1px solid #dedeff;
+	border-left:  1px solid  #dedeff;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+	border-spacing: 0px;
+	width:  100%;
+}
+
+.ui-issue-title
+{
+	color: #354668;
+	font-size: 15pt;
+	padding: 10px 15px 10px 15px;
+	border-bottom: 1px solid #232323;
+	text-align:  left;
+}
+
+.ui-issue-desc
+{
+    background-color: transparent;
+	padding: 10px;
+	font-size: 11pt;
+	font-family: monospace;
+	vertical-align: top;
+	height: 150px;
+	color: #454545;
+}
+
+/********************
+	UI-Issue-Post (VIEW)
+ ********************/
+
+.ui-issue-post
+{
+	margin: 15px 0px;
+}
+
+.ui-issue-post table
+{
+}
+
+.ui-issue-post table td
+{
+	padding: 8px 10px;
+	height: 50px;
+	vertical-align: top;
+}
+
+.ui-issue-post table caption
+{
+	text-align:  left;
+	font-style: normal;
+	color: #585858;
+	font-size: 9pt;
+	
+}
+.ui-issue-post .ui-newstatus
+{
+	color: #aeaeae;
+	font-size: 10pt;
+	font-style: italic;
+	font-weight: bold;
+	border-top: 1px solid #aeaeae;
+	height: auto;
+}
+/**************************
+	UI-Issue-status (VIEW)
+ **************************/
+
+.ui-issue-status
+{
+	position: absolute;
+	top:  90px;
+	right: 30px;
+	width:  200px;
+	padding: 30px 30px;
+}
+
+.ui-issue-status table
+{
+	background-color: #fff8bd;
+	border-bottom:  1px solid #787878;
+	border-right:  1px solid  #787878;
+	border-top:  1px solid #dedeef;
+	border-left:  1px solid  #dedeef;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+	border-spacing: 0px;
+	width:  100%;
+	padding: 10px;
+}
+
+
+.ui-issue-status table th
+{
+	padding: 5px 5px;
+	text-align: left;
+	width: 70px;
+	font-weight: normal;
+	vertical-align: top;
+}
+
+
+.ui-issue-status table td
+{
+	padding: 5px 5px;
+	text-align: left;
+	font-weight: bold;
+}
+
+/***********************
+  UI-issue-postadd
+ ***********************/
+ 
+.ui-issue-postadd
+{
+	margin: 15px 0px 0px 0px;
+	width: 150px;
+	float: right;
+}
+
+/**************************
+  UI-form-new-post
+ *************************/
+ 
+.ui-form-newpost textarea
+{
+	width: 450px;
+	height: 150px;
+}
+.ui-form-newpost
+{
+	display: none;
+	margin: 15px 0px;
+}
+
+/**************************
+  UI-form-add-tag
+ *************************/
+ 
+div.ui-form-addtag
+{
+	display: none;
+	margin:  0px;
+	padding: 0px;
+	background-color: transparent;
+	border: 0px;
+}
+
+div.ui-form-addtag input[type="text"]
+{
+	width: 100px;
+}
+
+div.ui-form-addtag table
+{
+	margin:  0px;
+	padding: 0px;
+	background-color: transparent;
+	border: 0px;
+}
+
+div.ui-form-addtag table td, div.ui-form-addtag table th
+{
+	margin:  0px;
+	padding: 0px;
+	background-color: transparent;
+	border: 0px;
+}

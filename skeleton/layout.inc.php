@@ -13,7 +13,9 @@ $html->title = ".: " . $GS_site_title . " :.";
 $html->add_ref_js(rpath('/js/jquery.js'));
 
 // Add theme
-$html->add_ref_css(rpath('/themes/default/theme.css?').rand());
+$html->add_ref_css(rpath('/themes/default/layout.css'));
+$html->add_ref_css(rpath('/themes/default/blue.css'));
+$html->add_ref_css(rpath('/themes/default/phplibs-extra.css'));
 
 // Layouts
 $layout = new Layout();
@@ -25,9 +27,9 @@ function layout_create_navigation()
     if (!isset($sel_menu)) $sel_menu = 'home';
 	echo '<span id="site-title">'.$GS_site_title.'</span>';
 	echo '<div class="ui-menu">';
-    echo '<span class="ui-clickable' . (($sel_menu == 'home')?' ui-selected':'') . '">' . a('/', 'Home') . '</span>';
-	echo '<span class="ui-clickable' . (($sel_menu == 'section1')?' ui-selected':'') . '">' . a('/section1.php', 'Section 1') . '</span>';
-	echo '<span class="ui-clickable' . (($sel_menu == 'section2')?' ui-selected':'') . '">' . a('/section2.php', 'Section 2') . '</span>';
+    echo '<a href="' . rpath('/') . '"><span class="ui-clickable' . (($sel_menu == 'home')?' ui-selected':'') . '">Home</span></a>';
+    echo '<a href="' . rpath('/section1.php') . '"><span class="ui-clickable' . (($sel_menu == 'section1')?' ui-selected':'') . '">Section 1</span></a>';
+    echo '<a href="' . rpath('/section2.php') . '"><span class="ui-clickable' . (($sel_menu == 'section2')?' ui-selected':'') . '">Section 2</span></a>';
     echo '</div>';
 
     echo '<div id="login-panel">';
@@ -44,7 +46,7 @@ $layout->s('main');
 
 // Footer
 $layout->s('footer')->get_from_ob();
-echo a('/about.php', 'About "' . $GS_site_title . '"');
+echo 'Copyright (C) 2009 ' . a('/', $GS_site_title );
 
 // Switch to main section rednering
 $layout->s('main')->get_from_ob();

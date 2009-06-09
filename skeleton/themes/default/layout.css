@@ -1,7 +1,18 @@
-* { margin: 0px; padding: 0px; font: 10pt Helvetica; }
+/*******************************
+ Layout css has everything except of
+ * Background
+ * Color
+ * Borders
+ * Text alignement
+ * Test style and decoration
+*/
+* { margin: 0px; padding: 0px; }
 
-body {
-	background-color: #878790;
+body, html {
+	font: normal 10pt Helvetica; 
+}
+table {
+	font: normal 10pt Helvetica; 
 }
 
 h1 { font: bold 18pt Helvetica; }
@@ -10,63 +21,31 @@ h3 { font: bold 14pt Helvetica; }
 h4 { font: bold 12pt Helvetica; }
 
 pre { font: normal 9pt Monospace; }
+
 body > div {
-	background-color: white;
 	margin: 10px;
 	min-height:  400px;
 }
 
-.ui-clickable {
-	cursor:  pointer;
-}
-
-a {
-	text-decoration: none;
-	font-weight: bold;
-	color: #232323;
-}
+/***************************
+   UI-Menu
+ ***************************/
 
 div.ui-menu {
 	position: absolute;
-	top:  20px;
+	top:  29px;
 	left:  200px;
-/*	display: inline-block;*/
 }
 
-div.ui-menu a{
-	color: white;
-}
 
 div.ui-menu span {
-	background-color: #545454;
 	display: inline-block;
-	color: white;
-	padding: 5px 7px;
+	padding: 7px 7px 3px 7px;
 	margin: 0px 8px;
-	font-size: 13pt;
+	font-size: 10pt;
 	font-weight: bold;
-    -moz-border-radius-topleft: 5px;
-    -moz-border-radius-topright: 5px;
-    -webkit-border-top-left-radius: 5px;
-	-webkit-border-top-right-radius: 5px;
+	height:  16px;
 }
-
-div.ui-menu span.ui-selected{
-	background-color: #ffffff;
-}
-
-div.ui-menu span.ui-selected a{
-	color: #232345;
-}
-
-div.ui-menu > span:hover{
-	background-color: #efefef;
-}
-
-div.ui-menu > span:hover a{
-	color: #232345;
-}
-
 /***************************
    UI-Form
  ***************************/
@@ -76,18 +55,13 @@ div.ui-form > table
     border-spacing: 0px;
     padding: 15px;
     margin: 3px;
-    border: 2px solid #888888;
-    -moz-border-radius: 12px;
-    -webkit-border-radius: 12px;
 }
 
 div.ui-form th
 {
-    text-align: left;
     padding: 10px 10px 10px 0px;
     font-size: 16pt;
     font-weight: bold;
-    color: #161632;
 }
 
 div.ui-form td
@@ -99,18 +73,59 @@ div.ui-form td
 
 span.ui-form-hint
 {
-    color: #9999AA;
     font-style: italic;
     font-size: 10pt;
 }
 
 span.ui-form-error
 {
-    color: #FF0000;
     font-weight: bold;
     font-size: 10pt;
 }
 
+div.ui-form input[type="submit"], div.ui-form input[type="reset"], div.ui-form input[type="button"]
+{
+    margin-left: 12px;
+}
+
+/***************************
+   UI-Grid
+ ***************************/
+div.ui-grid > table
+{
+    border-spacing: 0px;
+}
+
+div.ui-grid caption
+{
+	padding: 0 0 5px 0;
+	font: italic 11px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+}
+
+div.ui-grid > table th
+{
+	font: bold 11px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	padding: 6px 6px 6px 12px;
+}
+
+div.ui-grid > table td
+{
+	padding: 6px 6px 6px 12px;
+}
+
+/********************
+	UI-Small-banner
+ ********************/
+.ui-small-banner
+{
+	padding: 10px;
+}
+
+.ui-small-banner img
+{
+	border: 0px;
+	margin: 0px 3px;
+}
 
 /*************************
    Organize divisions
@@ -124,23 +139,18 @@ body
 div#wrapper
 {
     margin: 0px 15px;
-    background-color: #ffffff;
-    min-width: 800px;
 }
 
 div#navigation
 {
-    background-color: #353535;
-    color: #ffffff;
-    padding-left: 10px;
-    height: 45px;
+    height: 55px;
 }
 
 span#site-title{
 	position: absolute;
 	font-weight: bold;
-	font-size: 16pt;
-	top: 10px;
+	font-size: 18pt;
+	top: 18px;
 	left: 40px;
 }
 div#login-panel
@@ -150,34 +160,27 @@ div#login-panel
     right: 45px;
 }
 
-div#login-panel a
-{
-    color: #ffffff;
-}
 
 div#main
 {
     padding: 10px 15px 10px 10px;
-    float: left;
+/*    float: left; */
     min-width: 500px;
-    width: 75%;
+    width: auto;
     min-height: 500px;
 }
 
 div#footer
 {
     clear: both;
-    text-align: center;
-    border-top: 1px solid #999999;
-    color: #999999;
     font-size: 9pt;
-    padding: 3px 0px 3px 0px;
+    padding: 8px 0px;
     margin: 10px 0px 0px 0px;
 }
 
 .ui-register
 {
-    margin: 30px auto 30px auto;
+    margin: 50px auto 30px auto;
     width: 300px;
 }
 
