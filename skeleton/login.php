@@ -20,6 +20,7 @@ if (WAAS::current_user_is_anon())
 				),
 				array('title' => $GS_site_title . ' Login', 'css' => array('ui-login'),
 					'buttons' => array('login' => array('display' =>'Login'))
+				)
 			);
 		}
 		public function on_post()

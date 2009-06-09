@@ -83,6 +83,9 @@ class HTMLPage
     //! Style sheet references
     private $css_refs = array();
    
+	//! Extra meta tags
+	private $extra_meta = array();
+	
     //! Contents of body
     private $body_data = '';
 
@@ -104,6 +107,24 @@ class HTMLPage
     	$this->css_refs[] = sprintf('<link rel="stylesheet" type="text/css" href="%s">', $script);
 	}
     
+    //! Add a new meta data entry
+    /**
+    	@param $content The value of meta element's content attribute
+    	@param $extra_html_attribs An array with extra attributes that you want to set at this meta element.\n
+    		Attributes are given as an associative array where key is the attribute name and value is the 
+    		attribute value.\n
+    		Example:\n
+    		@code
+    		$myhtml->add_meta('text/html;charset=ISO-8859-1', array('http-equiv' => 'Content-Type'));
+    		@endcode
+    */
+    public function add_meta($content, $extra_html_attribs = array())
+    {
+    	$meta_el = $extra_html_attribs;
+    	$meta_el['content'] = $content;
+    	$this->extra_meta[] = $meta_el;
+    }
+    
     //! Append data in the body content
     public function append_data($str)
     {
@@ -118,6 +139,15 @@ class HTMLPage
         // Character set
         $r .= '<meta http-equiv="Content-type" content="text/html; charset=' . $this->char_set . '" >';
 
+		// Extra meta data
+		foreach($this->extra_meta as $meta)
+		{	
+			$r .= '<meta';
+			foreach($meta as $name => $value)
+				$r .= ' ' . esc_html($name) . '="' . esc_html($value) . '"';
+			$r .= ' >';
+		}
+		
         // Title
         $r .= '<title>' . $this->title . '</title>';
         foreach ($this->css_refs as $css_ref)
