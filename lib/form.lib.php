@@ -36,8 +36,8 @@
         {    Form::__construct(
                 array(
                     'username' => array('display' => 'Username'),
-                    'password1' => array('display' => 'Password', type='password'),
-                    'password2' => array('display' => 'Retype password', type='password')
+                    'password1' => array('display' => 'Password', 'type' => 'password'),
+                    'password2' => array('display' => 'Retype password', 'type' =>'password')
                 ),
                 array('title' => 'New user', 'buttons' => array('create' => array())
         }
@@ -176,7 +176,7 @@ class Form
         new Form(
             array(
                 'name' => array('display' => 'Name', type='text'),
-                'sex' => array('display' => 'Sex', type='radio', optionlist = array('m' => 'Male', 'f' => 'Female'))
+                'sex' => array('display' => 'Sex', type='radio', 'optionlist' = array('m' => 'Male', 'f' => 'Female'))
             )
         );
         @endcode
@@ -206,7 +206,7 @@ class Form
         @code        
         Form::__construct(
             array(... fields ...),
-            array('title' => 'My Duper Form', 'submit' => 'Ok')
+            array('title' => 'My Duper Form', 'buttons' => array('ok' => array('display' => 'Ok'))
         );
         @endcode\n\n
         @p Another example with @b renderonconstruct set to @b false:        
@@ -215,9 +215,9 @@ class Form
         class MyForm extends Form
 	    {
 	        public __construct()
-	        {    Form::__construct(
-            array(... fields ...),
-            array('title' => 'My Duper Form', 'renderonconstruct' = false, 'buttons' => array('ok' => array('display' => 'Ok'))
+	        {   Form::__construct(
+            	array(... fields ...),
+            	array('title' => 'My Duper Form', 'renderonconstruct' = false, 'buttons' => array('ok' => array('display' => 'Ok'))
 	        }
 	        
 	        public function on_valid()
