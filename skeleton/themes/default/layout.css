@@ -22,7 +22,7 @@ h4 { font: bold 12pt Helvetica; }
 
 pre { font: normal 9pt Monospace; }
 
-body > div {
+div#wrapper {
 	margin: 10px;
 	min-height:  400px;
 }
@@ -50,7 +50,7 @@ div.ui-menu span {
    UI-Form
  ***************************/
 
-div.ui-form > table
+div.ui-form table
 {
     border-spacing: 0px;
     padding: 15px;
@@ -91,7 +91,7 @@ div.ui-form input[type="submit"], div.ui-form input[type="reset"], div.ui-form i
 /***************************
    UI-Grid
  ***************************/
-div.ui-grid > table
+div.ui-grid table
 {
     border-spacing: 0px;
 }
@@ -102,13 +102,13 @@ div.ui-grid caption
 	font: italic 11px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
 }
 
-div.ui-grid > table th
+div.ui-grid table th
 {
 	font: bold 11px "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
 	padding: 6px 6px 6px 12px;
 }
 
-div.ui-grid > table td
+div.ui-grid table td
 {
 	padding: 6px 6px 6px 12px;
 }
@@ -166,8 +166,8 @@ div#main
     padding: 10px 15px 10px 10px;
 /*    float: left; */
     min-width: 500px;
-    width: auto;
     min-height: 500px;
+    width: auto;
 }
 
 div#footer

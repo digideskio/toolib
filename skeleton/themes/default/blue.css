@@ -2,7 +2,7 @@ body, html {
 	background-color: #1E283B;
 }
 
-body > div {
+div#wrapper {
 	background-color: white;
 }
 
@@ -65,7 +65,7 @@ div.ui-menu span:hover{
    UI-Form
  ***************************/
 
-div.ui-form > table
+div.ui-form table
 {
     background-color: #e1ecfa;
 	border-bottom:  1px solid #787878;
@@ -74,6 +74,7 @@ div.ui-form > table
 	border-left:  1px solid  #dedeff;
     -moz-border-radius: 8px;
     -webkit-border-radius: 8px;
+    width:  100%;
 }
 
 div.ui-form th
@@ -116,29 +117,31 @@ span.ui-form-error
    UI-Grid
  ***************************/
 
-div.ui-grid caption
+
+div.ui-grid .ui-grid-title
 {
 	font-style: italic;
 	text-align: right;
 }
 
-div.ui-grid > table
+div.ui-grid table.ui-grid-list
 {
+	width:  100%;
+	border-top: 1px solid #c1cada;
 	border-left: 1px solid #c1cada;
 }
-div.ui-grid > table th
+div.ui-grid table.ui-grid-list th
 {
 	color: #4f5b72;
 	border-right: 1px solid #c1cada;
 	border-bottom: 1px solid #c1cada;
-	border-top: 1px solid #c1cada;
 	letter-spacing: 2px;
 	text-transform: uppercase;
 	text-align: left;
 	background: #cad5ea url('images/bg_header.jpg') no-repeat;
 }
 
-div.ui-grid > table td
+div.ui-grid table.ui-grid-list td
 {
 	border-right: 1px solid #c1cada;
 	border-bottom: 1px solid #c1cada;
@@ -146,17 +149,78 @@ div.ui-grid > table td
 	color: #6d7d9b;
 }
 
-div.ui-grid > table tr.ui-even td
+div.ui-grid table.ui-grid-list tr.ui-even td
 {
 	background: #f5f7fa;
 	color: #6d7d9b;
 
 }
 
-div.ui-grid > table tr:hover td
+div.ui-grid table.ui-grid-list tr:hover td
 {
 	background: #e1e6ef;
 	color: #b3b49d;
+}
+
+div.ui-grid .ui-grid-page-controls{
+	padding: 3px 2px;
+	width: 100%;
+}
+div.ui-grid .ui-grid-page-controls td
+{
+	background: transparent;
+	color: #4f5b72;
+	font-size: 9pt;
+	padding: 0px;
+	margin: 0px;
+}
+
+.ui-grid-previous, .ui-grid-next
+{
+	font-weight: bold;
+}
+
+span.ui-grid-first:hover, span.ui-grid-previous:hover, span.ui-grid-next:hover, span.ui-grid-last:hover
+{
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.ui-grid-next
+{
+	background: url('images/arrowRight.png') no-repeat right center;
+	padding-right: 14px;
+}
+
+.ui-grid-previous
+{
+	background: url('images/arrowLeft.png') no-repeat left center;
+	padding-left: 14px;
+}
+
+div.ui-grid span.ui-grid-inactive
+{
+	font-weight: normal;
+	color: #cecece;
+	padding:  0px;
+}
+
+div.ui-grid span.ui-grid-inactive.ui-grid-next
+{
+	background: url('images/arrowRight-inactive.png') no-repeat right center;
+	padding-right: 14px;
+}
+
+div.ui-grid span.ui-grid-inactive.ui-grid-previous
+{
+	background: url('images/arrowLeft-inactive.png') no-repeat left center;
+	padding-left: 14px;
+}
+
+div.ui-grid span.ui-grid-inactive:hover
+{
+	text-decoration: none;
+	cursor: auto;
 }
 
 /********************
@@ -172,6 +236,11 @@ div.ui-grid > table tr:hover td
 .ui-small-banner a
 {
 	color: #ffffff;
+}
+
+.ui-small-banner img
+{
+	vertical-align: middle;
 }
 
 /*************************
