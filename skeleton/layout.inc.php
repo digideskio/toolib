@@ -15,7 +15,6 @@ $html->add_ref_js(rpath('/js/jquery.js'));
 // Add theme
 $html->add_ref_css(rpath('/themes/default/layout.css'));
 $html->add_ref_css(rpath('/themes/default/blue.css'));
-$html->add_ref_css(rpath('/themes/default/phplibs-extra.css'));
 
 // Layouts
 $layout = new Layout();
