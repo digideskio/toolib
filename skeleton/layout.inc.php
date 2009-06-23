@@ -44,8 +44,14 @@ $layout->s('navigation')->set_render_func('layout_create_navigation');
 $layout->s('main');
 
 // Footer
-$layout->s('footer')->get_from_ob();
-echo 'Copyright (C) 2009 ' . a('/', $GS_site_title );
+function layout_create_footer()
+{
+	echo 'Copyright (C) 2009 ' . a('/', $GLOBALS['GS_site_title'] );
+	printf(' <br><span class="ui-process-time">%4.3f secs</span>', (microtime(true) - $GLOBALS['start_time']));
+	if (isset($GLOBALS['GS_ga']))
+		ga_code($GLOBALS['GS_ga']);
+}
+$layout->s('footer')->set_render_func('layout_create_footer');
 
 // Switch to main section rednering
 $layout->s('main')->get_from_ob();

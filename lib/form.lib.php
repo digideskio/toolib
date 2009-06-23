@@ -136,6 +136,9 @@ class Form
     //! The id of the form
     private $form_id;
     
+    //! Encoding type of form
+    private $enctype;
+    
     //! The options of the form
     protected $options;
 
@@ -150,7 +153,7 @@ class Form
         <b> The supported field parameters are: </b>
         - display: The text that will be displayed at the left of the input
         - type: [Default=text] The type of input control. Currently implemented are
-            ('text', 'textarea', 'password', 'dropbox', 'radio', 'checkbox', 'line', 'custom')
+            ('text', 'textarea', 'password', 'dropbox', 'radio', 'checkbox', 'line', 'file', 'custom')
         - optionlist: [Default=array()]
             An array with all the value options that will be displayed at this control.
             This is only needed for types that have mandatory options like (dropbox, radio).
@@ -239,6 +242,7 @@ class Form
     {   $this->fields = $fields;
         $this->options = $options;
         $this->form_id = 'form_gen_' . (Form::$last_autoid ++);
+        $this->enctype = 'application/x-www-form-urlencoded';
         
         // Initialize default values for options
         if (!isset($this->options['css']))
@@ -271,6 +275,10 @@ class Form
             // Must select
             if (!isset($field['mustselect']))
                 $field['mustselect'] = true;
+                
+            // Check for file field
+            if ($field['type'] == 'file')
+            	$this->enctype = 'multipart/form-data';
         }
         unset($field);
         
@@ -318,9 +326,30 @@ class Form
 
         // Store values and check if they are valid
         foreach($this->fields as $k => & $field)
-        {   if (isset($_POST[$k]))
+        {   
+			// Files
+			if ($field['type'] == 'file')
+			{
+				if ($_FILES[$k]['error'] > 0)
+				{
+					$field['valid'] = false;
+                    if (isset($field['onerror']))
+                        $field['error'] = $field['onerror'];
+					continue;
+				}
+				// Get file data
+				$fdata = file_get_contents($_FILES[$k]['tmp_name']);
+				
+				$field['value'] = array(
+					'orig_name' => $_FILES[$k]['name'],
+					'size' => $_FILES[$k]['size'],
+					'data' => $fdata
+				);
+			}
+			// Store values for classic elements
+			else if (isset($_POST[$k]))
                 $field['value'] = $_POST[$k];
-
+			
             // Regcheck
             $field['valid'] = true;
             if (isset($field['regcheck']))
@@ -448,7 +477,7 @@ class Form
     
     //! Render the form
     public function render()
-    {   echo '<form method="post">';
+    {   echo '<form method="post" enctype="' . $this->enctype . '">';
         echo '<div class="ui-form';
         foreach($this->options['css'] as $cls)
             echo ' ' . esc_html($cls);
@@ -511,6 +540,9 @@ class Form
                 if (($field['usepost']) && isset($field['value']) && ($field['value'] == 'on'))
                         echo 'checked="checked" ';
                 echo '>';
+                break;
+            case 'file':
+            	echo '<input ' . $this->_extra_attribs($field) . ' type="file" name="' . esc_html($id) .'" >';
                 break;
             case 'custom':
                 if (isset($field['value']))
