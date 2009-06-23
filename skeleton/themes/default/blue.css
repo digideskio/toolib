@@ -271,7 +271,13 @@ div#footer
     font-size: 9pt;
 	color: #999999;
 }
-
+span.ui-process-time
+{
+	padding-top: 4px;
+	font-size: 8pt;
+	display: block;
+	color: #aaaaaa;
+}
 div#footer a
 {
     font-size: 9pt;
