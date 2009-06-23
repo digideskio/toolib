@@ -1,6 +1,6 @@
 <?php
 //! The smallest division of a Layout is the LayoutSection
-/**
+/** 
     A section can hold other child sections and extra html content.
     LayoutSections are created from their parent using the section()
     function.
@@ -20,21 +20,21 @@ class LayoutSection
 	protected $sections;
 	
 	//! Extra html attributes for the \<div /\> element
-	/**
+	/** 
 	    Attributes are given in associative array and translated
 	    in html attributes from array(key => value, ...) to \<div key="value" .. \>
 	*/
 	public $extra_div_attribs;
 
 	//! The contents of this div
-	/**
+	/** 
 	    Raw html data that will be appended in the body of this
 	    section after the subsections.
 	*/
 	public $data;
 			
 	//! Creates a layout section <b> [dont use this] </b>
-	/**
+	/** 
 	    To create a layout section use section() function on the parent
 	    section or on Layout, it will create the section for you and will
 	    return a valid LayoutSection object.
@@ -47,7 +47,7 @@ class LayoutSection
 	}
 
     //! Get a section handler or create the section if it does not exist
-    /**
+    /** 
         It will search if there is a direct subsection child with that
         and will return the reference. Otherwise it will create a subsection
         with this name and will return the reference.
@@ -59,7 +59,7 @@ class LayoutSection
     }
     
     //! Shortcut to section()
-    /**
+    /** 
         @see section() for details
     */
     public function s($name)
@@ -67,7 +67,7 @@ class LayoutSection
 
 	
 	//! Get contents from the Output Buffer
-	/**
+	/** 
 	    It will start capturing the output buffer and any
 	    data displayed will be appended in the contets of this
 	    section. To stop capturing a section you can call stop_capturing_ob().
@@ -87,7 +87,7 @@ class LayoutSection
 	}
 	
 	//! Stop any section from capturing the Output buffer
-	/**
+	/** 
 	    If any section is capturing the ob using the get_from_ob(), 
 	    it will be stopped.
 	*/
@@ -107,7 +107,7 @@ class LayoutSection
 	  $this->data .= $dt; }
 	
 	//! Render this and all children and return html code
-	/**
+	/** 
 	    @note If you want to render all the layout you should see
 	        Layout::render(), this is for special cases only.
 	*/
@@ -143,7 +143,7 @@ class LayoutSection
 	}
 
 	//! Assign a function that will render this section
-	/**
+	/** 
 	    The assigned function will be called when render()
 	    is requested on this section.
 	@note Render function should export all data to the output buffer
@@ -155,7 +155,7 @@ class LayoutSection
 };
 
 //! A class for designing layouts
-/**
+/** 
     A Layout is an nested set of LayoutSection. Each section is nothing
     more than an html \<div\> that has a user defined id and user defined
     content. To create a section use the section() function.
@@ -209,7 +209,7 @@ class Layout extends LayoutSection
     }
 
     //! Render the layout
-    /**
+    /** 
         @return The string containing the rendered html code.
     */
     public function render()

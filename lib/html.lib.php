@@ -1,7 +1,7 @@
 <?php
 
 //! HTML Page constructor
-/**
+/** 
     This is an HTML page constructor, it will create a valid HTML doc
     based on user suplied data.
     
@@ -108,7 +108,7 @@ class HTMLPage
 	}
     
     //! Add a new meta data entry
-    /**
+    /** 
     	@param $content The value of meta element's content attribute
     	@param $extra_html_attribs An array with extra attributes that you want to set at this meta element.\n
     		Attributes are given as an associative array where key is the attribute name and value is the 

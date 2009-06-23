@@ -1,7 +1,7 @@
 <?php
 
 //! Helper object for @b ONE db connection with MySQL (5+)
-/**
+/** 
     An easy way to organize prepared staments and execute them
     with centralized error handling. It also supports optional
     delayed preparation until a statement is run for the first
@@ -22,7 +22,7 @@ class dbconn
 	static private $delayed_preparation;
 	
     //! Initialize db connection
-    /**
+    /** 
         @param $server The dns or ip of the server to connect at.
         @param $user The user to use for authentication.
         @param $pass The password that will be used for authentication.
@@ -106,7 +106,7 @@ class dbconn
     }
     
     //! Prepare a statment and save it internally
-    /**
+    /** 
         @param $key The unique name of the prepared statement, this will be used to execute
             the statement too.
         @param $query The query of the statement.
@@ -130,7 +130,7 @@ class dbconn
 	}
 	
     //! Prepare multiple statements with one call.
-    /**
+    /** 
         Statements are given using an array(key => statement, key => statement)..
     */
     static public function multi_prepare($statements)
@@ -174,7 +174,7 @@ class dbconn
     }
     
     //! A macro for binding and executing a statement
-    /**
+    /** 
         It must be used in the form <b> dbconn::execute($stmt_key, $bind_desc_string, $bind1, .. ,$bindN) </b> \n
         If there are no parametes you can use it stmt_bind_and_execute($stmt_key)
      @return It will return false on fail or the statement handler to fetch data.
@@ -207,14 +207,14 @@ class dbconn
 	    
 	    // Execute statement
 	    if (!dbconn::$stmts[$key]['handler']->execute())
-	    {   dbconn::raise_error('Cannot execute the prepared statement "' . $key . '".' . dbconn::$stmts[$key]['handler']->error);
+	    {   dbconn::raise_error('Cannot execute the prepared statement "' . $key . '". ' . dbconn::$stmts[$key]['handler']->error);
 	        return false;
 	    }
 	    return dbconn::$stmts[$key]['handler'];
     }
 
     //! A macro for executing a statement and getting all results
-    /**
+    /** 
       @note This is function is slow.
         To use this function check the documentation of dbconn::execute().
       @return It will return false on fail or an array with all results.

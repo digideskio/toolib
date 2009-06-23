@@ -1,7 +1,7 @@
 <?php
 
 //! An abstract web form constructor
-/**
+/** 
     Form provides a fast way to create input forms with server-side validation. It
     supports multiple types of input and an abstract way to create your own custom
     types. At the same time it provides form validation from mandatory fields to
@@ -143,7 +143,7 @@ class Form
     private static $last_autoid = 0;
     
     //! Construct the form object
-    /**
+    /** 
         @param $fields An associative array with all fields of the form, fields must be given in the same
             order that will be rendered too. The key of each of record defines the unique id of the field
             and the value is another associative array with the parameters of the field.\n
@@ -358,7 +358,7 @@ class Form
     }
 
     //! Get the user given value of a field
-    /**
+    /** 
         If a this is the first time viewing the firm, the
         function will return the predefined value of this field. (if any)
     */
@@ -389,7 +389,7 @@ class Form
     }
     
     //! Check if form is valid
-    /**
+    /** 
         It will check if all fields are valid, and if they are,
         it will return true.
     */
@@ -401,7 +401,7 @@ class Form
     }
     
     //! Set the error message of a field
-    /**
+    /** 
         This does not invalidates fields, it just changes
         the error message.
     */
@@ -413,7 +413,7 @@ class Form
     }
     
     //! Get a refernece to the internal field object
-    /**
+    /** 
        The reference returned will be an array
        with the parameters of the fields, for 
        the parameterse of the field you can see
@@ -426,7 +426,7 @@ class Form
     }
     
     //! Change the display text of a field
-    /**
+    /** 
         Display text is the text on the left of the field
         that describes it.
     */

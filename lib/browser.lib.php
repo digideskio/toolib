@@ -1,7 +1,7 @@
 <?php
 //! Browser detection
 class Browser {
-    /**
+    /** 
         Figure out what browser is used, its version and the platform it is
         running on.
 

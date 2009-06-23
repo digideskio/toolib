@@ -91,9 +91,9 @@ class dbg
             return false;
             
         // Close any buffer
-        while(ob_list_handlers())
+/*        while(ob_list_handlers())
             ob_end_clean();
-        flush();
+        flush();*/
         
         //Count errors
         $total_errors = 0;
@@ -158,6 +158,9 @@ function select_var(ev)
     border: 1px solid #FF0000;
     font-size: 8pt;
     font-family: Arial;
+    position: fixed;
+    top: 0px;
+    z-index: 100;
 }
 
 table#dbg-tabs

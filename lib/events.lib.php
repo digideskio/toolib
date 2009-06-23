@@ -1,7 +1,7 @@
 <?php
 
 //! Dispatch events to their handlers
-/**
+/** 
     EventDispatcher holds an array with all events. Events can
     be declared at the dispatcher using declare_event() function. The
     concept is that an object raises_events and the registered observers
@@ -92,7 +92,7 @@ class EventDispatcher
     }
     
     //! Observe an event
-    /**
+    /** 
         @param $event The name of the event that you want to observe
         @param $callback The callback function to be called when the event
             is raised. Callback function may get parameters too depending on the event.
@@ -112,7 +112,7 @@ class EventDispatcher
     }
 
     //! Observe all events of this dispatcher
-    /**
+    /** 
         This is an alias for observe_event("*", $callback);
     */
     public function observe_all($callback)
@@ -136,7 +136,7 @@ class EventDispatcher
     }
     
     //! Stop observing any event
-    /**
+    /** 
         This is an alias for stop_observing_event('*', $previous_callback)
     */
     public function stop_observing_all($previous_callback)

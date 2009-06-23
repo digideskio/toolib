@@ -27,7 +27,7 @@ class User
 	private function __construct(){}
 
 	//! Add a new user to the database
-	/**
+	/** 
 	   It will try to create a new user in the database.
 	@return A User object of the new user or false in case of error.
 	*/
@@ -38,7 +38,7 @@ class User
 		return User::open($username);
 	}
     //! Get a user object of an existing user
-	/**
+	/** 
 	    @return A User object on success. Or false on error.
 	*/	   
 	public static function open($username)
@@ -83,7 +83,7 @@ class User
 };
 
 //! Web Application Authentication System definition
-/**
+/** 
     A static IntraSessionSingleton object that implements the authentication
     system of a web application. It supports user management and
     authentication.
@@ -111,7 +111,7 @@ class Waas extends IntraSessionSingleton
 	}
 	
 	//! Get the EventDispatcher object to observe events
-	/**
+	/** 
 	    Waas currently exports the following events
         - @b pre-login(username, password) : Called when a login request is done and before the 
 	        validation of the credentials.
@@ -131,7 +131,7 @@ class Waas extends IntraSessionSingleton
 	{	return self::get_class_instance(__CLASS__);	}
 	
 	//! Login a user to the current session.
-	/**
+	/** 
 	   @note login() will try to change cookies, and it is proposed
 	       to execute this before sending any real data to the user.
 	       
@@ -167,7 +167,7 @@ class Waas extends IntraSessionSingleton
 	}
 	
 	//! Logout current user
-	/**
+	/** 
 	@note logout() will try to change cookies, and it is proposed
 	   to execute this before sending any real data to the user.
     */
@@ -190,7 +190,7 @@ class Waas extends IntraSessionSingleton
 	}
 	
 	//! Get current logged-in user
-	/**
+	/** 
 	   If no user is logged on, it will return false, otherwise it will return a User object of the
 	   logged-on user.
 	*/
@@ -205,7 +205,7 @@ class Waas extends IntraSessionSingleton
 	}
 	
 	//! Check if current user is anonymous
-	/**
+	/** 
 	   @remarks Anonymous is a non-loggon user.
 	*/
 	static public function current_user_is_anon()
@@ -215,7 +215,7 @@ class Waas extends IntraSessionSingleton
 	}
 	
 	//! Get the list of all users of the system
-	/**
+	/** 
 	   It will return an array of User objects.
 	 */
 	static public function all_users()
@@ -233,7 +233,7 @@ class Waas extends IntraSessionSingleton
 	}
 	
 	//! Delete a user from the system
-	/**
+	/** 
 	   @return true if the user was removed or false
 	   in any case of error.
     */

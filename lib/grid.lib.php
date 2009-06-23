@@ -1,7 +1,7 @@
 <?php
 
 //! Create an interactive grid of data
-/**
+/** 
 	Grid is an HTML element that can read data from a source and display
 	them on a grid control. It also supports custom actions for each data.
 
@@ -41,7 +41,7 @@ class Grid
 	private static $last_autoid = 0;
 	
 	//! Constructor of a grid
-	/**
+	/** 
 		@param $columns An associative array with a description of each column. Each item of this array
 			must have another array with the options of the column. This array must be associative and the options
 			are passed as key => value

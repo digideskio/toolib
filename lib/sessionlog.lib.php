@@ -10,7 +10,7 @@ dbconn::prepare('seslog-get_others', 'SELECT log_id, user, ip, user_agent, ts_st
 dbconn::prepare('seslog-signout_others', 'UPDATE session_log SET expired = true WHERE expired = false AND user = ? AND log_id != ?');
 
 //! Session loging and management system
-/**
+/** 
     @note SessionLog is a IntraSessionSingleton and there is no need to
     create an object of it, all the API is exported in static functions.
     
@@ -43,7 +43,7 @@ class SessionLog extends IntraSessionSingleton
 	{	return self::get_class_instance(__CLASS__);    }
 	
     //! Creates and switchs to a new user session.
-    /**
+    /** 
         This function is called automaticaly when a user
         logs on the system. There is no need to do it
         automatically.        
@@ -61,7 +61,7 @@ class SessionLog extends IntraSessionSingleton
     }
     
     //! Expire current session
-    /**
+    /** 
         Expire/destroy the current session of this user. The session is marked as expred in the database too.
         @note This function is called automatically when a user logs out through waas.
     */        
@@ -85,7 +85,7 @@ class SessionLog extends IntraSessionSingleton
     }
     
     //! Touch the session in this conneciton
-    /**
+    /** 
         If there is a user session opened its last_activity timestamp is touched in database
     */
     static public function touch_current()
@@ -104,7 +104,7 @@ class SessionLog extends IntraSessionSingleton
     }
     
     //! Get all other active sessions of this user
-    /**
+    /** 
         It will query the database for active sessions of this users and will return all except the current one.
     */
     static public function myother_sessions()
