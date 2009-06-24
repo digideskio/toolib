@@ -338,7 +338,7 @@ class Form
 					continue;
 				}
 				// Get file data
-				$fdata = file_get_contents($_FILES[$k]['tmp_name']);
+				$fdata = file_get_contents($_FILES[$k]['tmp_name'], FILE_BINARY);
 				
 				$field['value'] = array(
 					'orig_name' => $_FILES[$k]['name'],
