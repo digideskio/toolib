@@ -159,7 +159,7 @@ class Waas extends IntraSessionSingleton
 		$pthis->m_current_user = User::open($user);
 		
 		// Regenerate session id to prevent session fixation
-		session_regenerate_id();
+		session_regenerate_id(true);
 		
 		// Raise event post-login
 		$pthis->events->raise_event('post-login');		
