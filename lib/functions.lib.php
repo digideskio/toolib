@@ -183,8 +183,8 @@ function param_is_equal($key, $val)
 }
 
 //! Redirect browser to a new url
-function redirect($path)
-{   header('Location: '. $path);    }
+function redirect($path, $auto_exit = true)
+{   header('Location: '. $path);  if ($auto_exit) exit;  }
 
 
 //! Add google analytics code

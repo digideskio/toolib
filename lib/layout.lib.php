@@ -66,6 +66,12 @@ class LayoutSection
     {   return $this->section($name);   }
 
 	
+	//! Add an html attrib to the section
+	public function add_attrib($attr_key, $attr_value)
+	{	$this->extra_div_attribs[$attr_key] = $attr_value;
+		return $this;
+	}
+	
 	//! Get contents from the Output Buffer
 	/** 
 	    It will start capturing the output buffer and any
@@ -125,7 +131,7 @@ class LayoutSection
 	    // Start div
 	    $rendered .= sprintf('<div id="%s"', $this->name);//(($path == "")?$this->name:$path."-".$this->name));
 	    foreach($this->extra_div_attribs as $k => $v)
-	        $rendered .= sprintf(' %s=\"%s\"', $k, $v);
+	        $rendered .= sprintf(' %s="%s"', $k, $v);
 	    $rendered .= '>';
 
         // Render childrens

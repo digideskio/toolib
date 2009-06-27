@@ -246,7 +246,7 @@ class Form
         
         // Initialize default values for options
         if (!isset($this->options['css']))
-            $this->options['css'] = array();
+            $this->options['css'] = array('ui-form');
 
         if (!isset($this->options['renderonconstruct']))
             $this->options['renderonconstruct'] = true;
@@ -345,6 +345,10 @@ class Form
 					'size' => $_FILES[$k]['size'],
 					'data' => $fdata
 				);
+			}
+			// Checkboxes
+			else if ($field['type'] == 'checkbox')
+			{	$field['value'] = (isset($_POST[$k]) && ($_POST[$k] == 'on'));
 			}
 			// Store values for classic elements
 			else if (isset($_POST[$k]))
@@ -478,7 +482,7 @@ class Form
     //! Render the form
     public function render()
     {   echo '<form method="post" enctype="' . $this->enctype . '">';
-        echo '<div class="ui-form';
+        echo '<div class="';
         foreach($this->options['css'] as $cls)
             echo ' ' . esc_html($cls);
         echo '">';
@@ -537,7 +541,7 @@ class Form
                 break;
             case 'checkbox':
                 echo '<input ' . $this->_extra_attribs($field) . ' type="checkbox" name="' . esc_html($id) .'" ';
-                if (($field['usepost']) && isset($field['value']) && ($field['value'] == 'on'))
+                if (($field['usepost']) && isset($field['value']) && ($field['value']))
                         echo 'checked="checked" ';
                 echo '>';
                 break;

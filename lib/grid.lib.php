@@ -145,23 +145,23 @@ class Grid
             return false;
         }
 
-        if ($_POST['action'] == 'click')
+        if ($_POST['libgrid_backend_action'] == 'click')
         {
             // Call user function when there is click event
             if (method_exists($this, 'on_click'))
-                $this->on_click($_POST['colid'], $_POST['rowid'], $this->data[$_POST['rowid']]);
+                $this->on_click($_POST['libgrid_backend_colid'], $_POST['libgrid_backend_rowid'], $this->data[$_POST['libgrid_backend_rowid']]);
             return true;
         }
-        else if ($_POST['action'] == 'headerclick')
+        else if ($_POST['libgrid_backend_action'] == 'headerclick')
         {
             // Call user function when there is no post
             if (method_exists($this, 'on_header_click'))
-                $this->on_header_click($_POST['colid']);
+                $this->on_header_click($_POST['libgrid_backend_colid']);
             return true;
         }
-        else if ($_POST['action'] == 'changepage')
+        else if ($_POST['libgrid_backend_action'] == 'changepage')
         {
-        	$this->options['startrow'] = (is_numeric($_POST['startrow'])?$_POST['startrow']:1);
+        	$this->options['startrow'] = (is_numeric($_POST['libgrid_backend_startrow'])?$_POST['libgrid_backend_startrow']:1);
         }
         
     }
@@ -178,8 +178,8 @@ class Grid
 			{
 				echo ' class="ui-clickable" ';
 				echo ' onclick="' .
-				'$(\'form#' . $this->grid_id . 	' input[name=action]\').val(\'headerclick\'); ' .
-				'$(\'form#' . $this->grid_id . ' input[name=colid]\').val(\'' . $col_id . '\');' .
+				'$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'headerclick\'); ' .
+				'$(\'form#' . $this->grid_id . ' input[name=libgrid_backend_colid]\').val(\'' . $col_id . '\');' .
 				' $(\'form#' . $this->grid_id . '\').submit();" ';
 			}
 			foreach($c['htmlattribs'] as $n => $v)
@@ -220,8 +220,8 @@ class Grid
 		// First button
 		echo '<span class="ui-grid-first ';
 		if ($firstpage != false)
-			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=action]\').val(\'changepage\'); ' .
-				' $(\'form#' . $this->grid_id . ' input[name=startrow]\').val(\'1\');' .
+			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'1\');' .
 				' $(\'form#' . $this->grid_id . '\').submit();" ';
 		else
 			echo ' ui-grid-inactive"';
@@ -230,8 +230,8 @@ class Grid
 		// Previous button
 		echo '<span class="ui-grid-previous ';
 		if ($previouspage != false)
-			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=action]\').val(\'changepage\'); ' .
-				' $(\'form#' . $this->grid_id . ' input[name=startrow]\').val(\'' . $previouspage .'\');' .
+			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $previouspage .'\');' .
 				' $(\'form#' . $this->grid_id . '\').submit();" ';
 		else
 			echo ' ui-grid-inactive"';
@@ -240,8 +240,8 @@ class Grid
 		// Next button
 		echo '<span class="ui-grid-next ';
 		if ($nextpage != false)
-			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=action]\').val(\'changepage\'); ' .
-				' $(\'form#' . $this->grid_id . ' input[name=startrow]\').val(\'' . $nextpage . '\');' .
+			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $nextpage . '\');' .
 				' $(\'form#' . $this->grid_id . '\').submit();" ';
 		else
 			echo ' ui-grid-inactive" ';
@@ -250,8 +250,8 @@ class Grid
 		// Last button
 		echo '<span class="ui-grid-last ';
 		if ($lastpage != false)
-			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=action]\').val(\'changepage\'); ' .
-				' $(\'form#' . $this->grid_id . ' input[name=startrow]\').val(\'' . $lastpage . '\');' .
+			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $lastpage . '\');' .
 				' $(\'form#' . $this->grid_id . '\').submit();" ';
 		else
 			echo ' ui-grid-inactive"';
@@ -268,10 +268,10 @@ class Grid
         // Form hidden event
         echo '<form method="post" id="' . $this->grid_id . '">';
         echo '<input type="hidden" name="submited_grid_id" value="' . $this->grid_id . '">';
-        echo '<input type="hidden" name="action" value="">';
-        echo '<input type="hidden" name="colid" value="">';
-        echo '<input type="hidden" name="rowid" value="">';
-        echo '<input type="hidden" name="startrow" value="">';
+        echo '<input type="hidden" name="libgrid_backend_action" value="">';
+        echo '<input type="hidden" name="libgrid_backend_colid" value="">';
+        echo '<input type="hidden" name="libgrid_backend_rowid" value="">';
+        echo '<input type="hidden" name="libgrid_backend_startrow" value="">';
                         
         echo '</form>';
         
@@ -332,9 +332,9 @@ class Grid
 				{
 					echo ' class="ui-clickable" ';
 					echo ' onclick="' .
-						'$(\'form#' . $this->grid_id . 	' input[name=action]\').val(\'click\'); ' .
-						'$(\'form#' . $this->grid_id . ' input[name=colid]\').val(\'' . $col_id . '\');' .
-						' $(\'form#' . $this->grid_id .	' input[name=rowid]\').val(\'' . $recid . '\');' .
+						'$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'click\'); ' .
+						'$(\'form#' . $this->grid_id . ' input[name=libgrid_backend_colid]\').val(\'' . $col_id . '\');' .
+						' $(\'form#' . $this->grid_id .	' input[name=libgrid_backend_rowid]\').val(\'' . $recid . '\');' .
 						' $(\'form#' . $this->grid_id . '\').submit();" ';
 				}
 				echo '>' . $data;

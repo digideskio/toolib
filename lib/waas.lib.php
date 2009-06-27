@@ -61,7 +61,7 @@ class User
 	}
 	
 	//! Save changes to the database
-	public function save_changes()
+	public function save_object()
 	{	// Update database
 		dbconn::execute('user-update', 'ss', $this->is_enabled, $this->username);
 	}
@@ -80,6 +80,7 @@ class User
 	       return false;
 	    return true;
 	}
+	
 };
 
 //! Web Application Authentication System definition
@@ -223,12 +224,12 @@ class Waas extends IntraSessionSingleton
 		$pthis = self::get_instance();
 		
 		// Get the list with all users
-        $stm = dbconn::execute('user-all');
+        if (($usernames = dbconn::execute_fetch_all('user-all')) === false)
+        	return false;
+        	
 		$users = array();
-		$stm->bind_result($username, $is_enabled);
-		while($stm->fetch())
-			$users[] = new User($username, $is_enabled);
-			
+		foreach($usernames as $user)
+			$users[] = User::open($user['user']);
 		return $users;
 	}
 	

@@ -81,6 +81,10 @@ class DBRecord
 		$query .= ' WHERE ' . $class_desc['meta']['pk'][0] . '=?';
 		$class_desc['sql']['update']['query'] = $query;
 		$class_desc['sql']['update']['stmt'] = 'dbrecord-' . strtolower($class_desc['class']) . '-update';
+		
+		// Get ALL
+		$class_desc['sql']['all']['query'] = 'SELECT ' . $class_desc['meta']['pk'][0] . ' FROM ' . $class_desc['table'];
+		$class_desc['sql']['all']['stmt'] = 'dbrecord-' . strtolower($class_desc['class']) . '-all';
 	}
 	
 	
@@ -175,6 +179,7 @@ class DBRecord
 			dbconn::prepare($class_desc['sql']['open']['stmt'], $class_desc['sql']['open']['query']);
 			dbconn::prepare($class_desc['sql']['create']['stmt'], $class_desc['sql']['create']['query']);
 			dbconn::prepare($class_desc['sql']['update']['stmt'], $class_desc['sql']['update']['query']);
+			dbconn::prepare($class_desc['sql']['all']['stmt'], $class_desc['sql']['all']['query']);
 		}
 //		echo '<pre>'; var_dump($class_desc); echo '</pre>';
 		
@@ -282,6 +287,37 @@ class DBRecord
 		return $obj;
 	}
 	
+	//! Open multiple records at the same time
+	public static function open_many($pks, $called_class = NULL)
+	{	if ($called_class === NULL)
+			$called_class = get_called_class();
+		
+		$recs = array();
+		foreach($pks as $pk)
+			$recs[] = self::open($pk, $called_class);
+		return $recs;
+	}
+	
+	//! Open all records
+	public static function open_all($called_class = NULL)
+	{	if ($called_class === NULL)
+			$called_class = get_called_class();
+		
+		// Initialize static
+		if (($class_desc = self::init_static($called_class)) === false)
+			return false;
+			
+		// Execute query
+		if (($res_array = dbconn::execute_fetch_all($class_desc['sql']['all']['stmt'])) === false)
+			return false;
+		
+		$groups = array();
+		foreach($res_array as $res)
+			$groups[] = Group::open($res['groupname']);
+			
+		return $groups;	
+	}
+			
 	//! Save object
 	public function save()
 	{

@@ -1,4 +1,6 @@
 <?php
+$start_time = microtime(true);
+
 require_once('init.inc.php');
 require_once($GS_libs . 'lib/layout.lib.php');
 require_once($GS_libs . 'lib/html.lib.php');
