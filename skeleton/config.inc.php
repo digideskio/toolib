@@ -23,4 +23,7 @@ $GS_site_root = '/skeleton';
 
 // Path to the libraries (relative or absolute)
 $GS_libs = '';
+
+// If it is enabled a trick will be used to prevent css caching from browsers
+$GS_css_anticache = true;
 ?>

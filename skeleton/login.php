@@ -18,7 +18,7 @@ if (WAAS::current_user_is_anon())
 				'login-pass' => array('display' => 'Password', 'type' => 'password'),
 				'custom-txt' => array('type' => 'custom', 'value' => ('If you dont have an account, you can always ' . a('/register.php', 'create a new one') . '.') )
 				),
-				array('title' => $GS_site_title . ' Login', 'css' => array('ui-login'),
+				array('title' => $GS_site_title . ' Login', 'css' => array('ui-form','ui-login'),
 					'buttons' => array('login' => array('display' =>'Login'))
 				)
 			);

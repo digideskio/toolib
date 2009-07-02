@@ -14,6 +14,7 @@ dbconn::query("SET time_zone='UTC';");
 // Add extra needed classes
 require_once($GS_libs . 'lib/functions.lib.php');
 require_once($GS_libs . 'lib/waas.lib.php');
+require_once($GS_libs . 'lib/group.lib.php');
 require_once($GS_libs . 'lib/sessionlog.lib.php');
 require_once($GS_libs . 'lib/jquery.lib.php');
 

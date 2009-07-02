@@ -17,13 +17,13 @@ h6 {  color: #354668; }
 	cursor:  pointer;
 }
 
-a {
+a, .ui-link {
 	text-decoration: none;
 	font-weight: bold;
 	color: #6488c9;
 }
 
-a:hover {
+a:hover, .ui-link:hover {
 	text-decoration: underline;
 }
 /***************************
@@ -56,10 +56,128 @@ div.ui-menu span.ui-selected{
 	color: #232345;
 }
 
+div.ui-menu span.ui-hot{
+	background: #8B1E28;
+}
+
+div.ui-menu span.ui-hot.ui-selected{
+	background: #ffffff;
+	color: #DE1E28;
+}
+
 div.ui-menu span:hover{
 	background: #efefef;
 	color: #232345;
 }
+
+/***********************
+	UI-user-info
+ **********************/
+ div.ui-user-info
+{
+	background-color: #f5f7fa;
+	border: 1px solid #cdcdcd;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+}
+
+div.ui-user-info h1
+{
+	color: #c98864;
+	text-align: left;
+	font-size: 12pt;
+	border-bottom: 2px solid #ededed ;
+}
+
+div.ui-user-info h2
+{
+	color: #454545;
+	text-align: left;
+	font-size: 11pt;
+	border-bottom: 2px solid #ededed ;
+}
+
+/***********************
+	UI-user-edit-form
+ **********************/
+div.ui-user-edit-form table{	width: 100%;	}
+div.ui-user-edit-form table td{	padding: 5px;	}
+div.ui-user-edit-form table td[colspan="2"]{		text-align: right;	}
+div.ui-user-edit-form table input[type="text"]{	width: 100%;	}
+
+
+/************************
+	UI-idelete
+ ************************/
+.ui-iedit
+{
+	text-decoration: underline;
+}
+
+.ui-idelete img
+{	background: url('images/idelete16.png') no-repeat center center;
+	vertical-align: middle;
+
+}
+
+.ui-idelete img.opened
+{	background: url('images/idelete-rotated16.png') no-repeat center center;	}
+
+.ui-idelete-button
+{
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border: 1px solid #331212;
+	background-color: #de1212;
+	color: white;
+	font-weight: bold;
+}
+
+.ui-idelete-button:hover
+{
+	background-color: #ed1212;
+}
+
+/***********************
+	UI-widget
+ ***********************/
+
+div.ui-widget
+{
+	background-color: #f5f7fa;
+	border: 1px solid #cdcdcd;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+}
+
+div.ui-widget h1
+{
+	font-size: 11pt;
+	border-bottom: 1px solid #a3a3a3;
+}
+
+/***********************
+  UI-search-filter
+ **********************/
+div.ui-search-filter{	font-size: 14pt;	color: #454545;	}
+.ui-search-filter-keyword{	color: #c98864;	font-weight: bold;}
+.ui-search-filter-keyword sup{	font-size: 8pt;	}
+.ui-search-filter-clearall{	font-weight: normal;	font-size: 10pt;}
+
+
+/***********************
+  UI-menu-list
+ **********************/
+ul.ui-menu-list
+{
+	list-style: none;
+}
+
+ul.ui-menu-list li
+{
+	vertical-align: middle;
+}
+
 
 /***************************
    UI-Form
@@ -275,7 +393,7 @@ span.ui-process-time
 {
 	padding-top: 4px;
 	font-size: 8pt;
-	display: block;
+
 	color: #aaaaaa;
 }
 div#footer a

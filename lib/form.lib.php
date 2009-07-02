@@ -248,6 +248,9 @@ class Form
         if (!isset($this->options['css']))
             $this->options['css'] = array('ui-form');
 
+        if (!isset($this->options['hideform']))
+            $this->options['hideform'] = false;
+
         if (!isset($this->options['renderonconstruct']))
             $this->options['renderonconstruct'] = true;
 
@@ -401,6 +404,17 @@ class Form
             return $this->fields[$fname]['value'];
     }
     
+    //! Get all the values of fields
+    /**
+    	@return An associative array with all values of form fields.
+    */
+    protected function field_values()
+    {	$values = array();
+		foreach($this->fields as $fname => $field)
+			$values[$fname] = $field['value'];
+		return $values;
+    }
+    
     //! Check if a field is valid
     public function is_field_valid($fname)
     {
@@ -470,7 +484,7 @@ class Form
     }
     
     //! Internal function to render extra html attributes of a field
-    private function _extra_attribs($field)
+    private function extra_attribs($field)
     {	$attributes = $field['htmlattribs'];
     
     	$extra_attribs = '';
@@ -481,7 +495,11 @@ class Form
     
     //! Render the form
     public function render()
-    {   echo '<form method="post" enctype="' . $this->enctype . '">';
+    {   // Check if it should be hidden
+    	if ($this->options['hideform'])
+    		return false;
+    
+    	echo '<form method="post" enctype="' . $this->enctype . '">';
         echo '<div class="';
         foreach($this->options['css'] as $cls)
             echo ' ' . esc_html($cls);
@@ -510,26 +528,26 @@ class Form
             {
             case 'text':
             case 'password':
-                echo '<input ' . $this->_extra_attribs($field) . ' name="' . esc_html($id) . '" type="' . esc_html($field['type']) . '" ';
+                echo '<input ' . $this->extra_attribs($field) . ' name="' . esc_html($id) . '" type="' . esc_html($field['type']) . '" ';
                 if (($field['usepost']) && isset($field['value'])) echo 'value="' . esc_html($field['value']) . '"';
                 echo '>';
                 break;
             case 'textarea':
-                echo '<textarea ' . $this->_extra_attribs($field) . ' name="' . esc_html($id) . '" >';
+                echo '<textarea ' . $this->extra_attribs($field) . ' name="' . esc_html($id) . '" >';
                 if (($field['usepost']) && isset($field['value'])) echo esc_html($field['value']);
                 echo '</textarea>';
                 break;
             case 'radio':
                 foreach($field['optionlist'] as $opt_key => $opt_text)
                 {
-                    echo '<input ' . $this->_extra_attribs($field) . ' name="' . esc_html($id) . '" ';
+                    echo '<input ' . $this->extra_attribs($field) . ' name="' . esc_html($id) . '" ';
                     if (($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))
                         echo 'checked="checked" ';
                     echo 'type="radio" value="' . esc_html($opt_key) . '">&nbsp;' . esc_html($opt_text) . '&nbsp;&nbsp;&nbsp;&nbsp;';
                 }
                 break;
             case 'dropbox':
-                echo '<select ' . $this->_extra_attribs($field) . ' name="' . esc_html($id) . '">';
+                echo '<select ' . $this->extra_attribs($field) . ' name="' . esc_html($id) . '">';
                 foreach($field['optionlist'] as $opt_key => $opt_text)
                 {
                     echo '<option ';
@@ -540,13 +558,13 @@ class Form
                 echo '</select>';
                 break;
             case 'checkbox':
-                echo '<input ' . $this->_extra_attribs($field) . ' type="checkbox" name="' . esc_html($id) .'" ';
+                echo '<input ' . $this->extra_attribs($field) . ' type="checkbox" name="' . esc_html($id) .'" ';
                 if (($field['usepost']) && isset($field['value']) && ($field['value']))
                         echo 'checked="checked" ';
                 echo '>';
                 break;
             case 'file':
-            	echo '<input ' . $this->_extra_attribs($field) . ' type="file" name="' . esc_html($id) .'" >';
+            	echo '<input ' . $this->extra_attribs($field) . ' type="file" name="' . esc_html($id) .'" >';
                 break;
             case 'custom':
                 if (isset($field['value']))

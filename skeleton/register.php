@@ -16,7 +16,7 @@ class RegistrationForm extends Form
             ),
             array(
                 'title' => 'Create Account',
-                'css' => array('ui-register'),
+                'css' => array('ui-form', 'ui-register'),
                 'buttons' => array('login' => array('display' =>'Register'))
             )
         );

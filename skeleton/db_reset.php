@@ -28,6 +28,8 @@ function dbquery($query)
 }
 
 dbconn::query('SET NAMES utf8;');
+dbquery('DROP TABLE IF EXISTS group_members');
+dbquery('DROP TABLE IF EXISTS groups');
 dbquery('DROP TABLE IF EXISTS users');
 dbquery('DROP TABLE IF EXISTS session_log');
 
@@ -37,6 +39,24 @@ CREATE TABLE `users` (
 	`password` CHAR(32) NOT NULL,	        -- The password is always md5 which is 32 characters.
 	`is_enabled` BOOL DEFAULT 1,
 	PRIMARY KEY(`user`))
+ENGINE=InnoDB
+DEFAULT CHARACTER SET = utf8
+");
+
+dbquery("
+CREATE TABLE `groups` (
+	`groupname` VARCHAR(255) NOT NULL,		-- The name of this group
+	PRIMARY KEY(`groupname`))
+ENGINE=InnoDB
+DEFAULT CHARACTER SET = utf8
+");
+
+dbquery("
+CREATE TABLE `group_members` (
+	`groupname` VARCHAR(255) NOT NULL,
+	`username` CHAR(16) NOT NULL,
+	FOREIGN KEY (`groupname`) REFERENCES `groups`(`groupname`),
+	PRIMARY KEY(`groupname`, `username`))
 ENGINE=InnoDB
 DEFAULT CHARACTER SET = utf8
 ");
@@ -57,7 +77,11 @@ DEFAULT CHARACTER SET = utf8;");
 
 dbquery("INSERT INTO `users` (user, password, is_enabled)
     VALUES('root', MD5('root'), '1');");
-
+dbquery("INSERT INTO `groups` (groupname)
+    VALUES('admin');");
+dbquery("INSERT INTO `group_members` (groupname, username)
+    VALUES('admin', 'root');");
+    
 echo '<br><h1>Database installed</h1>';
 
 ?>

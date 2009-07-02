@@ -46,6 +46,85 @@ div.ui-menu span {
 	font-weight: bold;
 	height:  16px;
 }
+
+/***********************
+	UI-user-info
+ **********************/
+ div.ui-user-info
+{
+	margin: 30px 0px 0px 50px;
+	width: 300px;
+	float:  left;
+	padding: 8px;
+	min-height: 100px;
+}
+
+div.ui-user-info h1
+{
+	padding: 5px;;
+}
+
+div.ui-user-info h2
+{
+	padding: 5px;;
+}
+
+/************************
+	UI-idelete
+ ************************/
+.ui-iedit
+{
+	cursor: pointer;
+}
+
+.ui-idelete img
+{	width: 16px;
+	height: 16px;
+	cursor: pointer;
+	display: none;
+}
+
+.ui-idelete-button
+{
+	display: none;
+	height: 20px;
+	margin-left: 10px;
+	padding: 4px 7px 3px 7px;
+	cursor: pointer;
+}
+
+/***********************
+	UI-widget
+ ***********************/
+
+div.ui-widget
+{
+	padding: 8px;
+	margin-bottom: 10px;
+	min-height: 100px;
+}
+
+/***********************
+  UI-menu-list
+ **********************/
+ul.ui-menu-list
+{
+	padding: 5px;
+}
+
+ul.ui-menu-list li
+{
+	padding-left:  5px;
+	padding-top: 7px;
+	height: 18px;
+}
+
+/***********************
+  UI-search-filter
+ **********************/
+div.ui-search-filter{	margin: 10px 50px 10px;}
+
+
 /***************************
    UI-Form
  ***************************/
@@ -189,4 +268,22 @@ div#footer
     margin: 50px auto;
     width: 300px;
     Height: 100px;
+}
+
+.userlist
+{
+	width: 400px;
+	margin: 30px;
+}
+
+div#main-base
+{
+	float:  left;
+}
+
+div#main-widgets
+{
+	margin: 30px 0px 0px 50px;
+	width: 230px;
+	float:  right;
 }

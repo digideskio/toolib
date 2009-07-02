@@ -15,8 +15,8 @@ $html->title = ".: " . $GS_site_title . " :.";
 $html->add_ref_js(rpath('/js/jquery.js'));
 
 // Add theme
-$html->add_ref_css(rpath('/themes/default/layout.css'));
-$html->add_ref_css(rpath('/themes/default/blue.css'));
+$html->add_ref_css(rpath('/themes/default/layout.css') . (($GS_css_anticache)?'?'.rand():''));
+$html->add_ref_css(rpath('/themes/default/blue.css') . (($GS_css_anticache)?'?'.rand():''));
 
 // Layouts
 $layout = new Layout();
@@ -31,6 +31,9 @@ function layout_create_navigation()
     echo '<a href="' . rpath('/') . '"><span class="ui-clickable' . (($sel_menu == 'home')?' ui-selected':'') . '">Home</span></a>';
     echo '<a href="' . rpath('/section1.php') . '"><span class="ui-clickable' . (($sel_menu == 'section1')?' ui-selected':'') . '">Section 1</span></a>';
     echo '<a href="' . rpath('/section2.php') . '"><span class="ui-clickable' . (($sel_menu == 'section2')?' ui-selected':'') . '">Section 2</span></a>';
+   	if (Group::open('admin')->has_current_user())
+		echo '<a href="' . rpath('/manage.php') . '"><span class="ui-clickable ui-hot' . (($sel_menu == 'manage')?' ui-selected':'') . '">Settings</span></a>';	
+
     echo '</div>';
 
     echo '<div id="login-panel">';
@@ -49,7 +52,7 @@ $layout->s('main');
 function layout_create_footer()
 {
 	echo 'Copyright (C) 2009 ' . a('/', $GLOBALS['GS_site_title'] );
-	printf(' <br><span class="ui-process-time">%4.3f secs</span>', (microtime(true) - $GLOBALS['start_time']));
+	printf(' <br>Built on <a href="http://phplibs.kmfa.net">PHPLibs</a><br><span class="ui-process-time">%4.3f secs</span>', (microtime(true) - $GLOBALS['start_time']));
 	if (isset($GLOBALS['GS_ga']))
 		ga_code($GLOBALS['GS_ga']);
 }
