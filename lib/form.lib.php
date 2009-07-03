@@ -18,9 +18,10 @@
     - @b on_post():\n
         Called when form received data from the user. It does not guarantee that the form
         is properly validated.
-    - @b on_valid():\n
+    - @b on_valid($values):\n
         It is called when form received data from user and all the fields are valid. This
-        function is called after on_post()
+        function is called after on_post(). Form passes as an argument the values of all
+        fields in the form of associative array.
     - @b on_nopost():\n
         Called when the form was requested using GET and no data where posted from the user.
         (When user see the form for the first time)
@@ -130,15 +131,15 @@
 */
 class Form
 {
-    //! An array with all fields
-    private $fields;
-    
     //! The id of the form
     private $form_id;
     
     //! Encoding type of form
     private $enctype;
-    
+
+    //! An array with all fields
+    protected $fields;
+   
     //! The options of the form
     protected $options;
 
@@ -237,10 +238,25 @@ class Form
 	    // Now render the form here
 	    $nufrm->render();	    
         @endcode
+        
+        @remarks Form now supports declaring fields and options using class properties for example
+        @code
+        class MyForm extends Form
+        {
+        	protected $fields = array(...fields...);
+        	protected $options = array(...options);
+        	
+        	public function on_valid()
+        	{	// Add your code here	}
+        };
+        new MyForm();
     */
-    public function __construct($fields = array(), $options = array())
-    {   $this->fields = $fields;
-        $this->options = $options;
+    public function __construct($fields = NULL, $options = NULL)
+    {
+    	if ($fields !== NULL)
+	    	$this->fields = $fields;
+	    if ($options !== NULL)
+	        $this->options = $options;
         $this->form_id = 'form_gen_' . (Form::$last_autoid ++);
         $this->enctype = 'application/x-www-form-urlencoded';
         
@@ -390,7 +406,7 @@ class Form
             
         // Call on_valid if form is valid
         if ($this->is_valid() && method_exists($this, 'on_valid'))
-            $this->on_valid();
+            $this->on_valid($this->field_values());
     }
 
     //! Get the user given value of a field
@@ -398,7 +414,7 @@ class Form
         If a this is the first time viewing the firm, the
         function will return the predefined value of this field. (if any)
     */
-    protected function get_field_value($fname)
+    public function get_field_value($fname)
     {
         if (isset($this->fields[$fname]) && (isset($this->fields[$fname]['value'])) )
             return $this->fields[$fname]['value'];
@@ -408,7 +424,7 @@ class Form
     /**
     	@return An associative array with all values of form fields.
     */
-    protected function field_values()
+    public function field_values()
     {	$values = array();
 		foreach($this->fields as $fname => $field)
 			$values[$fname] = $field['value'];

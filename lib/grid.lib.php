@@ -71,11 +71,14 @@ class Grid
 		@param $data = null An array with data for each row. Each item of the array can be another array with all info of records
 				or an object with properties.
 	*/
-	public function __construct($columns, $options, $data = null)
+	public function __construct($columns = NULL, $options = NULL, $data = null)
 	{
-		$this->columns = $columns;
+		if ($columns !== NULL)
+			$this->columns = $columns;
+		if ($options !== NULL)
+		    $this->options = $options;
 		$this->data = $data;
-        $this->options = $options;
+    
         $this->grid_id = 'grid_gen_' . (Grid::$last_autoid ++);
         
         // Initialize default values for options

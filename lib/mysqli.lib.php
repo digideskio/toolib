@@ -215,7 +215,7 @@ class dbconn
 
     //! A macro for executing a statement and getting all results
     /** 
-      @note This is function is slow.
+      @note This function is not slower than getting manually one-by-one rows and loading in memory.      
         To use this function check the documentation of dbconn::execute().
       @return It will return false on fail or an array with all results.
      */
@@ -233,23 +233,25 @@ class dbconn
         $fields = $result->fetch_fields();
         $result->close();
 
-        // Create an anonymous function that will query fetch all data
-        $fcode = '$stmt->bind_result($res0';
-        for($i = 1; $i < $stmt->field_count; $i++)
-            $fcode .= ', $res' . $i;
-        $fcode .= '); ';
-        $fcode .= '$res = array(); while($stmt->fetch()){ $row = array(); $row[0] = $res0; $row[\''. $fields[0]->name .'\'] = $res0; ';
-        for($i = 1; $i < $stmt->field_count; $i++)
-        {
-            $fcode .= '$row['. $i .'] = $res' . $i .';';
-            $fcode .= '$row[\''. $fields[$i]->name .'\'] = $res' . $i .';';
-        }
-        $fcode .=' $res[] = $row; }';
-        $fcode .=' return $res;';
-        
-        // Execute anonynoums function
-        $fetch = create_function('$stmt', $fcode);
-        return $fetch($stmt);
+		// Bind results on each cell of bnd_res array
+		$bnd_res = array_fill(0, $stmt->field_count, NULL);
+		$bnd_param = array();
+		foreach($bnd_res as $k => &$bnd)
+			$bnd_param[] = & $bnd;
+		call_user_func_array(array($stmt, 'bind_result'), $bnd_param);
+		
+		// Get results one by one
+		$array_result = array();
+		while($stmt->fetch())
+		{	$row = array();
+			for($i = 0; $i < $stmt->field_count; $i++)
+			{
+				$row[$i] = $bnd_res[$i];
+				$row[$fields[$i]->name] = & $row[$i];
+			}
+			$array_result[] = $row;
+		}
+		return $array_result;
     }
 };
 
