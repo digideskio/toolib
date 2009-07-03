@@ -182,6 +182,30 @@ function param_is_equal($key, $val)
     return false;
 }
 
+//! Safe get of GET parameter
+/**
+	@return The value of HTTP GET parameter or FALSE if it was not found
+*/
+function safe_get_param($key)
+{	return (isset($_GET[$key]))?$_GET[$key]:false;
+}
+
+//! Safe get of POST parameter
+/**
+	@return The value of HTTP POST parameter or FALSE if it was not found
+*/
+function safe_post_param($key)
+{	return (isset($_POST[$key]))?$_POST[$key]:false;
+}
+
+//! Safe get of GET/POST parameter
+/**
+	@return The value of HTTP GET/POST parameter or FALSE if it was not found
+*/
+function safe_request_param($key)
+{	return (isset($_REQUEST[$key]))?$_REQUEST[$key]:false;
+}
+
 //! Redirect browser to a new url
 function redirect($path, $auto_exit = true)
 {   header('Location: '. $path);  if ($auto_exit) exit;  }
