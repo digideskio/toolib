@@ -258,9 +258,7 @@ function get_static_var($class_name, $var_name)
 	if (version_compare(PHP_VERSION, '5.3.0', '>='))
 		error_log('get_static_var() should not be used with PHP 5.3 > as there is native support.!');
 		
-	$func = create_function('', "return $class_name::\$$var_name;");
-	$a = $func();
-	return $a;
+	return eval("return $class_name::\$$var_name;");
 }
 
 ?>

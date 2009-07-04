@@ -52,7 +52,9 @@ $layout->s('main');
 function layout_create_footer()
 {
 	echo 'Copyright (C) 2009 ' . a('/', $GLOBALS['GS_site_title'] );
-	printf(' <br>Built on <a href="http://phplibs.kmfa.net">PHPLibs</a><br><span class="ui-process-time">%4.3f secs</span>', (microtime(true) - $GLOBALS['start_time']));
+	printf('<br><span class="ui-process-time">%4.3f secs, %4.2f/%4.1f MB memory</span>',
+		(microtime(true) - $GLOBALS['start_time']),
+		memory_get_peak_usage(true)/1048576, ini_get('memory_limit'));
 	if (isset($GLOBALS['GS_ga']))
 		ga_code($GLOBALS['GS_ga']);
 }

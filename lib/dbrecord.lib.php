@@ -61,6 +61,12 @@ class DBRecord
 	//! Parameter of DBRecord to use session to cache classes
 	public static $session_cache = false;
 	
+	//! Parameter for controlling apc
+	public static $apc_cache = false;
+	
+	//! APC name prefixing
+	public static $apc_prefix = '';
+	
 	//! All the classes that are using DBRecord
 	protected static $classes = array();
 	
@@ -232,7 +238,9 @@ class DBRecord
 				$_SESSION['dbrecord-cache-2'][$called_class] = self::$classes[$called_class];
 			}
 			else
-				$class_desc = self::$classes[$called_class] = $_SESSION['db-record-cache-2'][$called_class];
+			{	self::$classes[$called_class] = $_SESSION['db-record-cache-2'][$called_class];
+				$class_desc = & self::$classes[$called_class];
+			}
 
 			// Prepare sql statements
 			foreach($class_desc['sql'] as $entry_name => $entry)
@@ -307,8 +315,12 @@ $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title
 			$count = 0;
 			foreach($create_params as $param_name => &$param_value)
 			{	if ($count >= count($args)) break;
-			
-				$param_value = $args[$count];
+
+				if (($class_desc['fields'][$param_name]['type'] == 'datetime') && is_object($args[$count]))
+					$param_value = $args[$count]->format(DATE_ISO8601);
+				else
+					$param_value = $args[$count];
+
 				if ($class_desc['fields'][$param_name]['pk'])
 					$insert_pk = $param_value;
 				$count ++;
@@ -322,7 +334,10 @@ $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title
 			{
 				if (!array_key_exists($arg_key, $create_params))
 					return false;
-				$create_params[$arg_key] = $arg_value;
+				if (($class_desc['fields'][$arg_key]['type'] == 'datetime') && is_object($arg_value))
+					$create_params[$arg_key] = $arg_value->format(DATE_ISO8601);
+				else
+					$create_params[$arg_key] = $arg_value;
 				if ($class_desc['fields'][$arg_key]['pk'])
 					$insert_pk = $arg_value;
 
@@ -360,10 +375,17 @@ $n = News::open(14);
 	{	if ($called_class === NULL)
 			$called_class = get_called_class();
 
+		if (self::$apc_cache)
+		{	$obj = apc_fetch('dbrecord-' . self::$apc_prefix . '-' . $called_class . '-' . $primary_key, & $succ);
+			if ($succ === true)
+				return $obj;
+			unset($obj);
+		}
+
 		// Initialize static
 		if (($class_desc = self::init_static($called_class)) === false)
 			return false;
-
+					
 		// Execute query
 		if (($res_array = dbconn::execute_fetch_all($class_desc['sql']['open']['stmt'], 's', $primary_key)) === false)
 			return false;
@@ -377,10 +399,10 @@ $n = News::open(14);
 		
 		// Populate data
 		foreach($class_desc['fields'] as $field_name => $field)
-			if ($class_desc['fields'][$field_name]['type'] == 'datetime')
-				$obj->data[$field_name] = new DateTime('@' . $res_array[0][$field['sqlfield']]);
-			else
 				$obj->data[$field_name] = $res_array[0][$field['sqlfield']];
+
+		if (self::$apc_cache)				
+			apc_store('dbrecord-' .self::$apc_prefix . '-' . $called_class . '-' . $primary_key, $obj);
 		return $obj;
 	}
 	
@@ -435,11 +457,11 @@ $all_news = News::open_all();
 		if (($res_array = dbconn::execute_fetch_all($class_desc['sql']['all']['stmt'])) === false)
 			return false;
 		
-		$groups = array();
+		$recs = array();
 		foreach($res_array as $res)
-			$groups[] = Group::open($res['groupname']);
+			$recs[] = self::open($res[0], $called_class);
 			
-		return $groups;	
+		return $recs;	
 	}
 
 	//! Count all records of the table
@@ -503,7 +525,7 @@ $total_news = News::count_all();
 			else
 			{
 				if ($this->class_desc['fields'][$field_name]['type'] == 'datetime')
-					$upd_params[] = $this->data[$field_name]->format(DATE_ISO8601);
+					$upd_params[] = $this->__get($field_name)->format(DATE_ISO8601);
 				else
 					$upd_params[] = $this->data[$field_name];
 			}
@@ -511,8 +533,12 @@ $total_news = News::count_all();
 		$upd_params = array_merge($upd_params, $pk);
 		
 		// Execute query
-		if (($res_array = call_user_func_array(array('dbconn', 'execute'), $upd_params)) === false)
+		if (call_user_func_array(array('dbconn', 'execute'), $upd_params) === false)
 			return false;
+
+		// Remove cache
+		if (self::$apc_cache)
+			apc_delete('dbrecord-' . self::$apc_prefix . '-' . $this->class_desc['class'] . '-' . $pk[0]);
 
 		return true;
 	}
@@ -524,9 +550,19 @@ $total_news = News::count_all();
 	*/
 	public function __get($name)
 	{	if (!isset($this->class_desc['fields'][$name]))
-		{	trigger_error('DBRecord('. $this->class_desc['class'] . ')->' . $name . ' is not valid field');
+		{	// Raise a notice!!!
+		    $trace = debug_backtrace();
+			trigger_error('DBRecord('. $this->class_desc['class'] . ')->' . $name . 
+				' is not valid field in ' . $trace[0]['file'] .
+				' on line ' . $trace[0]['line']);
+	
 			return NULL;
 		}
+		
+		// Datetime mangling
+		if ($this->class_desc['fields'][$name]['type'] == 'datetime')
+			if (! is_object($this->data[$name]))
+				$this->data[$name] = new DateTime('@' . $this->data[$name]);
 
 		return $this->data[$name];
 	}
@@ -542,11 +578,18 @@ $total_news = News::count_all();
 	*/		
 	public function __set($name, $value)
 	{	if (!isset($this->class_desc['fields'][$name]))
+		{	// Raise a notice!!!
+		    $trace = debug_backtrace();
+			trigger_error('DBRecord('. $this->class_desc['class'] . ')->' . $name . 
+				' is not valid field in ' . $trace[0]['file'] .
+				' on line ' . $trace[0]['line']);
+	
 			return NULL;
+		}
 			
 		// Check type of data
 		if ($this->class_desc['fields'][$name]['type'] == 'datetime')
-		{	if (!is_object($value)) $value = new DateTime($value);
+		{	if (is_object($value)) $value = $value->format('U');
 			return $this->data[$name] = $value;
 		}
 		else			
@@ -594,9 +637,21 @@ $total_news = News::count_all();
 
 		if (dbconn::execute($this->class_desc['sql']['delete']['stmt'], 's', $this_pk) === false)
 			return false;
+			
+		if (self::$apc_cache)
+			apc_delete('dbrecord-' . self::$apc_prefix . '-' . $this->class_desc['class'] . '-' . $this_pk);
 		
 		return true;
 	}
 	
+	public function __sleep()
+	{	return array('data');
+	}
+	
+	public function __wakeup()
+	{	// Initialize static
+		self::init_static(get_class($this));
+		$this->class_desc = & self::$classes[get_class($this)];
+	}
 }
 ?>
