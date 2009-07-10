@@ -80,9 +80,9 @@ class HTMLPage
     //! Javascript references
     private $js_refs = array();
     
-    //! Style sheet references
-    private $css_refs = array();
-   
+	//! Link external references 
+	private $link_refs = array();
+	
 	//! Extra meta tags
 	private $extra_meta = array();
 	
@@ -95,17 +95,23 @@ class HTMLPage
     //! Title of html page
     public $title = '';
     
-	//! Add a javascript reference
-	public function add_ref_js($script)
-	{
-	    $this->js_refs[] = sprintf('<script src="%s" type="text/javascript"></script>', $script);
-	}
-	
-	//! Add a style sheet reference
-	public function add_ref_css($script)
-	{
-    	$this->css_refs[] = sprintf('<link rel="stylesheet" type="text/css" href="%s">', $script);
-	}
+    //! Add a external reference entry
+    /** 
+    	@param $href The position of this external reference
+    	@param $type Specifies the MIME type of the linked document
+    	@param $rel Specifies the relationship between the current document and the linked document
+    	@param $extra_html_attribs An array with extra attributes that you want to set at this link element.\n
+    		Attributes are given as an associative array where key is the attribute name and value is the 
+    		attribute value.\n
+    */
+    public function add_link_ref($href, $type, $rel, $extra_html_attribs = array())
+    {	$link_el = $extra_html_attribs;
+    	$link_el['href'] = $href;
+    	$link_el['type'] = $type;
+    	$link_el['rel'] = $rel;
+    	$this->link_refs[] = $link_el;
+    	return true;
+    }	
     
     //! Add a new meta data entry
     /** 
@@ -125,6 +131,35 @@ class HTMLPage
     	$this->extra_meta[] = $meta_el;
     }
     
+    //! Add a favicon of this webpage
+    public function add_favicon($icon, $type = NULL)
+    {	if ($type === NULL)
+    	{	$ext = pathinfo($icon, PATHINFO_EXTENSION);
+    	
+    		if ($ext == 'gif')
+    			$type = 'image/gif';
+    		else if ($ext == 'png')
+    			$type = 'image/png';
+    		else if ($ext == 'ico')
+    			$type = 'image/vnd.microsoft.icon';
+    		else
+    			return false;
+    	}
+    	
+    	return $this->add_link_ref($icon, $type, 'icon');
+    }
+    
+	//! Add a javascript reference
+	public function add_ref_js($script)
+	{
+	    $this->js_refs[] = sprintf('<script src="%s" type="text/javascript"></script>', $script);
+	}
+	
+	//! Add a style sheet reference
+	public function add_ref_css($script)
+	{	return $this->add_link_ref($script, "text/css", "stylesheet");
+	}
+
     //! Append data in the body content
     public function append_data($str)
     {
@@ -148,12 +183,20 @@ class HTMLPage
 			$r .= ' >';
 		}
 		
-        // Title
-        $r .= '<title>' . $this->title . '</title>';
-        foreach ($this->css_refs as $css_ref)
-            $r .= $css_ref;
+		// Link external references
+        foreach ($this->link_refs as $link_ref)
+        {	$r .= '<link';
+			foreach($link_ref as $name => $value)
+				$r .= ' ' . esc_html($name) . '="' . esc_html($value) . '"';
+            $r .= ' >';
+        }
+        
+        // Javascript exteeernal references
         foreach ($this->js_refs as $js_ref)
             $r .= $js_ref;
+            
+        // Title
+        $r .= '<title>' . $this->title . '</title>';
         $r .= '</head><body><div id="wrapper">';
         $r .= $this->body_data;
         $r .= '</div></body></html>';
