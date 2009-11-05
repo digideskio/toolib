@@ -2,7 +2,7 @@
 /*******************************************
  @file Every-day functions
  */
- 
+
 //! Convert date to text using the standard format
 /** 
 	The format can be defined by assinging it to the
@@ -67,6 +67,21 @@ function dateSmartDiffFormat($ndate)
 	return substr(date('F', $ndate), 0, 3) . date(' d, Y', $ndate);
 }
 
+//! Human readable file size
+/**
+ * It is preferable to display size closer to the unit that
+ * results with less digits and without using floating point. It is better
+ * to use 1.2K or 1K than 1200bytes.
+ */
+function human_html_fsize($size, $postfix = 'ytes')
+{	if ($size < 1024)
+		return $size . ' b' . $postfix;
+	else if ($size < 1048576)
+		return ceil($size/1024) . ' KB' . $postfix;
+	else if ($size < 1073741824)
+		return ceil($size/1048576) . ' MB' . $postfix;
+	return ceil($size/1073741824) . ' GB' . $postfix;
+}
 //! Human-friendly date representation
 /** 
 	Humans usually prefer the time in differnce of the present,
@@ -114,7 +129,7 @@ function text_sample($text, $length)
 //! Escape all html control characters from a text and return the result
 function esc_html($text)
 {
-	return htmlspecialchars($text, ENT_QUOTES);
+	return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
 
 //! Escape javascript code
@@ -138,73 +153,6 @@ function linkify_urls($text, $replace_text = '<a href="${0}" target="_blank">${0
 	return preg_replace('/((?:http|ftp):\/\/[^\s\<\>]*)/im', $replace_text, $text);
 }
 
-//! Assure that a GET parameter is set and return it
-function assert_get_parameter($name)
-{	if (!isset($_GET[$name]))
-		exit;
-	return $_GET[$name];
-}
-
-//! Assure that a POST parameter is set and return it
-function assert_post_parameter($name)
-{	if (!isset($_POST[$name]))
-		exit;
-	return $_POST[$name];
-}
-
-//! Assure that a request (post or get) parameter is set and return it
-function assert_parameter($name)
-{	if (!isset($_REQUEST[$name]))
-		exit;
-	return $_REQUEST[$name];
-}
-
-//! Safe check for get parameter
-function get_is_equal($key, $val)
-{   if (isset($_GET[$key]) && ($_GET[$key] == $val))
-        return true;        
-    return false;
-}
-
-//! Safe check for post parameter
-function post_is_equal($key, $val)
-{
-    if (isset($_POST[$key]) && ($_POST[$key] == $val))
-        return true;        
-    return false;
-}
-
-//! Safe check for request (post or get) parameter
-function param_is_equal($key, $val)
-{
-    if (isset($_REQUEST[$key]) && ($_REQUEST[$key] == $val))
-        return true;        
-    return false;
-}
-
-//! Safe get of GET parameter
-/**
-	@return The value of HTTP GET parameter or FALSE if it was not found
-*/
-function safe_get_param($key)
-{	return (isset($_GET[$key]))?$_GET[$key]:false;
-}
-
-//! Safe get of POST parameter
-/**
-	@return The value of HTTP POST parameter or FALSE if it was not found
-*/
-function safe_post_param($key)
-{	return (isset($_POST[$key]))?$_POST[$key]:false;
-}
-
-//! Safe get of GET/POST parameter
-/**
-	@return The value of HTTP GET/POST parameter or FALSE if it was not found
-*/
-function safe_request_param($key)
-{	return (isset($_REQUEST[$key]))?$_REQUEST[$key]:false;
-}
 
 //! Redirect browser to a new url
 function redirect($path, $auto_exit = true)

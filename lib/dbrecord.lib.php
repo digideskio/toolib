@@ -50,9 +50,12 @@ class News extends DBRecord
 			this option will be set to false.
 		- @b sqlfield: [Default = "array entry key"] If you want to create a field that has a different name
 		than the database field, you must set this value to the name of the SQL's field.
-		- @b type: [Default = "general"] Currently there is only one different datatype supported 'datetime'. General
-		type sets and gets data as string, but datetime will accept only php DateTime objects and returns php
-		DateTime objects.
+		- @b type: [Default = "general"] Supported types are "general", "datetime", "serialized"
+			- "general" type will cast data as string.
+			- "datetime" will accept only php DateTime objects and returns php DateTime objects.
+			- "serialized" will serialize provided data and save them to database and will unserialize them 
+				from database trasparently. It will not check for proper SQL field size.
+			.
 		.
 
 */
@@ -318,6 +321,8 @@ $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title
 
 				if (($class_desc['fields'][$param_name]['type'] == 'datetime') && is_object($args[$count]))
 					$param_value = $args[$count]->format(DATE_ISO8601);
+				if (($class_desc['fields'][$param_name]['type'] == 'serialized') && is_object($args[$count]))
+					$param_value = serialize($args[$count]);
 				else
 					$param_value = $args[$count];
 
@@ -336,6 +341,8 @@ $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title
 					return false;
 				if (($class_desc['fields'][$arg_key]['type'] == 'datetime') && is_object($arg_value))
 					$create_params[$arg_key] = $arg_value->format(DATE_ISO8601);
+				if (($class_desc['fields'][$arg_key]['type'] == 'serialized') && is_object($arg_value))
+					$create_params[$arg_key] = serialize($arg_value);
 				else
 					$create_params[$arg_key] = $arg_value;
 				if ($class_desc['fields'][$arg_key]['pk'])
@@ -376,7 +383,7 @@ $n = News::open(14);
 			$called_class = get_called_class();
 
 		if (self::$apc_cache)
-		{	$obj = apc_fetch('dbrecord-' . self::$apc_prefix . '-' . $called_class . '-' . $primary_key, & $succ);
+		{	$obj = apc_fetch('dbrecord-' . self::$apc_prefix . '-' . $called_class . '-' . $primary_key, $succ);
 			if ($succ === true)
 				return $obj;
 			unset($obj);
@@ -464,6 +471,52 @@ $all_news = News::open_all();
 		return $recs;	
 	}
 
+	/**
+		Acceptable criteria are
+			'limit', 'offset'
+	*/
+	public static function open_by_criteria($order_by = array(), $options = array(), $called_class = NULL)
+	{	if ($called_class === NULL)
+			$called_class = get_called_class();
+		
+		// Initialize static
+		if (($class_desc = self::init_static($called_class)) === false)
+			return false;
+			
+		$defoptions = array('limit' => false, 'offset' => false);
+		$options = array_merge($defoptions, $options);
+		
+		// Start up query	
+		$query = 'SELECT ' . $class_desc['meta']['pk'][0] . ' FROM ' . $class_desc['table'];
+		
+		// Order list
+		$first = true;
+		foreach($order_by as $field => $order)
+		{	if (!isset($class_desc['fields'][$field]))
+				return false;
+
+			if ($first)
+			{	$first = false; $query .= ' ORDER BY ';	}
+			else
+				$query .= ', ';
+
+			$query .= $class_desc['fields'][$field]['sqlfield'] . ((strtolower($order) =='asc')?' ASC':' DESC');
+		}
+		
+		// Options
+		if ($options['limit'])
+			$query .= ' LIMIT ' . (($options['offset'] !== false)?$options['offset'] . ', ':'') . $options['limit'];
+
+		if (($res_array = dbconn::query_fetch_all($query)) === false)
+			return false;
+		
+		$recs = array();
+		foreach($res_array as $res)
+			$recs[] = self::open($res[0], $called_class);
+			
+		return $recs;	
+	}
+
 	//! Count all records of the table
 	/**
 		This could also be done by executing:
@@ -526,6 +579,8 @@ $total_news = News::count_all();
 			{
 				if ($this->class_desc['fields'][$field_name]['type'] == 'datetime')
 					$upd_params[] = $this->__get($field_name)->format(DATE_ISO8601);
+				if ($this->class_desc['fields'][$field_name]['type'] == 'serialized')
+					$upd_params[] = serialize($this->data[$field_name]);
 				else
 					$upd_params[] = $this->data[$field_name];
 			}
@@ -563,6 +618,8 @@ $total_news = News::count_all();
 		if ($this->class_desc['fields'][$name]['type'] == 'datetime')
 			if (! is_object($this->data[$name]))
 				$this->data[$name] = new DateTime('@' . $this->data[$name]);
+		if ($this->class_desc['fields'][$name]['type'] == 'serialized')
+			return unserialize($this->data[$name]);				
 
 		return $this->data[$name];
 	}
@@ -590,7 +647,7 @@ $total_news = News::count_all();
 		// Check type of data
 		if ($this->class_desc['fields'][$name]['type'] == 'datetime')
 		{	if (is_object($value)) $value = $value->format('U');
-			return $this->data[$name] = $value;
+				return $this->data[$name] = $value;
 		}
 		else			
 			return $this->data[$name] = $value;
@@ -609,7 +666,7 @@ $total_news = News::count_all();
 	/**
 		Returns an associative array will all data of this instance.
 	*/
-	public function data()
+	public function & data()
 	{	return $this->data;	}
 	
 	//! Delete this record

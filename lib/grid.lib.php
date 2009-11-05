@@ -171,25 +171,23 @@ class Grid
     
     // Render column captions only
     private function render_column_captions()
-    {
-		// Render Headers
-		echo '<tr>';
+    {	// Render Headers
+		$tr = tag('tr');
 		foreach($this->columns as $col_id => $c)
-		{	echo '<th ' ;
+		{	$tr->append($th = tag('th', $c['caption']));
 		
 			if ($c['headerclickable'])
-			{
-				echo ' class="ui-clickable" ';
-				echo ' onclick="' .
-				'$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'headerclick\'); ' .
-				'$(\'form#' . $this->grid_id . ' input[name=libgrid_backend_colid]\').val(\'' . $col_id . '\');' .
-				' $(\'form#' . $this->grid_id . '\').submit();" ';
+			{	$th->add_class('ui-clickable');
+				$th->attr('onclick',
+					'$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'headerclick\'); ' .
+					'$(\'form#' . $this->grid_id . ' input[name=libgrid_backend_colid]\').val(\'' . $col_id . '\');' .
+					' $(\'form#' . $this->grid_id . '\').submit();'
+				);
 			}
 			foreach($c['htmlattribs'] as $n => $v)
-				echo esc_html($n) . '="' . esc_html($v) .'" ';
-
-			echo '>' . esc_html($c['caption']);
+				$th->attr($n, $v);
 		}
+		return $tr;
     }
     
     // Render page controls
@@ -214,84 +212,83 @@ class Grid
 			$lastpage = floor($totalrows / $pagesize) * $pagesize + 1;
 
 		// Render Headers
-		echo '<table class="ui-grid-page-controls">';
-		echo '<tr> <td align="left">';
-		echo $startrow . ' &rarr; ' . $endrow . '&nbsp;&nbsp;of&nbsp;&nbsp;' . $totalrows . ' results';
-		echo '<td width="250px" align="right">';
-		
-		
+		tag('table class="ui-grid-page-controls"')->push_parent();
+		etag('tr', tag('td html_escape_off align="left"',
+			 $startrow . ' &rarr; ' . $endrow . '&nbsp;&nbsp;of&nbsp;&nbsp;' . $totalrows . ' results'),
+			 ($td = tag('td width="250px" align="right"'))
+		);
+		$td->push_parent();
+				
 		// First button
-		echo '<span class="ui-grid-first ';
+		$span = etag('span class="ui-grid-first"', 'First');		
 		if ($firstpage != false)
-			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+			$span->attr('onclick', '$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
 				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'1\');' .
-				' $(\'form#' . $this->grid_id . '\').submit();" ';
+				' $(\'form#' . $this->grid_id . '\').submit();');
 		else
-			echo ' ui-grid-inactive"';
-		echo ' >First</span> &#149; ';
+			$span->add_class('ui-grid-inactive');
+		etag('span html_escape_off', ' &#8226;');
 		
-		// Previous button
-		echo '<span class="ui-grid-previous ';
+		$span = etag('span class="ui-grid-previous"', 'Previous');
 		if ($previouspage != false)
-			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+			$span->attr('onclick', '$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
 				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $previouspage .'\');' .
-				' $(\'form#' . $this->grid_id . '\').submit();" ';
+				' $(\'form#' . $this->grid_id . '\').submit();');
 		else
-			echo ' ui-grid-inactive"';
-		echo ' >Previous</span> &#149; ';
-
-		// Next button
-		echo '<span class="ui-grid-next ';
-		if ($nextpage != false)
-			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
-				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $nextpage . '\');' .
-				' $(\'form#' . $this->grid_id . '\').submit();" ';
-		else
-			echo ' ui-grid-inactive" ';
-		echo ' >Next</span> &#149; ';
+			$span->add_class('ui-grid-inactive');
+		etag('span html_escape_off', ' &#8226; ');
 		
-		// Last button
-		echo '<span class="ui-grid-last ';
-		if ($lastpage != false)
-			echo '" onclick="$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
-				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $lastpage . '\');' .
-				' $(\'form#' . $this->grid_id . '\').submit();" ';
+		// Next button
+		$span = etag('span class="ui-grid-next"', 'Next');
+		if ($nextpage != false)
+			$span->attr('onclick','$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $nextpage . '\');' .
+				' $(\'form#' . $this->grid_id . '\').submit();');
 		else
-			echo ' ui-grid-inactive"';
-		echo ' >Last</span>';
-		echo '</table>';
+			$span->add_class('ui-grid-inactive');
+		etag('span html_escape_off', ' &#8226; ');
+				
+		$span = etag('span class="ui-grid-last"', 'Last');
+		if ($lastpage != false)
+			$span->attr('onclick','$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $lastpage . '\');' .
+				' $(\'form#' . $this->grid_id . '\').submit();');
+		else
+			$span->add_class('ui-grid-inactive');		
+		
+		return HTMLTag::pop_parent(2);
     }
     
 	//! Render grid
 	private function render()
-	{	echo '<div class="';
-        foreach($this->options['css'] as $cls)
-            echo esc_html($cls) . ' ';
-        echo '">';
+	{	$div = tag('div')->push_parent();
+		foreach($this->options['css'] as $cls)
+            $div->add_class($cls);
+        
         // Form hidden event
-        echo '<form method="post" id="' . $this->grid_id . '">';
-        echo '<input type="hidden" name="submited_grid_id" value="' . $this->grid_id . '">';
-        echo '<input type="hidden" name="libgrid_backend_action" value="">';
-        echo '<input type="hidden" name="libgrid_backend_colid" value="">';
-        echo '<input type="hidden" name="libgrid_backend_rowid" value="">';
-        echo '<input type="hidden" name="libgrid_backend_startrow" value="">';
-                        
-        echo '</form>';
+        etag('form', array('action' => '', 'method' => 'post', 'id' => $this->grid_id))->push_parent();
+        etag('input type="hidden" name="submited_grid_id"', array('value' => $this->grid_id));
+        etag('input type="hidden" name="libgrid_backend_action"');
+        etag('input type="hidden" name="libgrid_backend_colid"');
+        etag('input type="hidden" name="libgrid_backend_rowid"');
+        etag('input type="hidden" name="libgrid_backend_startrow"');
+        HTMLTag::pop_parent();        
+        
         
 		// Caption
 		if (!empty($this->options['caption']))
-			echo '<div class="ui-grid-title">' . esc_html($this->options['caption']) . '</div>';
+			etag('div class="ui-grid-title"', $this->options['caption']);
 		
         // Page controls
         if (($this->options['pagecontrolpos'] == 'top') || ($this->options['pagecontrolpos'] == 'both'))
-	        $this->render_page_controls();
+	        HTMLTag::get_current_parent()->append($this->render_page_controls());
 
         // Grid list
-		echo '<table class="ui-grid-list">';
+        etag('table class="ui-grid-list"')->push_parent();
         
         // Render column captions again
         if (($this->options['headerpos'] == 'top') || ($this->options['headerpos'] == 'both'))
-    		$this->render_column_captions();
+    		HTMLTag::get_current_parent()->append($this->render_column_captions());
 			
 		// Render data
 		$count_rows = 0;
@@ -306,9 +303,8 @@ class Grid
 					continue;
 			}
 				
-			// Draw new line	
-			echo '<tr class="'. (($count_rows % 2)?'ui-even':'');
-			echo '">';
+			// Draw new line
+			etag('tr')->push_parent()->add_class(($count_rows % 2)?'ui-even':'');
 			
 			foreach($this->columns as $col_id => $c)
 			{	
@@ -330,31 +326,31 @@ class Grid
 				}
 
 				// Display cell
-				echo '<td ';
+				$td = etag('td html_escape_off', (string)$data);
 				if ($c['clickable'])
-				{
-					echo ' class="ui-clickable" ';
-					echo ' onclick="' .
+				{	$td->add_class('ui-clickable')->
+						attr('onclick',
 						'$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'click\'); ' .
 						'$(\'form#' . $this->grid_id . ' input[name=libgrid_backend_colid]\').val(\'' . $col_id . '\');' .
 						' $(\'form#' . $this->grid_id .	' input[name=libgrid_backend_rowid]\').val(\'' . $recid . '\');' .
-						' $(\'form#' . $this->grid_id . '\').submit();" ';
+						' $(\'form#' . $this->grid_id . '\').submit();'
+					);
 				}
-				echo '>' . $data;
 			}
+			HTMLTag::pop_parent();	// TR
 		}
 		
 		// Render column captions again
         if (($this->options['headerpos'] == 'bottom') || ($this->options['headerpos'] == 'both'))
 			$this->render_column_captions();
 
-		echo '</table>';
+		HTMLTag::pop_parent();	// TABLE
 
         // Page controls
         if (($this->options['pagecontrolpos'] == 'bottom') || ($this->options['pagecontrolpos'] == 'both'))
-	        $this->render_page_controls();
+        	HTMLTag::get_current_parent()->append($this->render_page_controls());
 
-		echo '</div>';
+		echo HTMLTag::pop_parent();	// DIV
 	}
 }
 

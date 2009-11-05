@@ -212,7 +212,7 @@ class Form
             array(... fields ...),
             array('title' => 'My Duper Form', 'buttons' => array('ok' => array('display' => 'Ok'))
         );
-        @endcode\n\n
+        @endcode \n\n
         @p Another example with @b renderonconstruct set to @b false:        
         @code
         
@@ -250,6 +250,7 @@ class Form
         	{	// Add your code here	}
         };
         new MyForm();
+        @endcode
     */
     public function __construct($fields = NULL, $options = NULL)
     {
@@ -261,40 +262,36 @@ class Form
         $this->enctype = 'application/x-www-form-urlencoded';
         
         // Initialize default values for options
-        if (!isset($this->options['css']))
-            $this->options['css'] = array('ui-form');
-
-        if (!isset($this->options['hideform']))
-            $this->options['hideform'] = false;
-
-        if (!isset($this->options['renderonconstruct']))
-            $this->options['renderonconstruct'] = true;
-
-		if (!isset($this->options['buttons']))
-            $this->options['buttons'] = array('submit' => array());
+        $default_options = array(
+        	'display' => '',
+        	'css' => array('ui-form'),
+        	'hideform' => false,
+        	'renderonconstruct' => true,
+        	'buttons' => array('submit' => array())
+        );
+        $this->options = array_merge($default_options, $this->options);
             
         // Initialize default values for fields
+        $default_field_values = array(
+        	'type' => 'text',
+        	'optionlist' => array(),
+        	'htmlattribs' => array(),
+        	'mustselect' => true,
+        );
+        foreach($this->fields as $field_key => $field)
+        	$this->fields[$field_key] = array_merge($default_field_values, $field);
+        
+        // Extra custom options
         foreach($this->fields as & $field)
-        {   // Type
-            if (!isset($field['type']))
-                $field['type'] = 'text';
-            
-            // Usepost
+        {    // Usepost
             if (!isset($field['usepost']))
                 $field['usepost'] = ($field['type'] == 'password')?false:true;
-                
-            // optionlist
-            if (!isset($field['optionlist']))
-                $field['optionlist'] = array();
-
-            // Must select
-            if (!isset($field['htmlattribs']))
-                $field['htmlattribs'] = array();
-                            
-            // Must select
-            if (!isset($field['mustselect']))
-                $field['mustselect'] = true;
-                
+            // Rows and Cols for textarea
+            if (($field['type'] == 'textarea') && (!isset($field['htmlattribs']['rows'])))
+            	$field['htmlattribs']['rows'] = 8;
+            if (($field['type'] == 'textarea') && (!isset($field['htmlattribs']['cols'])))
+            	$field['htmlattribs']['cols'] = 70;
+            	
             // Check for file field
             if ($field['type'] == 'file')
             	$this->enctype = 'multipart/form-data';
@@ -367,8 +364,8 @@ class Form
 			}
 			// Checkboxes
 			else if ($field['type'] == 'checkbox')
-			{	$field['value'] = (isset($_POST[$k]) && ($_POST[$k] == 'on'));
-			}
+			{	$field['value'] = (isset($_POST[$k]) && ($_POST[$k] == 'on'));	}
+			
 			// Store values for classic elements
 			else if (isset($_POST[$k]))
                 $field['value'] = $_POST[$k];
@@ -395,8 +392,6 @@ class Form
                         $field['error'] = $field['onerror'];
                 }
             }
-
-
         }
         unset($field);
 
@@ -404,7 +399,7 @@ class Form
         if (method_exists($this, 'on_post'))
             $this->on_post();
             
-        // Call on_valid if form is valid
+        // Call on_valid if form is valid
         if ($this->is_valid() && method_exists($this, 'on_valid'))
             $this->on_valid($this->field_values());
     }
@@ -419,6 +414,10 @@ class Form
         if (isset($this->fields[$fname]) && (isset($this->fields[$fname]['value'])) )
             return $this->fields[$fname]['value'];
     }
+    
+    //! Get a reference to the field
+    public function & get_field($fname)
+    {	return $this->fields[$fname];	}
     
     //! Get all the values of fields
     /**
@@ -499,130 +498,119 @@ class Form
         $this->fields[$fname]['display'] = $display;
     }
     
-    //! Internal function to render extra html attributes of a field
-    private function extra_attribs($field)
-    {	$attributes = $field['htmlattribs'];
-    
-    	$extra_attribs = '';
-    	foreach($attributes as $attr_name => $attr_value)
-    		$extra_attribs .= esc_html($attr_name) . '="' . esc_html($attr_value) . '" ';
-		return $extra_attribs;
-    }
-    
     //! Render the form
     public function render()
     {   // Check if it should be hidden
     	if ($this->options['hideform'])
     		return false;
-    
-    	echo '<form method="post" enctype="' . $this->enctype . '">';
-        echo '<div class="';
-        foreach($this->options['css'] as $cls)
-            echo ' ' . esc_html($cls);
-        echo '">';
-        echo '<input type="hidden" name="submited_form_id" value="' . esc_html($this->form_id) .'">';
-        echo '<table>';
+   
+    	foreach($this->options['css'] as $cls) 
+    		$div_classes .= ' ' . esc_html($cls);
+    	$main_div = tag('div', array('class' => $div_classes));
+    	$main_div->append($form = tag('form action="" method="post"', array('enctype' => $this->enctype)));
+        $form->append(tag('input type="hidden" name="submited_form_id"' , array('value' => $this->form_id)));
+
+        $form->append($table = tag('table'));
         if (isset($this->options['title']))
-            echo '<tr><th colspan="2">'. esc_html($this->options['title']);
-        
+        	$table->append(tag('tr', tag('th colspan="2"', $this->options['title'])));
+            
         // Render all fields
         foreach($this->fields as $id => $field)
-        {   
-            echo '<tr><td';
-            // Line type
+        {   $table->append($tr = tag('tr', $td_left = tag('td')));
+        
+        	// Line type
             if ($field['type'] == 'line')
-            {
-                echo ' colspan="2"><hr>';
-                continue;
+            {  	$td_left->$attributes['colspan'] = 2;
+            	$td_left->append(tag('hr'));            	
+            	continue;
             }
 
-            // Show input pertype
+            $tr->append($td_right = tag('td'));
+            
+            
             if (isset($field['error']) || isset($field['hint']))
-                  echo ' rowspan="2" ';
-            echo '>' . (isset($field['display'])?esc_html($field['display']):'') . '<td>';
+                  $td_left->attributes['rowspan']='2';
+                  
+            if (isset($field['display']))
+            	$td_left->append($field['display']);
+
+            // Show input pertype
             switch($field['type'])
             {
             case 'text':
             case 'password':
-                echo '<input ' . $this->extra_attribs($field) . ' name="' . esc_html($id) . '" type="' . esc_html($field['type']) . '" ';
-                if (($field['usepost']) && isset($field['value'])) echo 'value="' . esc_html($field['value']) . '"';
-                echo '>';
+                $attrs = array_merge($field['htmlattribs'], array('name' => $id, 'type' => $field['type']));
+                if (($field['usepost']) && isset($field['value'])) 
+                	$attrs['value'] =$field['value'];
+                $td_right->append(tag('input', $attrs));                
                 break;
             case 'textarea':
-                echo '<textarea ' . $this->extra_attribs($field) . ' name="' . esc_html($id) . '" >';
-                if (($field['usepost']) && isset($field['value'])) echo esc_html($field['value']);
-                echo '</textarea>';
+            	$td_right->append(tag('textarea', $field['htmlattribs'],
+            		array('name'=>$id),
+            		(($field['usepost']) && isset($field['value']))?$field['value']:''
+            	));
                 break;
             case 'radio':
                 foreach($field['optionlist'] as $opt_key => $opt_text)
                 {
-                    echo '<input ' . $this->extra_attribs($field) . ' name="' . esc_html($id) . '" ';
-                    if (($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))
-                        echo 'checked="checked" ';
-                    echo 'type="radio" value="' . esc_html($opt_key) . '">&nbsp;' . esc_html($opt_text) . '&nbsp;&nbsp;&nbsp;&nbsp;';
+                	$td_right->append(tag('input type="radio"', $field['htmlattribs'],
+                		array('name'=>$id, 'value'=>$opt_key),
+                		(($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))?array('checked'=>'checked'):array(),
+                		'&nbsp;' . esc_html($opt_text) . '&nbsp;&nbsp;&nbsp;&nbsp;'
+                	));
                 }
                 break;
             case 'dropbox':
-                echo '<select ' . $this->extra_attribs($field) . ' name="' . esc_html($id) . '">';
+            	$td_right->append($select = tag('select', array('name' => $id), $field['htmlattribs']));
                 foreach($field['optionlist'] as $opt_key => $opt_text)
-                {
-                    echo '<option ';
-                    if (($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))
-                        echo 'selected="selected" ';
-                    echo ' value="' . esc_html($opt_key) . '">' . esc_html($opt_text) . '</option>';
+                {	$select->append(tag('option',                		
+                		array('value'=>$opt_key),
+                		(($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))?array('selected'=>'selected'):array(),
+                		$opt_text
+                	));
                 }
-                echo '</select>';
                 break;
             case 'checkbox':
-                echo '<input ' . $this->extra_attribs($field) . ' type="checkbox" name="' . esc_html($id) .'" ';
-                if (($field['usepost']) && isset($field['value']) && ($field['value']))
-                        echo 'checked="checked" ';
-                echo '>';
+            	$td_right->append(tag('input type="checkbox"', array('name'=>$id),
+            		$field['htmlattribs'],
+            		(($field['usepost']) && isset($field['value']) && ($field['value']))?array('checked'=>'checked'):array()
+            	));
                 break;
             case 'file':
-            	echo '<input ' . $this->extra_attribs($field) . ' type="file" name="' . esc_html($id) .'" >';
+            	$td_right->append(tag('input type="file"', array('name' => $id), $field['htmlattribs'] ));
                 break;
             case 'custom':
-                if (isset($field['value']))
-                    echo $field['value'];
+            	$td_right->append(tag('span html_escape_off', $field['value']));
                 break;
             }
             
             if (isset($field['error']))
-                echo '<tr><td><span class="ui-form-error">' . esc_html($field['error']) . '</span>';
+            	$table->append(tag('tr', tag('td', tag('span class="ui-form-error', $field['error']))));
             else if (isset($field['hint']))
-                echo '<tr><td><span class="ui-form-hint">' . esc_html($field['hint']) . '</span>';
+            	$table->append(tag('tr', tag('td', tag('span class="ui-form-hint', $field['hint']))));
         }
         
         // Render buttons
-        echo '<tr><td colspan="2">';
+        $table->append(tag('tr', $td_bt = tag('td colspan="2"')));
         foreach($this->options['buttons'] as $but_id => $but_parm)
-        {
-        	echo '<input ';
-        	
+        {	$but_parm['htmlattribs']['name'] = $but_id;
+        	$but_parm['htmlattribs']['value'] = $but_parm['display'];
+        	        	
         	// Type
 			if ($but_parm['type'] == 'submit')
-				echo 'type="submit"';
+				$but_parm['htmlattribs']['type'] = 'submit';
 			else if ($but_parm['type'] == 'reset')
-				echo 'type="reset"';
+				$but_parm['htmlattribs']['type'] = 'reset';
 			else
-				echo 'type="button"';
+				$but_parm['htmlattribs']['type'] = 'button';
 			
 			// Onclick
 			if ($but_parm['onclick'] != '')
-				echo ' onclick="' . $but_parm['onclick'] . '"';
-			
-			// Extra attributes
-			foreach($but_parm['htmlattribs'] as $attr_name => $attr_value)
-				echo ' ' . esc_html($attr_name) . '="' . esc_html($attr_value) . '"';
+				$but_parm['htmlattribs']['onclick'] = $but_parm['onclick'];
 
-			// Standard parameters
-			echo ' name="' . esc_html($but_id) . '" value ="' . esc_html($but_parm['display']) .'">';
+			$td_bt->append(tag('input', $but_parm['htmlattribs']));
         }
-        
-        echo '</table>';
-        echo '</div>';
-        echo '</form>';
+		echo $main_div->render();        
     }
     
     //! Don't display the form

@@ -67,7 +67,7 @@ class LayoutSection
 
 	
 	//! Add an html attrib to the section
-	public function add_attrib($attr_key, $attr_value)
+	public function attr($attr_key, $attr_value)
 	{	$this->extra_div_attribs[$attr_key] = $attr_value;
 		return $this;
 	}
