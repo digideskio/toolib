@@ -341,7 +341,7 @@ $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title
 					return false;
 				if (($class_desc['fields'][$arg_key]['type'] == 'datetime') && is_object($arg_value))
 					$create_params[$arg_key] = $arg_value->format(DATE_ISO8601);
-				if (($class_desc['fields'][$arg_key]['type'] == 'serialized') && is_object($arg_value))
+				else if (($class_desc['fields'][$arg_key]['type'] == 'serialized') && is_object($arg_value))
 					$create_params[$arg_key] = serialize($arg_value);
 				else
 					$create_params[$arg_key] = $arg_value;
@@ -579,7 +579,7 @@ $total_news = News::count_all();
 			{
 				if ($this->class_desc['fields'][$field_name]['type'] == 'datetime')
 					$upd_params[] = $this->__get($field_name)->format(DATE_ISO8601);
-				if ($this->class_desc['fields'][$field_name]['type'] == 'serialized')
+				else if ($this->class_desc['fields'][$field_name]['type'] == 'serialized')
 					$upd_params[] = serialize($this->data[$field_name]);
 				else
 					$upd_params[] = $this->data[$field_name];

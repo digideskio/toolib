@@ -110,7 +110,7 @@ class HTMLTag
 	//! Set an attribute
 	public function attr($attr_name, $attr_value = NULL)
 	{	if ($attr_value === NULL)
-			return $this->attributes[$attr_name]; 
+			return isset($this->attributes[$attr_name])?$this->attributes[$attr_name]:NULL; 
 		$this->attributes[$attr_name] = $attr_value;
 		return $this;
 	}
@@ -278,33 +278,6 @@ class HTMLTag
 		return false;
 	}
 }
-/*
-$GLOBALS['tag_stack'] = array();
-
-//! Add nested 
-function nstag()
-{	$args = func_get_args();
-	$new_tag = call_user_func_array('tag', $args);
-	
-	// Register to parent if any
-	if (count($GLOBALS['tag_stack']) > 0)
-		$GLOBALS['tag_stack'][count($GLOBALS['tag_stack']) - 1]->append($new_tag);
-	return $new_tag;
-}
-
-//! Create a tag and create a push stack for other tags
-function nstag_start()
-{	$args = func_get_args();
-	$new_tag = call_user_func_array('nstag', $args);
-	
-	array_push($GLOBALS['tag_stack'], $new_tag);
-	return $new_tag;
-}
-
-//! Close tag stack
-function nstag_close()
-{	return array_pop($GLOBALS['tag_stack']);	}
-*/
 
 //! Create a new tag
 function tag()
