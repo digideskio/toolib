@@ -2,6 +2,8 @@
 
 //! An abstract web form constructor
 /** 
+ * @todo Clean-up \@p from this documentation (@p is not the same as \@par!)
+ * @todo Clean-up todos lol
     Form provides a fast way to create input forms with server-side validation. It
     supports multiple types of input and an abstract way to create your own custom
     types. At the same time it provides form validation from mandatory fields to

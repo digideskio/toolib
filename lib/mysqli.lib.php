@@ -21,6 +21,9 @@ class dbconn
 	//! delayed preparation
 	static private $delayed_preparation;
 	
+	//! Packet size when sending binary packets
+	static public $binary_packet_size = 32768;
+	
     //! Initialize db connection
     /** 
         @param $server The dns or ip of the server to connect at.
@@ -178,9 +181,12 @@ class dbconn
         It must be used in the form <b> dbconn::execute($stmt_key, $bind_desc_string, $bind1, .. ,$bindN) </b> \n
         If there are no parametes you can use it stmt_bind_and_execute($stmt_key)
      @return It will return false on fail or the statement handler to fetch data.
+     @note If you are executing statement that contains a binary parameter (marked with "b") the data are
+     	send in chunks with maximum size $binary_packet_size . Modifiyng this public variable may change the
+     	significantly the performance of this query.
     */
     static public function execute()
-    {
+    {	
         if (func_num_args() < 1)
         {   dbconn::raise_error('dbconn::stmt_execute() requires at least 1 arguments. See the manual for more info.');
             return false;
@@ -203,7 +209,15 @@ class dbconn
         {
             $args = array_slice(func_get_args(), 1);
 	        call_user_func_array(array(dbconn::$stmts[$key]['handler'], 'bind_param'), $args);
-	    }
+
+        	// Send blob data
+        	$types = str_split($args[0], 1);
+        	foreach($types as $pos => $type)
+        		if ($type == 'b')
+        		{	foreach(str_split($args[$pos+1], self::$binary_packet_size) as $data )
+        				call_user_func(array(dbconn::$stmts[$key]['handler'], 'send_long_data'), $pos, $data);
+        		}
+        }	    
 	    
 	    // Execute statement
 	    if (!dbconn::$stmts[$key]['handler']->execute())
@@ -219,9 +233,10 @@ class dbconn
         To use this function check the documentation of dbconn::execute().
       @return It will return false on fail or an array with all results.
      */
-    static public function execute_fetch_all()
+    static public  function & execute_fetch_all()
     {   // Execute the statement
         $exec_params = func_get_args();
+		
         if (!($stmt = call_user_func_array(array('dbconn', 'execute'), $exec_params)))
             return false;
 
@@ -229,7 +244,8 @@ class dbconn
             return true;        // This statement has no result
         
         // Get the name of fields
-        $result = $stmt->result_metadata();
+        if (($result = $stmt->result_metadata()) === NULL)
+        	return array();	// This query has no result set
         $fields = $result->fetch_fields();
         $result->close();
 
@@ -238,8 +254,10 @@ class dbconn
 		$bnd_param = array();
 		foreach($bnd_res as $k => &$bnd)
 			$bnd_param[] = & $bnd;
+		unset($bnd);
+		$stmt->store_result();
 		call_user_func_array(array($stmt, 'bind_result'), $bnd_param);
-		
+
 		// Get results one by one
 		$array_result = array();
 		while($stmt->fetch())
@@ -251,6 +269,8 @@ class dbconn
 			}
 			$array_result[] = $row;
 		}
+		$stmt->free_result();
+		
 		return $array_result;
     }
 };

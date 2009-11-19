@@ -61,7 +61,7 @@ abstract class StupidCondition
 }
 
 /**
- * @brief Implementation of URL Parameters Parameters StupidCondition
+ * @brief Implementation of UrlParamsCondition StupidCondition
  * @author sque
  *
  * The accepted options are
@@ -71,7 +71,7 @@ abstract class StupidCondition
  * - value The value that the operand may need to cross check.
  * .
  */
-class URLParamsCondition extends StupidCondition
+class UrlParamsCondition extends StupidCondition
 {
 	public static function type()
 	{	return 'url_params';	}
@@ -108,10 +108,10 @@ class URLParamsCondition extends StupidCondition
 		return false;		
 	}
 };
-URLParamsCondition::register();
+UrlParamsCondition::register();
 
 /**
- * @brief Implementation of URL StupidCondition
+ * @brief Implementation of UrlPathCondition
  * @author sque
  * @todo rename to URL...
  *

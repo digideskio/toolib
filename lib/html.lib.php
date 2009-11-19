@@ -31,9 +31,6 @@ class HTMLTag
 	//! Escape new lines to br
 	public $esc_nl = false;
 	
-	//! Escape spaces
-	public $esc_sp = false;
-	
 	//! General Constructor
 	/**
 	 * 
@@ -201,8 +198,6 @@ class HTMLTag
 			if (is_string($child))
 			{	if ($this->esc_html) $child = esc_html($child);
 				if ($this->esc_nl) $child = self::nl2br($child, ($this->render_mode == 'xhtml'));
-				//if ($this->esc_html && $this->esc_sp) $child = str_replace(" ","&nbsp;", $child);
-				
 				$str .= $child;
 			}
 			else
