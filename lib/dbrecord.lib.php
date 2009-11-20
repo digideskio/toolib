@@ -3,8 +3,10 @@
 
 //! Class for managing records of a table
 /**
-	@todo Multi PKs
-	@todo Table relationships M-1 and M-N
+	@todo Multi PKs Internaly PKs are saved as an array, however
+		the external interface does not accept multiple pks atm
+	@todo Table relationships M-1 (this is the most common)
+	@todo Table relationships M-N 
 	DBRecord is a base class for creating database record handlers.
 	To create a handler, you must define a derived and class and populate
 	two static properties, $table and $fields. Those two properties will
@@ -78,7 +80,7 @@ class DBRecord
 	protected $data = array();
 
 	//! Cache of data
-	private $data_cast_cache = array();
+	protected $data_cast_cache = array();
 	
 	//! Class description
 	protected $class_desc = false;
@@ -287,46 +289,28 @@ $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title
 		if (count($args) == 0)
 			return false;
 
-		// Prepare variables;
+		// Prepare default values;
 		$field_values = array();
 		foreach($class_desc['fields'] as $field_name => $field)
 			if (!$field['ai']) $field_values[$field_name] = '';
 
-		// Check if it is associative or numeric array	
-		$is_numeric = (array_keys($args) === range(0, count($args) - 1));
-		
-		// Create array with parameters
-		if ($is_numeric)
+		// Check if it is numeric array
+		if (array_keys($args) === range(0, count($args) - 1))
 		{	// Check if we same or less values
 			if (count($args) > count($field_values))
 				return false;
-			
-			$count = 0;
-			foreach($field_values as $param_name => &$param_value)
-			{	if ($count >= count($args)) break;
-
-				// Cast data to sql type
-				$param_value = self::cast_data_to_sql($class_desc['fields'][$param_name]['type'], $args[$count]);
-
-				if ($class_desc['fields'][$param_name]['pk'])
-					$insert_pk = $param_value;
-				$count ++;
-			}
-			unset($param_value);
+				
+			// Convert numeric array to associative
+			$field_values = array_combine(array_keys($field_values), array_pad($args, count($field_values), ''));
 		}
 		else
-		{
-			// Parameters as associative array
-			foreach($args as $arg_key => $arg_value)
-			{	if (!array_key_exists($arg_key, $field_values))
-					return false;
-
-				$field_values[$arg_key] = self::cast_data_to_sql($class_desc['fields'][$arg_key]['type'], $arg_value);
-
-				if ($class_desc['fields'][$arg_key]['pk'])
-					$insert_pk = $arg_value;
-			}
-		}
+			$field_values = array_merge($field_values, $args);
+		$insert_pk = $field_values[$class_desc['meta']['pk'][0]];
+		
+		// Convert user data to sql
+		foreach($field_values as $name => $value)
+			$field_values[$name] = self::cast_data_to_sql($class_desc['fields'][$name]['type'], $value);
+		
 
 		// Execute query
 		$exec_params = array($class_desc['sql']['create']['stmt'], str_repeat("s", count($field_values)));

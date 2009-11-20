@@ -240,14 +240,19 @@ class AuthenticationCondition extends StupidCondition
 }
 AuthenticationCondition::register();
 
+//! A simple expert system processor
 /**
- * @brief Implementation of Authentication StupidCondition
+ * Stupid is designed to work like a simple expert system. Feeding
+ * it with rules and actions, and triggering a chain reaction it will
+ * evaluate rules and trigger the most appropriate action. 
+ * 
+ * @remarks Stupid system by design will trigger ONLY THE FIRST matching rule and no other one.
+ * 
+ * @par Modular design
+ * Stupid system is designed to be modular
+ * 
  * @author sque
  *
- * The accepted options are
- * - op [Default = equal]: ingroup, isanon, isuser
- * - group: The corresponding group for operands that need to define a group.
- * - user: The corresponding user for operands that need to define a user.
  */
 class Stupid
 {
@@ -259,10 +264,9 @@ class Stupid
 
 	//! Add a new rule in stupid system
 	/**
-	 * @todo Depreceate in favor of add_rule2
 	 * @param $action
 	 * @param $conditions ...
-	 * @return unknown_type
+	 * @return NULL
 	 */
 	public static function add_rule()
 	{	// Analyze function arguments
@@ -285,6 +289,11 @@ class Stupid
 	}
 	
 	//! Reset system to initial state
+	/**
+	 * Brings stupid system at its initial state. All rules will be deleted 
+	 * and the default action.
+	 * @return NULL
+	 */
 	public static function reset()
 	{
 		self::$rules = array();
