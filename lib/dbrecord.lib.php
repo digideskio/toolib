@@ -1,9 +1,10 @@
 <?php
-require_once('mysqli.lib.php');
+	require_once('mysqli.lib.php');
 
 //! Class for managing records of a table
 /**
-
+	@todo Multi PKs
+	@todo Table relationships M-1 and M-N
 	DBRecord is a base class for creating database record handlers.
 	To create a handler, you must define a derived and class and populate
 	two static properties, $table and $fields. Those two properties will
@@ -73,8 +74,11 @@ class DBRecord
 	//! All the classes that are using DBRecord
 	protected static $classes = array();
 	
-	//! Data of fields
+	//! Data of record
 	protected $data = array();
+
+	//! Cache of data
+	private $data_cast_cache = array();
 	
 	//! Class description
 	protected $class_desc = false;
@@ -87,71 +91,77 @@ class DBRecord
 		
 		// Populate data
 		foreach($this->class_desc['fields'] as $field_name => $field)
-			$this->data[$field_name] = 0;
+		{	$this->data[$field_name] = NULL;
+			$this->data_cast_cache[$field_name] = NULL;
+		}
 	}
 
-	//! Create sql queries based on a class description
-	private static function create_sql(& $class_desc)
+	//! Convert field from data to user format
+	private static function cast_data_to_sql($type, $obj)
+	{	if ($type == 'serialized')
+			return serialize($obj);
+		if ($type == 'datetime')
+			return $obj->format(DATE_ISO8601);
+		return $obj;
+	}
+
+	//! Convert field from user format to sql format
+	private static function cast_sql_to_data($type, $sql, & $obj_cache = NULL)
+	{	if ($type == 'serialized')
+			return ($obj_cache === NULL)?($obj_cache = unserialize($sql)):$obj_cache;
+		if ($type == 'datetime')
+			return ($obj_cache === NULL)?($obj_cache = new DateTime('@' . $sql)):$obj_cache;	
+		return $sql;
+	}
+
+	//! Craft sql queries based on a class description and save them in $class_desc
+	private static function craft_sql(& $class_desc)
 	{
 		// SELECT
 		$query = 'SELECT ' ;
-		$count = 0;
 		foreach($class_desc['fields'] as $field)
-		{	$count ++;				
-			if ($count != 1) $query .= ', ';
-			if ($field['type'] == 'datetime')
-				$query .= 'UNIX_TIMESTAMP(`' . $field['sqlfield'] . '`) AS ' . $field['sqlfield'] ;
+		{	if ($field['type'] == 'datetime')
+				$sel_fields[] = 'UNIX_TIMESTAMP(`' . $field['sqlfield'] . '`) AS ' . $field['sqlfield'] ;
 			else
-				$query .= '`' . $field['sqlfield'] . '`';
+				$sel_fields[] .= '`' . $field['sqlfield'] . '`';
 		}
-		$query .= ' FROM ' . $class_desc['table'] . ' WHERE ' . $class_desc['meta']['pk'][0] . ' = ?';
+		$query .= implode(', ', $sel_fields) . ' FROM ' . $class_desc['table'] . ' WHERE ' . 
+			$class_desc['fields'][$class_desc['meta']['pk'][0]]['sqlfield'] . ' = ?';
 		$class_desc['sql']['open']['query'] = $query;
 		$class_desc['sql']['open']['stmt'] = 'dbrecord-' . strtolower($class_desc['class']) . '-open';
 
-
 		// INSERT
-		$query = 'INSERT INTO ' . $class_desc['table'] . '(';
-		$count = 0;
 		foreach($class_desc['fields'] as $field)
 		{	if ($field['ai'])
 				continue;
-
-			$count ++;				
-			if ($count != 1) $query .= ', ';
-			$query .= ' `' . $field['sqlfield'] . '`';
+			$ins_fields[] = '`' . $field['sqlfield'] . '`';
 		}
-		$query .= ') VALUES(';
-		for($i = 0; $i < $count; $i++)
-		{	if ($i != 0) $query .= ', ';
-			$query .= '?';
-		}
-		$query .= ')';
+		$query = 'INSERT INTO ' . $class_desc['table'] . '(' . implode(', ', $ins_fields) . 
+			') VALUES(' . implode(', ', array_fill(0, count($ins_fields), '?')) . ')';
 		$class_desc['sql']['create']['query'] = $query;
 		$class_desc['sql']['create']['stmt'] = 'dbrecord-' . strtolower($class_desc['class']) . '-create';
 		
 		// UPDATE
-		$query = 'UPDATE ' . $class_desc['table'] . ' SET ';
-		foreach($class_desc['fields'] as $field)
-		$count = 0;
+		$upd_fields = array();
 		foreach($class_desc['fields'] as $field)
 		{	if ($field['pk'])
 				continue;
-
-			$count ++;				
-			if ($count != 1) $query .= ', ';
-			$query .= '`' . $field['sqlfield'] . '` = ? ';
+			$upd_fields[] = '`' . $field['sqlfield'] . '` = ? ';
 		}
-		$query .= ' WHERE ' . $class_desc['meta']['pk'][0] . '=?';
+		$query = 'UPDATE ' . $class_desc['table'] . ' SET ' . implode(', ', $upd_fields) 
+			. ' WHERE ' . $class_desc['meta']['pk'][0] . '=?';
 		$class_desc['sql']['update']['query'] = $query;
 		$class_desc['sql']['update']['stmt'] = 'dbrecord-' . strtolower($class_desc['class']) . '-update';
 		
 		// DELETE
-		$query = 'DELETE FROM ' . $class_desc['table'] . ' WHERE ' . $class_desc['meta']['pk'][0] . '=? LIMIT 1';
+		$query = 'DELETE FROM ' . $class_desc['table'] . ' WHERE ' 
+			. $class_desc['fields'][$class_desc['meta']['pk'][0]]['sqlfield'] . '=? LIMIT 1';
 		$class_desc['sql']['delete']['query'] = $query;
 		$class_desc['sql']['delete']['stmt'] = 'dbrecord-' . strtolower($class_desc['class']) . '-delete';
 		
-		// Get ALL
-		$class_desc['sql']['all']['query'] = 'SELECT ' . $class_desc['meta']['pk'][0] . ' FROM ' . $class_desc['table'];
+		// OPEN ALL
+		$class_desc['sql']['all']['query'] = 'SELECT ' . 
+			$class_desc['fields'][$class_desc['meta']['pk'][0]]['sqlfield'] . ' FROM ' . $class_desc['table'];
 		$class_desc['sql']['all']['stmt'] = 'dbrecord-' . strtolower($class_desc['class']) . '-all';
 	}
 	
@@ -164,7 +174,7 @@ class DBRecord
 		{	
 			// Keep cache in session
 			if ((!self::$session_cache) || !isset($_SESSION['dbrecord-cache-2'][$called_class]))
-			{
+			{	// Initialize values
 				$child_fields = get_static_var($called_class, 'fields');
 				$child_table = get_static_var($called_class, 'table');
 				$child_meta['pk'] = array();
@@ -185,38 +195,27 @@ class DBRecord
 				// Validate and copy all fields
 				$filtered_fields = array();
 				foreach($child_fields as $field_name => $field)
-				{
-					// Initialize field
-					$filtered_field = $field;
-					
-					// Check if it is string
+				{	// Check if it was given as number entry or associative entry
 					if (is_numeric($field_name) && is_string($field))
-					{	$field_name = $field;
-						$filtered_field = array();
+					{	$field_name = $field; 
+						$field = array();
 					}
 					
-					// sqlfield
-					if (!isset($filtered_field['sqlfield']))
-						$filtered_field['sqlfield'] = $field_name;
+					// Setup default values of fields
+					$default_field_values = array(
+						'sqlfield' => $field_name,	
+						'type' => 'general',
+						'pk' => false,
+						'ai' => false,
+					);
+					$filtered_field = array_merge($default_field_values, $field);
 					
-					// Type
-					if (!isset($filtered_field['type']))
-						$filtered_field['type'] = 'general';
-
-					// PK (Primary Key)
-					if (!isset($filtered_field['pk']))
-						$filtered_field['pk'] = false;
-
-					// AI (Auto Increment)
-					if (!isset($filtered_field['ai']))
-						$filtered_field['ai'] = false;
-					
-					// Find primary key(S) TODO: What about NO PK or DOUBLE PK ?
+					// Find primary key(s)
 					if ($filtered_field['pk'])
 					{
-						$child_meta['pk'][] = $filtered_field['sqlfield'];
+						$child_meta['pk'][] = $field_name;
 						if ($filtered_field['ai'])
-							$child_meta['ai'][] = $filtered_field['sqlfield'];
+							$child_meta['ai'][] = $field_name;
 					}
 					else if ($filtered_field['ai'])
 						$filtered_field['ai'] = false;
@@ -228,7 +227,8 @@ class DBRecord
 				$child_meta['total_fields'] = count($filtered_fields);
 				
 				// Save class characteristics
-				self::$classes[$called_class] = array('fields' => $filtered_fields, 
+				self::$classes[$called_class] = array(
+					'fields' => $filtered_fields, 
 					'table' => $child_table,
 					'meta' => $child_meta,
 					'class' => $called_class
@@ -236,7 +236,7 @@ class DBRecord
 				$class_desc = & self::$classes[$called_class];
 				 
 				// Create sql-queries
-				self::create_sql($class_desc);
+				self::craft_sql($class_desc);
 	
 				$_SESSION['dbrecord-cache-2'][$called_class] = self::$classes[$called_class];
 			}
@@ -250,7 +250,6 @@ class DBRecord
 				dbconn::prepare($entry['stmt'], $entry['query']);
 		}
 //		echo '<pre>'; var_dump($class_desc); echo '</pre>';
-		
 		return self::$classes[$called_class];
 	}
 	
@@ -280,51 +279,38 @@ $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title
 @endcode
 	*/
 	public static function create()
-	{	$called_class = get_called_class();
-
-		// Initialize static
-		if (($class_desc = self::init_static($called_class)) === false)
+	{	// Initialize static
+		if (($class_desc = self::init_static($called_class = get_called_class())) === false)
 			return false;
 
-		// Prepare variables;
-		$args = func_get_args();
-		$create_params = array();
-		foreach($class_desc['fields'] as $field_name => $field)
-			if (!$field['ai']) $create_params[$field_name] = '';
-
-		$exec_params = array($class_desc['sql']['create']['stmt'], str_repeat("s", count($create_params)));
-
 		// Check parameters
+		$args = func_get_args();
 		if ((count($args) == 1) && (is_array($args[0]))) 	// Trick to get arguments as an array
 			$args = $args[0];								// or as parameters.
 		
 		if (count($args) == 0)
 			return false;
 
+		// Prepare variables;
+		$field_values = array();
+		foreach($class_desc['fields'] as $field_name => $field)
+			if (!$field['ai']) $field_values[$field_name] = '';
+
 		// Check if it is associative or numeric array	
-		$is_numeric = false;
-		foreach($args as $arg_key => $arg_value)
-		{	if (is_numeric($arg_key) && ($arg_key == 0))
-				$is_numeric = true;
-			break;
-		}
+		$is_numeric = (array_keys($args) === range(0, count($args) - 1));
 		
 		// Create array with parameters
 		if ($is_numeric)
 		{	// Check if we same or less values
-			if (count($args) > count($create_params))
+			if (count($args) > count($field_values))
 				return false;
 			
 			$count = 0;
-			foreach($create_params as $param_name => &$param_value)
+			foreach($field_values as $param_name => &$param_value)
 			{	if ($count >= count($args)) break;
 
-				if (($class_desc['fields'][$param_name]['type'] == 'datetime') && is_object($args[$count]))
-					$param_value = $args[$count]->format(DATE_ISO8601);
-				if (($class_desc['fields'][$param_name]['type'] == 'serialized') && is_object($args[$count]))
-					$param_value = serialize($args[$count]);
-				else
-					$param_value = $args[$count];
+				// Cast data to sql type
+				$param_value = self::cast_data_to_sql($class_desc['fields'][$param_name]['type'], $args[$count]);
 
 				if ($class_desc['fields'][$param_name]['pk'])
 					$insert_pk = $param_value;
@@ -336,23 +322,19 @@ $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title
 		{
 			// Parameters as associative array
 			foreach($args as $arg_key => $arg_value)
-			{
-				if (!array_key_exists($arg_key, $create_params))
+			{	if (!array_key_exists($arg_key, $field_values))
 					return false;
-				if (($class_desc['fields'][$arg_key]['type'] == 'datetime') && is_object($arg_value))
-					$create_params[$arg_key] = $arg_value->format(DATE_ISO8601);
-				else if (($class_desc['fields'][$arg_key]['type'] == 'serialized') && is_object($arg_value))
-					$create_params[$arg_key] = serialize($arg_value);
-				else
-					$create_params[$arg_key] = $arg_value;
+
+				$field_values[$arg_key] = self::cast_data_to_sql($class_desc['fields'][$arg_key]['type'], $arg_value);
+
 				if ($class_desc['fields'][$arg_key]['pk'])
 					$insert_pk = $arg_value;
-
 			}
 		}
-		$exec_params = array_merge($exec_params, $create_params);
 
 		// Execute query
+		$exec_params = array($class_desc['sql']['create']['stmt'], str_repeat("s", count($field_values)));
+		$exec_params = array_merge($exec_params, $field_values);
 		if (($res_array = call_user_func_array(array('dbconn', 'execute'), $exec_params)) === false)
 			return false;
 		
@@ -393,22 +375,18 @@ $n = News::open(14);
 		if (($class_desc = self::init_static($called_class)) === false)
 			return false;
 					
-		// Execute query
-		if (($res_array = dbconn::execute_fetch_all($class_desc['sql']['open']['stmt'], 's', $primary_key)) === false)
+		// Execute query and check return value
+		if (count($res_array = dbconn::execute_fetch_all($class_desc['sql']['open']['stmt'], 's', $primary_key)) !== 1)
 			return false;
-		
-		// Check that we have 1 answer
-		if (count($res_array) != 1)
-			return false;
-		
-		// Create object
+				
+		// Create dbrecord object
 		$obj = new $called_class($called_class);
 		
 		// Populate data
 		foreach($class_desc['fields'] as $field_name => $field)
 				$obj->data[$field_name] = $res_array[0][$field['sqlfield']];
 
-		if (self::$apc_cache)				
+		if (self::$apc_cache)
 			apc_store('dbrecord-' .self::$apc_prefix . '-' . $called_class . '-' . $primary_key, $obj);
 		return $obj;
 	}
@@ -487,7 +465,8 @@ $all_news = News::open_all();
 		$options = array_merge($defoptions, $options);
 		
 		// Start up query	
-		$query = 'SELECT ' . $class_desc['meta']['pk'][0] . ' FROM ' . $class_desc['table'];
+		$query = 'SELECT ' . $class_desc['fields'][$class_desc['meta']['pk'][0]]['sqlfield'] . 
+			' FROM ' . $class_desc['table'];
 		
 		// Order list
 		$first = true;
@@ -576,14 +555,7 @@ $total_news = News::count_all();
 		{	if ($field['pk'])
 				$pk[] = $this->data[$field_name];
 			else
-			{
-				if ($this->class_desc['fields'][$field_name]['type'] == 'datetime')
-					$upd_params[] = $this->__get($field_name)->format(DATE_ISO8601);
-				else if ($this->class_desc['fields'][$field_name]['type'] == 'serialized')
-					$upd_params[] = serialize($this->data[$field_name]);
-				else
-					$upd_params[] = $this->data[$field_name];
-			}
+				$upd_params[] = $this->data[$field_name];
 		}
 		$upd_params = array_merge($upd_params, $pk);
 		
@@ -603,7 +575,7 @@ $total_news = News::count_all();
 		It will return data of any field that you request. If
 		the field is not declared it will return NULL.
 	*/
-	public function __get($name)
+	public function & __get($name)
 	{	if (!isset($this->class_desc['fields'][$name]))
 		{	// Raise a notice!!!
 		    $trace = debug_backtrace();
@@ -613,15 +585,12 @@ $total_news = News::count_all();
 	
 			return NULL;
 		}
-		
-		// Datetime mangling
-		if ($this->class_desc['fields'][$name]['type'] == 'datetime')
-			if (! is_object($this->data[$name]))
-				$this->data[$name] = new DateTime('@' . $this->data[$name]);
-		if ($this->class_desc['fields'][$name]['type'] == 'serialized')
-			return unserialize($this->data[$name]);				
 
-		return $this->data[$name];
+		return self::cast_sql_to_data(
+			$this->class_desc['fields'][$name]['type'], 
+			$this->data[$name],
+			$this->data_cast_cache[$name]
+		);
 	}
 	
 	//! Set field of record
@@ -644,19 +613,16 @@ $total_news = News::count_all();
 			return NULL;
 		}
 			
-		// Check type of data
-		if ($this->class_desc['fields'][$name]['type'] == 'datetime')
-		{	if (is_object($value)) $value = $value->format('U');
-				return $this->data[$name] = $value;
-		}
-		else			
-			return $this->data[$name] = $value;
+		$this->data_cast_cache[$name] = $value;
+		return $this->data[$name] = self::cast_data_to_sql(
+			$this->class_desc['fields'][$name]['type'],
+			$value
+		);
 	}
 	
 	//! Get a list with all fields
 	/**
-		It returns a sanitized verions of the user supplied
-		$fields static class propertiy.
+		It returns a sanitized verion of the user supplied
 	*/
 	public function fields()
 	{	return array_keys($this->class_desc['fields']);
@@ -667,7 +633,7 @@ $total_news = News::count_all();
 		Returns an associative array will all data of this instance.
 	*/
 	public function & data()
-	{	return $this->data;	}
+	{	return $this->data;		}
 	
 	//! Delete this record
 	/**

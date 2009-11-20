@@ -11,7 +11,7 @@
         the '*'. This is an alias for @b any event.
         
     @b Example \n
-    To understand the concept of EventDispatcher we will demonstrate it with a Cat
+    To understand the concept of EventDispatcher we will demonstrate it with Cat,
     Bob and Alice. Let's say Bob wants to observe TheirCat if it is hungry to feed it,
     and Alice wants to observe TheirCat to see if it is bored so that she entertains it.
     
