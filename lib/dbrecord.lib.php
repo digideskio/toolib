@@ -110,7 +110,7 @@ class DBRecord
 	{	if ($type == 'serialized')
 			return ($obj_cache === NULL)?($obj_cache = unserialize($sql)):$obj_cache;
 		if ($type == 'datetime')
-			return ($obj_cache === NULL)?($obj_cache = new DateTime('@' . $sql)):$obj_cache;	
+			return ($obj_cache === NULL)?($obj_cache = new DateTime( $sql)):$obj_cache;	
 		return $sql;
 	}
 
@@ -120,11 +120,7 @@ class DBRecord
 		// SELECT
 		$query = 'SELECT ' ;
 		foreach($class_desc['fields'] as $field)
-		{	if ($field['type'] == 'datetime')
-				$sel_fields[] = 'UNIX_TIMESTAMP(`' . $field['sqlfield'] . '`) AS ' . $field['sqlfield'] ;
-			else
-				$sel_fields[] .= '`' . $field['sqlfield'] . '`';
-		}
+			$sel_fields[] .= '`' . $field['sqlfield'] . '`';
 		$query .= implode(', ', $sel_fields) . ' FROM ' . $class_desc['table'] . ' WHERE ' . 
 			$class_desc['fields'][$class_desc['meta']['pk'][0]]['sqlfield'] . ' = ?';
 		$class_desc['sql']['open']['query'] = $query;
@@ -149,7 +145,7 @@ class DBRecord
 			$upd_fields[] = '`' . $field['sqlfield'] . '` = ? ';
 		}
 		$query = 'UPDATE ' . $class_desc['table'] . ' SET ' . implode(', ', $upd_fields) 
-			. ' WHERE ' . $class_desc['meta']['pk'][0] . '=?';
+			. ' WHERE ' . $class_desc['fields'][$class_desc['meta']['pk'][0]]['sqlfield'] . '=?';
 		$class_desc['sql']['update']['query'] = $query;
 		$class_desc['sql']['update']['stmt'] = 'dbrecord-' . strtolower($class_desc['class']) . '-update';
 		
