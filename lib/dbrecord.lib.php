@@ -1,67 +1,98 @@
 <?php
 	require_once('mysqli.lib.php');
 
-//! Class for managing records of a table
+//! DBRecord is the primative to ORM
 /**
-	@todo Multi PKs Internaly PKs are saved as an array, however
-		the external interface does not accept multiple pks atm
-	@todo Table relationships M-1 (this is the most common)
-	@todo Table relationships M-N 
-	DBRecord is a base class for creating database record handlers.
-	To create a handler, you must define a derived and class and populate
-	two static properties, $table and $fields. Those two properties will
-	hold the description and the name of table to use.
-	
-	@b Example:
-@code
-class News extends DBRecord
-{
-	// Table is news
-	public static $table = 'news';
-	
-	// Fields
-	public static $fields = array(
-		'id' => array('pk' => true, 
-			'sqlfield' => 'new_id', 
-			'ai' => true
-		),
-		'title',
-		'poster',
-		'post',
-		'post_time' => array('type' => 'datetime'),
-		'published'
-	);
-}
-@endcode
-
-	@note Currently	it only supports single-table records. 
-	
-	@b $table: \n	
-	This is mandatory and it is the name of the table in database that holds the records.
-	
-	@b $fields: \n	
-	An array with the columns that you want to manipulate. Usually these are all the columns that
-	the table has, however DBRecord can work with a subset of columns as long as the SQL table definition
-	permits it. For example if you have @b not included a column that has 'NOT NULL' flag and a 'DEFAULT'
-	value, don't except from DBRecord to guess a value. You will probably get an SQL error if you try to
-	create a record.\n
-	$fields is an array with all the fields that of the record. Each entry can be either a string with
-	the name of the field (must be the same with database field) or	another array with the parameters of the field.
-	Valid paramaters of fields are:
-		- @b pk: [Default = false] The field that has this option set true will be consider primary key.
-		- @b ai: [Default = false] Autoincremet can be set true to fields that are primary keys otherwise
-			this option will be set to false.
-		- @b sqlfield: [Default = "array entry key"] If you want to create a field that has a different name
-		than the database field, you must set this value to the name of the SQL's field.
-		- @b type: [Default = "general"] Supported types are "general", "datetime", "serialized"
-			- "general" type will cast data as string.
-			- "datetime" will accept only php DateTime objects and returns php DateTime objects.
-			- "serialized" will serialize provided data and save them to database and will unserialize them 
-				from database trasparently. It will not check for proper SQL field size.
-			.
-		.
-
-*/
+ * @todo Multi PKs Internaly PKs are saved as an array, however
+ * 	the external interface does not accept multiple pks atm
+ * @todo Table relationships M-1 (this is the most common)
+ * @todo Table relationships M-N 
+ * 
+ * DBRecord is a base class for creating "Object Relational Mapping" objects. In simple words
+ * DBRecord is used to access records in database tables using the concept of objects. Here
+ * each table is described by subclassing DBRecord and providing information about the table
+ * name and field properties. After subclassing you can access records of this table
+ * by using the public interface of DBRecord.
+ * 
+ * @note It support transparent data objects convertion from php native objects to sql.
+ * @note Currently it does @b NOT support inter-table relationships.
+ *  
+ * @par Defining table mapping	
+ * @b Example:
+ * @code
+ * class News extends DBRecord
+ * {
+ * 	// Table is news
+ * 	public static $table = 'news';
+ * 	
+ * 	// Fields
+ * 	public static $fields = array(
+ * 		'id' => array('pk' => true, 
+ * 			'sqlfield' => 'new_id', 
+ * 			'ai' => true
+ * 		),
+ * 		'title',
+ * 		'poster',
+ * 		'post',
+ * 		'post_time' => array('type' => 'datetime'),
+ * 		'published'
+ * 	);
+ * }
+ * @endcode
+ * \n
+ * @b $table: \n	
+ * This is mandatory and it is the name of the table in database that holds the records.
+ * \n	
+ * @b $fields: \n	
+ * An array with the columns that you want to manipulate. Usually these are all the columns that
+ * the table has, however DBRecord can work with a subset of columns as long as the SQL table definition
+ * permits it. For example if you have @b not included a column that has 'NOT NULL' flag and a 'DEFAULT'
+ * value, don't except from DBRecord to guess a value. You will probably get an SQL error if you try to
+ * create a record.\n
+ * $fields is an array with all the fields that of the record. Each entry can be either a string with
+ * the name of the field (must be the same with database field) or	another array with the parameters of the field.
+ * Valid paramaters of fields are:
+ * 	- @b pk: [Default = false] The field that has this option set true will be consider primary key.
+ * 	- @b ai: [Default = false] Autoincremet can be set true to fields that are primary keys otherwise
+ * 		this option will be set to false.
+ * 	- @b sqlfield: [Default = "array entry key"] If you want to create a field that has a different name
+ * 		than the database field, you must set this value to the name of the SQL's field.
+ * 	- @b type: [Default = "general"] Supported types are "general", "datetime", "serialized"
+ * 		- "general" type will cast data as string.
+ * 		- "datetime" will accept only php DateTime objects and returns php DateTime objects.
+ * 		- "serialized" will serialize provided data and save them to database and will unserialize them 
+ * 			from database trasparently. It will not check for proper SQL field size.
+ * 		.
+ * 	.
+ * 
+ * @par Basic Usage
+ * 	DBRecord after specialization by creating derived classes it support "insert", "select",
+ * 	"update" and "delete" SQL commands, by using create() open() save() and delete() functions
+ * 	of DBRecord objects.
+ * \n
+ * <b> As part of the previous example </b>
+ * @code
+ * // Create a news entry
+ * $new = News::create(
+ * 	'title' => 'We will die again this year',
+ * 	'poster' => 'bob',
+ * 	'post' => 'Every year ...',
+ * 	'post_time' => new DateTime(),
+ * 	'published' => true
+ * );
+ * 
+ * // Change it (by direct access of fields on the object)
+ * $new->post = 'Last year ...';
+ * // Update database
+ * $new->save();
+ * 
+ * // Open an old one by id
+ * $old->open(15);
+ * 
+ * // Delete it
+ * $old->delete();
+ * @endcode
+ */
 class DBRecord
 {
 	//! Parameter of DBRecord to use session to cache classes
@@ -85,7 +116,14 @@ class DBRecord
 	//! Class description
 	protected $class_desc = false;
 	
-	//! Constructor of dbrecord (prevent all derived objects from direct instantiation!)
+	//! Final constructor of dbrecord 
+	/**
+	 * Constructor is declared final and procted to prohibit direct instantiantion
+	 * of this class.
+	 * @remarks
+	 * You DON'T new to create objects manually instead use create()
+	 * and open() functions that will create objects for you.
+	 */
 	final protected function __construct($class_name)
 	{
 		// Save class description
@@ -247,34 +285,34 @@ class DBRecord
 			foreach($class_desc['sql'] as $entry_name => $entry)
 				dbconn::prepare($entry['stmt'], $entry['query']);
 		}
-//		echo '<pre>'; var_dump($class_desc); echo '</pre>';
 		return self::$classes[$called_class];
 	}
 	
 	//! Create a new record
-	/** 
-		Parameters can be passed in 3 ways.
-			- As simple function arguments create(a,b,c) but a, b and c must be given
-			in the order that were declared in fields.
-			- As a simple array, create(array(a,b,c)) this is like the previous one
-			but arguments are encapsulated in array. Again parameters must be given
-			in the same order as they were declared.
-			- As an associative array create(array('field1' => a, 'field3' => c, 'field2' =>b))
-			It is like simple array but the key of each entry is the field that will be set
-			with the followed value. In this type the order has no meaning.
-			.
-		@remarks In all cases fields that are ommitted are set the value '' (empty string).
-		
-@code
-// Example using arguments
-$n = News::create('My special title', 'A big post ...');
-
-// Example using simple array:
-$n = News::create(array('My special title', 'A big post ...'));
-
-// Example using associative array
-$n = News::create(array('post' => 'A big post ...', 'title' => 'My special title',));
-@endcode
+	/**
+	 * 
+	 * Parameters can be passed in 3 ways.
+	 * 	- As simple function arguments create(a,b,c) but a, b and c must be given
+	 * 		in the order that were declared in fields.
+	 * 	- As a simple array, create(array(a,b,c)) this is like the previous one
+	 * 		but arguments are encapsulated in array. Again parameters must be given
+	 * 		in the same order as they were declared.
+	 * 	- As an associative array create(array('field1' => a, 'field3' => c, 'field2' =>b))
+	 * 		It is like simple array but the key of each entry is the field that will be set
+	 * 		with the followed value. In this type the order has no meaning.
+	 * .
+	 * @remarks In all cases fields that are ommitted are set the value '' (empty string).
+	 * 
+	 * @code
+	 * // Example using arguments
+	 * $n = News::create('My special title', 'A big post ...');
+	 * 
+	 * // Example using simple array:
+	 * $n = News::create(array('My special title', 'A big post ...'));
+	 * 
+	 * // Example using associative array
+	 * $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title',));
+	 * @endcode
 	*/
 	public static function create()
 	{	// Initialize static
@@ -327,18 +365,24 @@ $n = News::create(array('post' => 'A big post ...', 'title' => 'My special title
 	
 	//! Open the dbrecord based on its primary key
 	/**
-		It will query database table for a record with the supplied primary key. It will
-		read the data and return an DBRecord object for this record.
-		
-		@param $primary_key The primary key value of the desired record.
-		@return 
-			- @b false If the record could not be found.
-			- A DBRecords derived class instance specialized for this record.
-			.		
-@code
-// Example reading a news from database with id 14
-$n = News::open(14);
-@endcode
+	 * 
+	 * It will query database table for a record with the supplied primary key. It will
+	 * read the data and return an DBRecord object for this record.
+	 * 
+	 * @param $primary_key The primary key value of the desired record.
+	 * @param $called_class This parameter must be @b ALWAYS NULL. It would be better
+	 * 	if you never used it all, as it is a reserved one for internal use to simulate
+	 * 	"Late static binding" on PHP version earlier than PHP5.3
+	 * @return 
+	 * 	- @b false If the record could not be found.
+	 * 	- A DBRecords derived class instance specialized for this record.
+	 * 	.
+	 * 
+	 * 
+	 * @code
+	 * // Example reading a news from database with id 14
+	 * $n = News::open(14);
+	 * @endcode
 	*/
 	public static function open($primary_key, $called_class = NULL)
 	{	if ($called_class === NULL)
@@ -373,19 +417,23 @@ $n = News::open(14);
 	
 	//! Open multiple records at the same time
 	/**
-		It will query database table for records with the supplied primary keys.
-				
-		@param $pks An array of primary key values of the desired records.
-		@return 
-			- @b false If the records could not be found.
-			- An @b array of DBRecords derived class instances for each record.
-			.	
-		
-@code
-// Example reading a news from database with id 14
-$ns = News::open_many(array(11,10, 14));
-@endcode
-	*/
+	 * 
+	 * It will query database table for records with the supplied primary keys.
+	 * 
+	 * @param $pks An array of primary key values of the desired records.
+	 * @param $called_class This parameter must be @b ALWAYS NULL. It would be better
+	 * 	if you never used it all, as it is a reserved one for internal use to simulate
+	 * 	"Late static binding" on PHP version earlier than PHP5.3
+	 * @return 
+	 * 	- @b false If the records could not be found.
+	 * 	- An @b array of DBRecords derived class instances for each record.
+	 * 	.	
+	 *
+	 * @code
+	 * // Example reading a news from database with id 14
+	 * $ns = News::open_many(array(11,10, 14));
+	 * @endcode
+	 */
 	public static function open_many($pks, $called_class = NULL)
 	{	if ($called_class === NULL)
 			$called_class = get_called_class();
@@ -398,18 +446,21 @@ $ns = News::open_many(array(11,10, 14));
 	
 	//! Open all records of this table
 	/**
-		It will query database table and return all the records
-				
-		@return 
-			- @b false If any error occurs
-			- An @b array of DBRecords derived class instances for all database records.
-			.	
-		
-@code
-// Example reading a news from database with id 14
-$all_news = News::open_all();
-@endcode
-	*/
+	 * It will query database table and return all the records of the table.
+	 * 
+	 * @param $called_class This parameter must be @b ALWAYS NULL. It would be better
+	 * 	if you never used it all, as it is a reserved one for internal use to simulate
+	 * 	"Late static binding" on PHP version earlier than PHP5.3
+	 * @return 
+	 * 	- @b false If any error occurs
+	 * 	- An @b array of DBRecords derived class instances for all database records.
+	 * 	.	
+	 * 
+	 * @code
+	 * // Example reading a news from database with id 14
+	 * $all_news = News::open_all();
+	 * @endcode
+	 */
 	public static function open_all($called_class = NULL)
 	{	if ($called_class === NULL)
 			$called_class = get_called_class();
@@ -430,9 +481,10 @@ $all_news = News::open_all();
 	}
 
 	/**
-		Acceptable criteria are
-			'limit', 'offset'
-	*/
+	 * @todo make it REAL criteria!
+	 * Acceptable criteria are
+	 * 'limit', 'offset'
+	 */
 	public static function open_by_criteria($order_by = array(), $options = array(), $called_class = NULL)
 	{	if ($called_class === NULL)
 			$called_class = get_called_class();
@@ -478,23 +530,26 @@ $all_news = News::open_all();
 
 	//! Count all records of the table
 	/**
-		This could also be done by executing:
-		@code
-$total_news = count(News::open_all());
-		@endcode
-		but it would be VERY expensive process for a simple number. That
-		is why this function was implemented; cheap row counting.
-						
-		@return 
-			- @b false If any error occurs
-			- The number of records in table
-			.	
-		
-@code
-// Example reading a news from database with id 14
-$total_news = News::count_all();
-@endcode
-	*/
+	 * This could also be done by executing:
+	 * @code
+	 * $total_news = count(News::open_all());
+	 * @endcode
+	 * but it would be VERY expensive process for a simple number. That
+	 * is why this function was implemented; cheap row counting.
+	 * 
+	 * @param $called_class This parameter must be @b ALWAYS NULL. It would be better
+	 * 	if you never used it all, as it is a reserved one for internal use to simulate
+	 * 	"Late static binding" on PHP version earlier than PHP5.3
+	 * @return 
+	 * - @b false If any error occurs
+	 * - The number of records in table
+	 * .	
+	 * 
+	 * @code
+	 * // Example reading a news from database with id 14
+	 * $total_news = News::count_all();
+	 * @endcode
+	 */
 	public static function count_all($called_class = NULL)
 	{	if ($called_class === NULL)
 			$called_class = get_called_class();
@@ -513,18 +568,18 @@ $total_news = News::count_all();
 	
 	//! Save changes in database
 	/**
-		If you change the field values of a DBRecord object they are not
-		saved directly on database, but you must execute save().
-		
-		It will take all current data of this object instance
-		and dump the in the database based on the primary key of this
-		instance.
-		
-		@return
-			- @b true If the data were saved successfuly in database.
-			- @b false On any error
-			.
-	*/		
+	 * If you change the field values of a DBRecord object they are not
+	 * saved directly on database, but you must execute save().
+	 * 
+	 * It will take all current data of this object instance
+	 * and dump the in the database based on the primary key of this
+	 * instance.
+	 * 
+	 * @return
+	 * 	- @b true If the data were saved successfuly in database.
+	 * 	- @b false On any error
+	 * 	.
+	 */
 	public function save()
 	{
 		// Update parameters
@@ -550,11 +605,26 @@ $total_news = News::count_all();
 		return true;
 	}
 	
-	//! Get field of record
+	//! Get the value of a field
 	/**
-		It will return data of any field that you request. If
-		the field is not declared it will return NULL.
-	*/
+	 * It will return data of any field that you request. Data will be 
+	 * converted from sql format to user format before returned. This means
+	 * that fields of type "datetime" will be converted to php native DateTime object,
+	 * "serializable" fields will be unserialized before returned to user.
+	 * 
+	 * @param $name
+	 * @return 
+	 * 	- The data of the field converted in user format.
+	 * 	- @b NULL if there is no field with that name. In that case a php error will be triggered too.
+	 *	.
+	 *
+	 * @note __get() and __set() are php magic methods and can be declare to overload the 
+	 *  standard procedure of accesing object properties. It is @b not not nessecary to
+	 *  use them as function @code echo $record->__get('myfield'); @endcode but use them as
+	 *  object properties @code echo $record->myfield; @endcode
+	 * 
+	 * @see __set()
+	 */
 	public function & __get($name)
 	{	if (!isset($this->class_desc['fields'][$name]))
 		{	// Raise a notice!!!
@@ -573,15 +643,28 @@ $total_news = News::count_all();
 		);
 	}
 	
-	//! Set field of record
+	//! Set the value of a field
 	/**
-		It will change the fields data in this instance.
-		If the field name is not a valid field it will
-		change nothing and it will return NULL.
-		
-		@remarks Changing field data does not save them in database. You
-		must execute save() to dump changes in database.
-	*/		
+	 * It will set the value of a a field. Data must be given in user format.
+	 * This means that that fields of type "datetime" a DateTime object must be given
+	 * etc.
+	 * 
+	 * @param $name The name of the field as it was given in the $fields.
+	 * @param $value The new value of field given in user format. 
+	 * @return 
+	 * 	- On success it will return the same value as $value.
+	 * 	- @b NULL if there is no field with that name. In that case a php error will be triggered too.
+	 *	.
+	 *
+	 * @note __get() and __set() are php magic methods and can be declare to overload the 
+	 *  standard procedure of accesing object properties. It is @b not not nessecary to
+	 *  use them as function @code $record->__set('myfield', 'myname'); @endcode but use them as
+	 *  object properties @code $record->myfield = "my name"; @endcode
+	 * 
+	 * @remarks Changing field data does not save them in database. You
+	 * 	must execute save() to dump changes in database.
+	 * @see __get() save()
+	 */
 	public function __set($name, $value)
 	{	if (!isset($this->class_desc['fields'][$name]))
 		{	// Raise a notice!!!
@@ -594,38 +677,54 @@ $total_news = News::count_all();
 		}
 			
 		$this->data_cast_cache[$name] = $value;
-		return $this->data[$name] = self::cast_data_to_sql(
+		$this->data[$name] = self::cast_data_to_sql(
 			$this->class_desc['fields'][$name]['type'],
 			$value
 		);
+		return $value;
 	}
 	
-	//! Get a list with all fields
+	//! Get a list with all field names
 	/**
-		It returns a sanitized verion of the user supplied
+	 * 
+	 * @return With an array with all field names (not the sqlfield names in case
+	 * 	of alias)
 	*/
-	public function fields()
+	public function field_names()
 	{	return array_keys($this->class_desc['fields']);
 	}
 	
-	//! Get the list of data
+	//! Get a reference to records data
 	/**
-		Returns an associative array will all data of this instance.
+	 * Get the a reference to the associative array 
+	 * which holds all the data of this record. The keys to the
+	 * array are the field names (not the sqlfield names in case of alias).
+	 * @remarks
+	 * Be carefull when changing data as the internal storage is not the same as
+	 * the one that one used by __get() and __set(). Internaly data are stored in SQL format, 
+	 * for example for fields of type "datatime" data are stored in a string with datetime 
+	 * in ISO format. For "serilizable" fields data are saved in serialized format. If you just
+	 * need to change field values use direct member access more info at __get(), __set().
+	 * 
+	 * @note
+	 * Changing data does NOT upadte record in database you must execute save() to update database.
+	 * @return Reference to internal associative array which holds all the data of fields
+	 * @see save() __get() __set()
 	*/
 	public function & data()
 	{	return $this->data;		}
 	
 	//! Delete this record
 	/**
-		It will delete the record from database. However the object
-		will not be destroyed so be carefull to dump it after deletion.
+	 * It will delete the record from database. However the object
+	 * will not be destroyed so be carefull to dump it after deletion.
 		
-		@note DBRecord supports a special function @b on_delete(). If
-		this function is declared in the derived class it will be executed
-		before actually deleting anything. If this function returns true
-		the process will continue, if false the process will be stopped
-		leaving data and objects intact.
-	*/
+	 * @note DBRecord supports a special function @b on_delete(). If
+	 * 	this function is declared in the derived class it will be executed
+	 * 	before actually deleting anything. If this function returns true
+	 * 	the process will continue, if false the process will be stopped
+	 * 	leaving data and objects intact.
+	 */
 	public function delete()
 	{	$this_pk = array();
 		foreach($this->class_desc['fields'] as $field_name => $field)
@@ -647,10 +746,12 @@ $total_news = News::count_all();
 		return true;
 	}
 	
+	//! Serialization implementation
 	public function __sleep()
 	{	return array('data');
 	}
 	
+	//! Unserilization implementation
 	public function __wakeup()
 	{	// Initialize static
 		self::init_static(get_class($this));
