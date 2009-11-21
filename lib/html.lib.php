@@ -11,7 +11,7 @@ class HTMLTag
 	public static $default_render_mode = 'html';
 
 	// List of html element that do not close
-	private static $html_single_tags = array('hr', 'br', 'img');
+	private static $html_single_tags = array('hr', 'br', 'img', 'meta', 'link');
 	
 	//! The actual tag
 	public $tag = '';
@@ -46,8 +46,7 @@ class HTMLTag
 	 * .
 	 */
 	public function __construct()
-	{	$this->render_mode = self::$default_render_mode;
-	
+	{		
 		$args = func_get_args();
 		
 		if (count($args) == 0)
@@ -180,24 +179,29 @@ class HTMLTag
 	
 	//! Render this tag
 	public function render()
-	{	$str = "<{$this->tag}" . self::render_tag_attributes($this->attributes);
+	{	if ($this->render_mode !== NULL)
+			$render_mode = &$this->render_mode;
+		else
+			$render_mode  = &self::$default_render_mode;
+			
+		$str = "<{$this->tag}" . self::render_tag_attributes($this->attributes);
 	
 		// Fast route for non closable HTML tags
-		if (($this->render_mode == 'html') && in_array($this->tag, self::$html_single_tags))
+		if (($render_mode == 'html') && in_array($this->tag, self::$html_single_tags))
 		
 			return $str . ' >';
 
 		// Fast route for XHTML tags with no childs
-		if (($this->render_mode == 'xhtml') && (count($this->childs) == 0))
+		if (($render_mode == 'xhtml') && (count($this->childs) == 0))
 			return $str . ' />';
 		$str .= '>';
 		
-		// Add childs		
+		// Add childs
 		foreach($this->childs as $child)
-		{
+		{	
 			if (is_string($child))
 			{	if ($this->esc_html) $child = esc_html($child);
-				if ($this->esc_nl) $child = self::nl2br($child, ($this->render_mode == 'xhtml'));
+				if ($this->esc_nl) $child = self::nl2br($child, ($render_mode == 'xhtml'));
 				$str .= $child;
 			}
 			else

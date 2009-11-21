@@ -1,0 +1,21 @@
+
+Coding Guidelines
+-----------------------
+
+Current Revision: R1
+
+ 1. Comments must all have left asterisk
+ 	/**
+ 	 * Never omit left asterisk
+ 	 */
+ 
+ 2. Functions must be named following php guidlines
+ 	- all lowercase
+ 	- words are seperated with _
+ 	e.g. $obj->check_this();
+ 	
+ 3. Class must be named following php guidlines
+ 	- Camelized text like MyVeryGoodClass
+ 	
+ 4. All classes must have their conformance revision in their brief description
+ 	e.g //! [R1] This is the best class

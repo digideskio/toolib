@@ -41,16 +41,15 @@
  * @endcode
  * \n
  * @b $table: \n	
- * This is mandatory and it is the name of the table in database that holds the records.
+ * This is mandatory and it is the name of the database table.
  * \n	
- * @b $fields: \n	
- * An array with the columns that you want to manipulate. Usually these are all the columns that
+ * @b $fields: \n
+ * An array with all table fields that you want to map. Usually these are all the fields that
  * the table has, however DBRecord can work with a subset of columns as long as the SQL table definition
- * permits it. For example if you have @b not included a column that has 'NOT NULL' flag and a 'DEFAULT'
- * value, don't except from DBRecord to guess a value. You will probably get an SQL error if you try to
- * create a record.\n
- * $fields is an array with all the fields that of the record. Each entry can be either a string with
- * the name of the field (must be the same with database field) or	another array with the parameters of the field.
+ * permits it. For example if you have @b not included a column that has 'NOT NULL' flag and not the 'DEFAULT'
+ * value, don't expect from DBRecord to guess the default value. You will probably get an SQL error if you try to
+ * create a record.\n Each entry can be either a string with the name of the field (must be the same with database field) 
+ * or another array with the parameters of the field.
  * Valid paramaters of fields are:
  * 	- @b pk: [Default = false] The field that has this option set true will be consider primary key.
  * 	- @b ai: [Default = false] Autoincremet can be set true to fields that are primary keys otherwise
@@ -610,7 +609,7 @@ class DBRecord
 	 * It will return data of any field that you request. Data will be 
 	 * converted from sql format to user format before returned. This means
 	 * that fields of type "datetime" will be converted to php native DateTime object,
-	 * "serializable" fields will be unserialized before returned to user.
+	 * "serialized" fields will be unserialized before returned to user.
 	 * 
 	 * @param $name
 	 * @return 
