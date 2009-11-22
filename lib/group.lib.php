@@ -15,6 +15,8 @@ dbconn::prepare('groups-removemember', 'DELETE FROM group_members WHERE groupnam
 	groups, add / remove members and query them. An
 	easy and fast way from user organization to group
 	based authorization.
+	
+	@todo Rename it to something that reminds it is a group of USERS!
 */
 class Group extends DBRecord
 {
