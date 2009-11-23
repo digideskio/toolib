@@ -361,6 +361,17 @@ div.ui-grid span.ui-grid-inactive:hover
 	vertical-align: middle;
 }
 
+/********************
+	Not Found
+ ********************/
+div.not-found { width: 700px; margin: 50px auto;  padding: 10px;
+	border: 3px solid #EE9999; -moz-border-radius: 12px; -webkit-border-radius: 12px;
+}
+div.not-found h1 { color: black; border-bottom: 1px solid #a1a1a1; margin-bottom: 5px;}
+div.not-found p { margin: 5px auto; font-size: 105%; }
+div.not-found em { color: #a1a1a1; font-style: normal;	}
+
+
 /*************************
    Organize divisions
  **********************/
@@ -384,7 +395,7 @@ div#login-panel a
 
 div#footer
 {
-    text-align: center;
+    text-align: right;    
     border-top: 1px solid #999999;
     font-size: 9pt;
 	color: #999999;

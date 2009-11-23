@@ -1,6 +1,6 @@
 <?php
 require_once('layout.inc.php');
-require_once($GS_libs . 'lib/form.lib.php');
+require_once('lib/phplibs/form.lib.php');
 
 // Create the registration form
 class RegistrationForm extends Form

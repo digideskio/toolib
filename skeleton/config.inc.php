@@ -1,29 +1,30 @@
 <?php
-/*********************************************************
-	General site settings
-*/
+/**
+ * Configure your site.
+ */
+require_once('lib/config.lib.php');
 
 // Database host name
-$GS_db_host = 'localhost';
+Config::add('db_host', 'localhost');
 
-// Database user name
-$GS_db_user = 'root';
+// Database connection username
+Config::add('db_user', 'root');
 
-// Database user password
-$GS_db_pass = 'root';
+// Database connection password
+Config::add('db_pass', 'root');
 
 // Database schema
-$GS_db_schema = 'test';
+Config::add('db_schema', 'test');
 
-// Title of the site
-$GS_site_title = 'My New Site';
+// The title of this site
+Config::add('site_title', 'My New Site');
 
-// Path of this site
-$GS_site_root = '/skeleton';
+// Path of this site as it is exposed on webserver
+Config::add('site_root', '/phplibs/skeleton');
 
-// Path to the libraries (relative or absolute)
-$GS_libs = '';
+// Enabling this will force browser to avoid caching css (usefull on development)
+Config::add('css_anticache', true);
 
-// If it is enabled a trick will be used to prevent css caching from browsers
-$GS_css_anticache = true;
+// You can enable this by specifying your google analytics ID
+Config::add('google_analytics', false);
 ?>

@@ -18,7 +18,7 @@ function ondberror()
 }
 
 // Initialize connection
-dbconn::init($GS_db_host, $GS_db_user, $GS_db_pass, $GS_db_schema, 'ondberror');
+dbconn::init(Config::get('db_host'), Config::get('db_user'), Config::get('db_pass'), Config::get('db_schema'), 'ondberror');
 
 function dbquery($query)
 {    echo '<pre>' . $query . '</pre>';
@@ -38,28 +38,22 @@ CREATE TABLE `users` (
 	`user` CHAR(16) NOT NULL,		        -- User is maximum 16 chars and this is the primary key too.
 	`password` CHAR(32) NOT NULL,	        -- The password is always md5 which is 32 characters.
 	`is_enabled` BOOL DEFAULT 1,
-	PRIMARY KEY(`user`))
-ENGINE=InnoDB
-DEFAULT CHARACTER SET = utf8
-");
+	PRIMARY KEY(`user`)
+)ENGINE=InnoDB DEFAULT CHARSET= utf8;");
 
 dbquery("
 CREATE TABLE `groups` (
 	`groupname` VARCHAR(255) NOT NULL,		-- The name of this group
-	PRIMARY KEY(`groupname`))
-ENGINE=InnoDB
-DEFAULT CHARACTER SET = utf8
-");
+	PRIMARY KEY(`groupname`)
+)ENGINE=InnoDB DEFAULT CHARSET= utf8;");
 
 dbquery("
 CREATE TABLE `group_members` (
 	`groupname` VARCHAR(255) NOT NULL,
 	`username` CHAR(16) NOT NULL,
 	FOREIGN KEY (`groupname`) REFERENCES `groups`(`groupname`),
-	PRIMARY KEY(`groupname`, `username`))
-ENGINE=InnoDB
-DEFAULT CHARACTER SET = utf8
-");
+	PRIMARY KEY(`groupname`, `username`)
+)ENGINE=InnoDB DEFAULT CHARSET= utf8;");
 
 dbquery("
 CREATE TABLE `session_log` (
@@ -71,17 +65,17 @@ CREATE TABLE `session_log` (
     `ts_lastseen` DATETIME NOT NULL,
     `expired` BOOL DEFAULT FALSE,
     PRIMARY KEY(`log_id`)
-)
-ENGINE=InnoDB
-DEFAULT CHARACTER SET = utf8;");
-
+)ENGINE=InnoDB DEFAULT CHARSET= utf8;");
+	
 dbquery("INSERT INTO `users` (user, password, is_enabled)
     VALUES('root', MD5('root'), '1');");
+
 dbquery("INSERT INTO `groups` (groupname)
     VALUES('admin');");
+
 dbquery("INSERT INTO `group_members` (groupname, username)
     VALUES('admin', 'root');");
-    
+
 echo '<br><h1>Database installed</h1>';
 
 ?>

@@ -1,24 +1,27 @@
 <?php
 require_once('layout.inc.php');
-require_once($GS_libs . 'lib/grid.lib.php');
-require_once($GS_libs . 'lib/form.lib.php');
+require_once('lib/phplibs/grid.lib.php');
+require_once('lib/phplibs/form.lib.php');
 $sel_menu = 'manage';
 
 function print_ideletable($what, $on_delete, $return_result = false)
 {	static $del_id = 0;
 	$myid = $del_id++;
-	$ret_data = '<div class="ui-idelete" id="idelete_' . $myid . '">' .
-		'<img src="images/cleardot.gif" onclick="' .
-		'$(\'span.ui-idelete-button\').fadeOut(\'fast\');' .
-		'if ($(\'#idelete_' . $myid . '.ui-delete img\').hasClass(\'opened\'))' .
-		'	$(\'#ideletebutton_' . $myid . '\').fadeOut();	else' .
-		'	$(\'#ideletebutton_' . $myid . '\').fadeIn();' .
-
-		'$(\'#idelete_' . $myid . '.ui-idelete img\').toggleClass(\'opened\');">' .
-		$what .
-		'<span id="ideletebutton_' . $myid . '" class="ui-idelete-button" onclick="window.location=\'' .
-		esc_js($on_delete) . '\'">Delete</span></div>';
 	
+	$ret_data = tag('div class="ui-idelete"', array('id' => 'idelete_' . $myid ),
+		tag('img src="images/cleardot.gif"', array('onclick' =>
+		"$('span.ui-idelete-button').fadeOut('fast');" .
+		"if ($('#idelete_$myid.ui-delete img').hasClass('opened'))" .
+		"	$('#ideletebutton_$myid').fadeOut();	else" .
+		"	$('#ideletebutton_$myid').fadeIn();".
+		"$('#idelete_$myid.ui-idelete img').toggleClass('opened');"
+		)),
+		$what,
+		tag('span class="ui-idelete-button"', array('id' => "ideletebutton_$myid", 'onclick' =>
+			"window.location='" . esc_js($on_delete) . "'"),
+			'Delete'
+		)
+	);
 	if ($return_result)
 		return $ret_data;
 	echo $ret_data;
@@ -26,9 +29,11 @@ function print_ideletable($what, $on_delete, $return_result = false)
 }
 
 function print_iedit($return_result = false)
-{	$ret_data = '<span class="ui-iedit" onclick="$(\'span.ui-idelete-button\').hide();' .
-		'$(\'.ui-idelete img\').animate({\'opacity\' : \'toggle\'}).removeClass(\'opened\');' .
-		'">(edit)</span>' ;
+{	$ret_data = tag('span class="ui-iedit"', array('onclick' =>
+		"$('span.ui-idelete-button').hide(); " .
+		"$('.ui-idelete img').animate({'opacity' : 'toggle'}).removeClass('opened');"
+		), '(edit)'
+	);
 	if ($return_result)
 		return $ret_data;
 	echo $ret_data;
@@ -45,7 +50,7 @@ $layout->s('main')->s('main-base')->get_from_ob();
 
 // Check if there is a group selected
 if ( (isset($_REQUEST['group']))  && (($group = Group::open($_REQUEST['group']) ) !== false)){
-	$layout->s('main')->s('main-base')->add_attrib('class', 'groupframe');
+	$layout->s('main')->s('main-base')->attr('class', 'groupframe');
 	echo '<div class="ui-search-filter">Users of group <span class="ui-search-filter-keyword">' .$group->name . '</span></div>';
 }
 else
@@ -56,8 +61,7 @@ if (!isset($_REQUEST['user']) || (($user = User::open($_REQUEST['user'])) === fa
 	$user = false;
 
 // Check action
-if (isset($_REQUEST['action']))	$action = $_REQUEST['action']; else $action = false;
-
+$action = param::get('action');
 
 switch($action)
 {
@@ -74,10 +78,8 @@ switch($action)
 }
 
 // Show groups
-if (!$group)
-	$users = Waas::all_users();
-else
-	$users = $group->members();
+$users = ($group)?$group->members():Waas::all_users();
+
 if (count($users) == 0)
 	echo '<h4>No users found!</h4>';
 else
@@ -107,7 +109,9 @@ else
 		public function on_mangle_data($col_id, $row_id, $data)
 		{	
 			if ($col_id == 'is_enabled')
-				return '<input type="checkbox" ' . (($data == '1')?'checked':'') . ' disabled >';
+				return tag('input type="checkbox" disabled="disabled"',
+					(($data == '1')?array('checked' => 'checked'):'') 
+				);
 		}
 	
 		public function on_custom_data($col_id, $row_id, $record)
@@ -138,7 +142,7 @@ else
 // User Information
 if ($user)
 {
-$layout->s('main')->s('user-info')->add_attrib('class', 'ui-user-info')->get_from_ob();
+	$layout->s('main')->s('user-info')->attr('class', 'ui-user-info')->get_from_ob();
 	echo '<h1> User: ' .esc_html($user->username) . '</h1>';
 	class UserEditForm extends Form
 	{
@@ -204,10 +208,16 @@ $layout->s('main')->s('user-info')->add_attrib('class', 'ui-user-info')->get_fro
 	if (count($user_groups) > 0)
 		echo 'Member of: ';
 	foreach($user_groups as $group)
-		echo '<span class="ui-search-filter-keyword">' . esc_html($group->name) . '<sup>' .
-			'<a onclick="return confirm(\'Are you sure you want to part this group?\')" ' .
-			'href="manage.php?user='  .$user->username . '&action=partgroup&group=' .$group->name . '">(x)</a></sup></span> ';
-			
+		echo tag('span class="ui-search-filter-keyword"',
+			$group->name,
+			tag('sup', tag('a', array(
+				'onclick' => "return confirm('Are you sure you want to part this group?');",
+				'href' => 'manage.php?user='  .$user->username . '&action=partgroup&group=' .$group->name
+				),
+				'(x)'
+			))		
+		) . ' ';
+
 	$jgf->render();
 }
 $layout->s('main')->s('main-widgets')->get_from_ob();
@@ -217,43 +227,42 @@ $groups = Group::open_all();
 echo '<div class="ui-widget"><h1>Groups  ' . print_iedit(true) . '</h1><ul class="ui-menu-list">';
 foreach($groups as $group)
 	echo '<li>' .
-		print_ideletable( '<a href="manage.php?group=' . esc_html($group->name) .'">' . 
-			esc_html($group->name) . '</a> (' .	$group->count_members() . ')' ,
+		
+		print_ideletable(
+			tag('span',
+				tag('a', array('href' => "manage.php?group=" . esc_html($group->name)),
+					$group->name
+				),
+				' (' .	$group->count_members() . ')' 
+			),
 			'manage.php?action=deletegroup&group=' . esc_html($group->name),
 			true			
-		) .
+		).
 		'</li>';
 echo '<li><a href="manage.php">(all)</a></li>';
 echo '</ul>';
 class AddGroupForm extends Form
 {
-	public function __construct()
-	{
-		Form::__construct(
-			array(
-				'group' => array('display' => '', 'regcheck' => '/^[0-9a-zA-Z\-_]+$/', 'onerror' => 'Write a valid groupname')
-			),
-			array(
-				'buttons' => array('Add' => array()	),
-				'css' => array()
-			)
-		);
-	}
+	protected $fields = array(
+		'group' => array('display' => '', 'regcheck' => '/^[0-9a-zA-Z\-_]+$/', 'onerror' => 'Write a valid groupname')
+	);
+	
+	protected $options =array(
+		'buttons' => array('Add' => array()	),
+		'css' => array()
+	);
 		
-	public function on_valid()
-	{	if (Group::open($this->get_field_value('group')) !== false)
+	public function on_valid($values)
+	{	if (Group::open($values['group']) !== false)
 		{	$this->invalidate_field('group', 'This group already exists.');
 			return;
 		}
 		
-		if (($group = Group::create($this->get_field_value('group'))) !== false)
+		if (($group = Group::create($values['group'])) !== false)
 			redirect('manage.php');
-		var_dump($group);
 		
 		$this->invalidate_field('group', 'Cannot create group');
-		
 	}
-
 }
 new AddGroupForm();
 echo '</div>';
