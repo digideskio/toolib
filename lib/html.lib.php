@@ -1,16 +1,74 @@
 <?php
 
+//! Simple DOM representation interface 
 /**
- * @brief Class for exporting HTML Tags
+ * HTMLTag is a simple interface to create DOM elements, and render
+ * html/xhtml valid code. It has a small memory footprint and supports
+ * automatic html escaping of text nodes, attributes etc. To check how
+ * to use it look at the HTMLTag::__construct() 
+ * 
+ * @remarks HTMLTag does @b not support parsing of HTML/XHTML
+ * 
+ * @par Example of usage
+ * @code
+ * // A 2x2 table creation
+ * $table = new HTMLTag('table',
+ *     new HTMLTag('tr',
+ *         new HTMLTag('td', 'row 1 col 1'),
+ *         new HTMLTag('td', 'row 1 col 2')
+ *     ),
+ *     new HTMLTag('tr',
+ *         new HTMLTag('td', 'row 2 col 1'),
+ *         new HTMLTag('td', 'row 2 col 2')
+ *     )
+ * );
+ * @endcode
+ * \n
+ * An easier way to create the same code as above is to use tag() shortcut
+ * @code
+ * // A 2x2 table using tag() shortcut
+ * $table = tag('table,
+ *     tag('tr',
+ *         tag('td', 'row 1 col 1'),
+ *         tag('td', 'row 1 col 2')
+ *     ),
+ *     tag('tr',
+ *         tag('td', 'row 2 col 1'),
+ *         tag('td', 'row 2 col 2')
+ *     )
+ * );
+ * @endcode
+ * \n
+ * <b> Output in both cases is the same </b>
+ * @code
+ * <table>
+ *   <tr>
+ *       <td>row 1 col 1</td>
+ *       <td>row 1 col 2</td>
+ *   </tr>
+ *   <tr>
+ *       <td>row 2 col 1</td>
+ *       <td>row 2 col 2</td>
+ *   </tr>
+ * </table>
+ * @endcode
  * @author sque
  *
  */
 class HTMLTag
 {
-	// Set the default render mode
+	//! Set the default render mode for all HTMLTag
+	/**
+	 * This parameter controls the rendering mode of all HTMLTag 
+	 * that have not explicit specified their mode with HTMLTag::$render_mode .
+	 * Accepted values are:
+	 * - @b 'xhtml'
+	 * - @b 'html'
+	 * .
+	 */
 	public static $default_render_mode = 'html';
 
-	// List of html element that do not close
+	//! List of html element that do not close
 	private static $html_single_tags = array('hr', 'br', 'img', 'meta', 'link');
 	
 	//! The actual tag
@@ -22,7 +80,14 @@ class HTMLTag
 	//! The childs of this tag
 	public $childs = array();
 	
-	//! Mode of rendering
+	//! Mode of rendering for this HTMLTag
+	/**
+	 * Accepted values are:
+	 * - @b NULL [Default] : It will render in the mode that is specified by HTMLTag::$default_render_mode
+	 * - @b 'xhtml': The tag will be rendered in xhtml mode.
+	 * - @b 'html': The tag will be rendered in html mode.
+	 * .
+	 */
 	public $render_mode = NULL;
 	
 	//! Escape html special entities from text blocks
@@ -33,24 +98,56 @@ class HTMLTag
 	
 	//! General Constructor
 	/**
-	 * 
-	 * How to use it:
-	 * new HTMLTag($name_and_options, [array $extra_options], [$child1], [$child2])
-	 * 
-	 * name_and_options: can be
-	 * - 'div'
-	 * - 'div class="test"'
+	 * Construct an HTML element with custom attributes and childs.
+	 * How to use it
+	 * @code
+	 * new HTMLTag($name_and_options, [array $extra_options], [$child1], [$child2], ...)
+	 * @endcode
+	 * @par Parameters
+	 * @b $name_and_options: is the tag name with some extra static attributes. 
+	 * - 'div' Just the tag name
+	 * - 'div class="test" id="1"' The tag along with two attributes
 	 * .
-	 * $extra_options can be
-	 * - array(class, test);
+	 * \n
+	 * @b $extra_options is an associative array with extra class attributes. The attributes
+	 *  are given in the form of name => value.
+	 * - array(class => "button", "id" => "button1");
 	 * .
+	 * \n
+	 * @b $child is another child tag or a string for a text node. Strings are properly escaped
+	 *  so that they don't brake html syntax in case they contain special characters.
+	 *  
+	 * 
+	 * @note To simplify the process of HTMLTag construction an alias function tag() was created 
+	 *  to create HTMLTag object with the specified parameters and return the object reference.
+	 * 
+	 * @par Examples
+	 * @code
+	 * tag('table class="number-table"', array('style' => 'background-color: red;'),
+	 *     tag('tr class="odd"',
+	 *         tag('td', 'My cell is the best')
+	 *      )
+	 * );
+	 * @endcode
+	 * \n
+	 * @code
+	 * // Create
+	 * $article = tag('div', array('class' => 'article'),
+	 *    tag('h1', 'The best news in town'),
+	 *    tag('p', 'Bla bla balb abl ablab alba lba'),
+	 *    tag('p', 'More bla bla bla bal')
+	 * );
+	 * 
+	 * // Render it
+	 * $article->render();
+	 * @endcode
 	 */
 	public function __construct()
 	{		
 		$args = func_get_args();
 		
 		if (count($args) == 0)
-			throw new InvalidArgumentException('HTMLTag constructor must take at leaste one argument with the tag');
+			throw new InvalidArgumentException('HTMLTag constructor must take at least one argument with the tag');
 		
 		// Analyze tag options
 		$tag_exploded = explode(' ', $args[0]);
@@ -164,7 +261,11 @@ class HTMLTag
 		return $this;
 	}
 	
-	//! Find all ancestors with this tag name
+	//! Find all descendant with a specific tag name
+	/**
+	 * @param $tag The tag name that all descendant must have.
+	 * @return An array with all objects having the specified tag name.
+	 */
 	public function getElementsByTagName($tag)
 	{	$elements = array();
 	
@@ -177,7 +278,14 @@ class HTMLTag
 		return $elements;
 	}
 	
-	//! Render this tag
+	//! Render this tag and children
+	/**
+	 * It will render this and all its descendant elements in html/xhtml format.
+	 * 
+	 * @note To control html or xhtml mode use HTMLTag::$render_mode static flag.
+	 * 
+	 * @return The string with the html/xhtml code of this element. 
+	 */
 	public function render()
 	{	if ($this->render_mode !== NULL)
 			$render_mode = &$this->render_mode;
@@ -211,10 +319,12 @@ class HTMLTag
 		return $str;
 	}
 	
-	//! Render nested text-only
+	//! Render all elements in text-only
 	/**
-	 * @remark Text will not be escaped.
-	 * @return unknown_type
+	 * This function will concat ONLY the text nodes of this and all
+	 * descendant childs in the same order that they are accessed.
+	 * @remark It will not return HTML code, and text is note escaped.	 
+	 * @return A string with all element text nodes.
 	 */
 	public function render_text()
 	{	$str = '';
