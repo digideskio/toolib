@@ -3,7 +3,7 @@ PHPLibs.kmfa.net Skeleton Site
 ==============================
 
 A. Installation
--------------------
+-----------------
 
 * Copy all the files to the published web folder of your web server.
 * Edit config.inc.php with your favorite editor and change the parameter
@@ -22,11 +22,17 @@ A. Installation
 * You are ready to start editing your site and extend it.
 
 
-visit http://phplibs.kmfa.net/api.php for more information
+B. Documentation
+-----------------
+Skeleton site is an example structure of site. You can use it and expand it
+for your own purpose or you can examine it and start from the scratch a new one.
+
+For detailed documentation check:
+  http://phplibs.kmfa.net/api
 
 
-B. TroubleShoot
----------------
+C. TroubleShoot
+-----------------
 
 * Page is rendered without style (white page with black letters no graphics)
   > Edit config.inc.php and properly configure the $GS_site_root to reflect the relative root of your site.
