@@ -1,4 +1,5 @@
 <?php
+require_once('functions.lib.php');
 
 //! Abstract interface for caching engines
 /**
@@ -349,7 +350,6 @@ class Cache_Sqlite extends Cache
 	public function __destruct()
 	{	sqlite_close($this->dbhandle);	}
 	
-	//! Write a value in database
 	public function set($key, $value, $ttl = 0)
 	{	$this->delete($key);
 		return $this->add($key, $value, $ttl);		
@@ -360,7 +360,6 @@ class Cache_Sqlite extends Cache
 			$this->set($key, $value, $ttl);
 	}
 	
-	//! Replace a value
 	public function add($key, $value, $ttl = 0)
 	{ 	$res = sqlite_query($this->dbhandle,
 			"INSERT INTO cache_sqlite (key, value, ttl) VALUES( '" .
@@ -371,7 +370,6 @@ class Cache_Sqlite extends Cache
 		return ($res !== FALSE);
 	}
 	
-	//! Return NULL if not found
 	public function get($key, & $succeded)
 	{	// Execute query
 		if (($res = sqlite_query($this->dbhandle, 

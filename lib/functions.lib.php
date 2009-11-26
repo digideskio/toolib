@@ -179,15 +179,13 @@ function ga_code($site_id, $return_code = false)
 	return true;
 }
 
-/* PHP 5.3 Alternative classes */
+/* Backport functions */
 
 if (!function_exists('get_called_class'))
 {	
-	//! This function will be added at php 5.3
+	//! This function has been added at php 5.3
 	/** 
 		Although this hack is working very well, it is slow.
-		However php 5.3 is not far from release and you should
-		start working with this function as the native implementation will be fast.
 	*/
 	function get_called_class()
 	{
@@ -201,6 +199,26 @@ if (!function_exists('get_called_class'))
 	}
 }
 
+if ( !function_exists('sys_get_temp_dir')) {
+	function sys_get_temp_dir()
+	{
+		if( $temp=getenv('TMP') )
+			return $temp;
+		if( $temp=getenv('TEMP') )
+			return $temp;
+		if( $temp=getenv('TMPDIR') )
+			return $temp;
+
+		$temp=tempnam(__FILE__,'');
+		if (file_exists($temp))
+		{
+			unlink($temp);
+			return dirname($temp);
+		}
+		return null;
+	}
+}
+ 
 function get_static_var($class_name, $var_name)
 {
 	if (version_compare(PHP_VERSION, '5.3.0', '>='))
