@@ -38,12 +38,18 @@ function layout_create_navigation()
     echo '</div>';
     
     
-    echo '<div id="login-panel">';
+    $lgdiv = tag('div id="login-panel"');
     if (WAAS::current_user_is_anon())
-        echo a('/register.php', 'Register') .' / ' . a($_SERVER['PATH_INFO']. '/+login', 'Login');
+    	$lgdiv->append(
+    		tag('a', array('href' => rpath("/register.php")), 'Register'),
+    		' / ',
+    		tag('a', array('href' => rpath($_SERVER['PATH_INFO']. '/+login')), 'Login')
+    	);
     else
-        echo '[ ' . esc_html(WAAS::current_user()->username) . ' ] ' . a($_SERVER['PATH_INFO']. '/+logout', 'logout');
-    echo '</div>';
+    	$lgdiv->append('[ ' . WAAS::current_user()->username . ' ]',
+    		tag('a', array('href' => rpath($_SERVER['PATH_INFO']. '/+logout')), 'logout')
+    	);
+    echo $lgdiv;
 
 /*
     echo '<div id="search-panel">';

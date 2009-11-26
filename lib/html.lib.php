@@ -27,7 +27,7 @@
  * An easier way to create the same code as above is to use tag() shortcut
  * @code
  * // A 2x2 table using tag() shortcut
- * $table = tag('table,
+ * $table = tag('table',
  *     tag('tr',
  *         tag('td', 'row 1 col 1'),
  *         tag('td', 'row 1 col 2')

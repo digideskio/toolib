@@ -282,7 +282,7 @@ class AuthenticationCondition extends StupidCondition
 		case 'isanon';
 			return WAAS::current_user_is_anon();
 		case 'isuser':
-			return ((!WAAS::current_user_is_anon()) && (Waas::current_user()->$username == $options['user']));
+			return ((!WAAS::current_user_is_anon()) && (Waas::current_user()->username == $options['user']));
 		}
 	}
 }
