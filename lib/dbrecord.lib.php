@@ -97,11 +97,8 @@ class DBRecord
 	//! Parameter of DBRecord to use session to cache classes
 	public static $session_cache = false;
 	
-	//! Parameter for controlling apc
-	public static $apc_cache = false;
-	
-	//! APC name prefixing
-	public static $apc_prefix = '';
+	//! Parameter for controlling cacher
+	public static $cacher = NULL;
 	
 	//! All the classes that are using DBRecord
 	protected static $classes = array();
@@ -387,11 +384,10 @@ class DBRecord
 	{	if ($called_class === NULL)
 			$called_class = get_called_class();
 
-		if (self::$apc_cache)
-		{	$obj = apc_fetch('dbrecord-' . self::$apc_prefix . '-' . $called_class . '-' . $primary_key, $succ);
+		if (self::$cacher !== NULL)
+		{	$obj = self::$cacher->get('dbrecord: ' . $called_class . '-' . $primary_key, $succ);
 			if ($succ === true)
 				return $obj;
-			unset($obj);
 		}
 
 		// Initialize static
@@ -409,8 +405,8 @@ class DBRecord
 		foreach($class_desc['fields'] as $field_name => $field)
 				$obj->data[$field_name] = $res_array[0][$field['sqlfield']];
 
-		if (self::$apc_cache)
-			apc_store('dbrecord-' .self::$apc_prefix . '-' . $called_class . '-' . $primary_key, $obj);
+		if (self::$cacher !== NULL)
+			self::$cacher->set('dbrecord: ' . $called_class . '-' . $primary_key, $obj);
 		return $obj;
 	}
 	
@@ -598,9 +594,8 @@ class DBRecord
 			return false;
 
 		// Remove cache
-		if (self::$apc_cache)
-			apc_delete('dbrecord-' . self::$apc_prefix . '-' . $this->class_desc['class'] . '-' . $pk[0]);
-
+		if (self::$cacher !== NULL)
+			self::$cacher->delete('dbrecord: ' . $this->class_desc['class'] . '-' . $pk[0]);
 		return true;
 	}
 	
@@ -624,7 +619,7 @@ class DBRecord
 	 * 
 	 * @see __set()
 	 */
-	public function & __get($name)
+	public function __get($name)
 	{	if (!isset($this->class_desc['fields'][$name]))
 		{	// Raise a notice!!!
 		    $trace = debug_backtrace();
@@ -739,9 +734,8 @@ class DBRecord
 		if (dbconn::execute($this->class_desc['sql']['delete']['stmt'], 's', $this_pk) === false)
 			return false;
 			
-		if (self::$apc_cache)
-			apc_delete('dbrecord-' . self::$apc_prefix . '-' . $this->class_desc['class'] . '-' . $this_pk);
-		
+		if (self::$cacher !== NULL)
+			self::$cacher->delete('dbrecord: ' . $this->class_desc['class'] . '-' . $this_pk);
 		return true;
 	}
 	
