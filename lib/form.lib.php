@@ -35,14 +35,15 @@
     @code
     class NewUserForm extends Form
     {
-        public __construct()
+        public function __construct()
         {    Form::__construct(
                 array(
                     'username' => array('display' => 'Username'),
                     'password1' => array('display' => 'Password', 'type' => 'password'),
                     'password2' => array('display' => 'Retype password', 'type' =>'password')
                 ),
-                array('title' => 'New user', 'buttons' => array('create' => array())
+                array('title' => 'New user', 'buttons' => array('create' => array()))
+             );
         }
         
         public function on_valid()
@@ -506,35 +507,29 @@ class Form
     	if ($this->options['hideform'])
     		return false;
    
-    	foreach($this->options['css'] as $cls) 
-    		$div_classes .= ' ' . esc_html($cls);
-    	$main_div = tag('div', array('class' => $div_classes));
-    	$main_div->append($form = tag('form action="" method="post"', array('enctype' => $this->enctype)));
-        $form->append(tag('input type="hidden" name="submited_form_id"' , array('value' => $this->form_id)));
+    	$div = tag('div');
+    	foreach($this->options['css'] as $cls)
+    		$div->add_class($cls); 
+    	
+    	$form = tag('form action="" method="post"', array('enctype' => $this->enctype))->appendTo($div)->push_parent();
+        etag('input type="hidden" name="submited_form_id"' , array('value' => $this->form_id));
 
-        $form->append($table = tag('table'));
         if (isset($this->options['title']))
-        	$table->append(tag('tr', tag('th colspan="2"', $this->options['title'])));
+        	etag('span class="title"',  $this->options['title']);
             
         // Render all fields
         foreach($this->fields as $id => $field)
-        {   $table->append($tr = tag('tr', $td_left = tag('td')));
-        
+        {	etag('dt')->push_parent();
         	// Line type
             if ($field['type'] == 'line')
-            {  	$td_left->$attributes['colspan'] = 2;
-            	$td_left->append(tag('hr'));            	
+            {  	etag('hr');
+            	HTMLTag::pop_parent(); 	
             	continue;
             }
 
-            $tr->append($td_right = tag('td'));
-            
-            
-            if (isset($field['error']) || isset($field['hint']))
-                  $td_left->attributes['rowspan']='2';
-                  
             if (isset($field['display']))
-            	$td_left->append($field['display']);
+            	etag('label', $field['display']);
+            
 
             // Show input pertype
             switch($field['type'])
@@ -543,57 +538,58 @@ class Form
             case 'password':
                 $attrs = array_merge($field['htmlattribs'], array('name' => $id, 'type' => $field['type']));
                 if (($field['usepost']) && isset($field['value'])) 
-                	$attrs['value'] =$field['value'];
-                $td_right->append(tag('input', $attrs));                
+                	$attrs['value'] = $field['value'];
+                etag('input', $attrs);                
                 break;
             case 'textarea':
-            	$td_right->append(tag('textarea', $field['htmlattribs'],
+            	etag('textarea', $field['htmlattribs'],
             		array('name'=>$id),
             		(($field['usepost']) && isset($field['value']))?$field['value']:''
-            	));
+            	);
                 break;
             case 'radio':
                 foreach($field['optionlist'] as $opt_key => $opt_text)
                 {
-                	$td_right->append(tag('input type="radio"', $field['htmlattribs'],
+                	etag('input type="radio"', $field['htmlattribs'],
                 		array('name'=>$id, 'value'=>$opt_key),
                 		(($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))?array('checked'=>'checked'):array(),
                 		'&nbsp;' . esc_html($opt_text) . '&nbsp;&nbsp;&nbsp;&nbsp;'
-                	));
+                	);
                 }
                 break;
             case 'dropbox':
-            	$td_right->append($select = tag('select', array('name' => $id), $field['htmlattribs']));
+            	$select = etag('select', array('name' => $id), $field['htmlattribs']);
                 foreach($field['optionlist'] as $opt_key => $opt_text)
-                {	$select->append(tag('option',                		
+                {	tag('option',
                 		array('value'=>$opt_key),
                 		(($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))?array('selected'=>'selected'):array(),
                 		$opt_text
-                	));
+                	)->appendTo($select);
                 }
                 break;
             case 'checkbox':
-            	$td_right->append(tag('input type="checkbox"', array('name'=>$id),
+            	etag('input type="checkbox"', array('name'=>$id),
             		$field['htmlattribs'],
             		(($field['usepost']) && isset($field['value']) && ($field['value']))?array('checked'=>'checked'):array()
-            	));
+            	);
                 break;
             case 'file':
-            	$td_right->append(tag('input type="file"', array('name' => $id), $field['htmlattribs'] ));
+            	etag('input type="file"', array('name' => $id), $field['htmlattribs']);
                 break;
             case 'custom':
-            	$td_right->append(tag('span html_escape_off', $field['value']));
+            	etag('span html_escape_off', $field['value']);
                 break;
             }
             
             if (isset($field['error']))
-            	$table->append(tag('tr', tag('td', tag('span class="ui-form-error', $field['error']))));
+            	etag('span class="ui-form-error"', $field['error']);
             else if (isset($field['hint']))
-            	$table->append(tag('tr', tag('td', tag('span class="ui-form-hint', $field['hint']))));
+            	etag('span class="ui-form-hint"', $field['hint']);
+            HTMLTag::pop_parent();
         }
         
         // Render buttons
-        $table->append(tag('tr', $td_bt = tag('td colspan="2"')));
+        etag('div class="buttons"')->push_parent();
         foreach($this->options['buttons'] as $but_id => $but_parm)
         {	$but_parm['htmlattribs']['name'] = $but_id;
         	$but_parm['htmlattribs']['value'] = $but_parm['display'];
@@ -610,9 +606,10 @@ class Form
 			if ($but_parm['onclick'] != '')
 				$but_parm['htmlattribs']['onclick'] = $but_parm['onclick'];
 
-			$td_bt->append(tag('input', $but_parm['htmlattribs']));
+			etag('input', $but_parm['htmlattribs']);
         }
-		echo $main_div->render();        
+        HTMLTag::pop_parent(2);
+		echo $div->render();
     }
     
     //! Don't display the form
