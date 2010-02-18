@@ -553,7 +553,7 @@ class Form
                 	etag('input type="radio"', $field['htmlattribs'],
                 		array('name'=>$id, 'value'=>$opt_key),
                 		(($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))?array('checked'=>'checked'):array(),
-                		'&nbsp;' . esc_html($opt_text) . '&nbsp;&nbsp;&nbsp;&nbsp;'
+                		$opt_text
                 	);
                 }
                 break;
