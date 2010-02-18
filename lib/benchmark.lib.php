@@ -65,8 +65,11 @@ class Benchmark
 	 * of elapsed time, in order of that they were actually passed.
 	 * @param $from The name of the first checkpoint.
 	 * @param $to The name of the second checkpoint.
-	 * @param $index - -1 Will return an array with all elapsed times.
+	 * @param $index
+	 * 	- -1 Will return an array with all elapsed times.
 	 * 	- >= 0 Will return the item of this zero-based indexed array.
+	 * 	.
+	 * 
 	 * @return An array of floating point numbers with the elapsed times between those
 	 * 	two checkpoints.
 	 * 

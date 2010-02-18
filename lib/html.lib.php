@@ -296,7 +296,6 @@ class HTMLTag
 	
 		// Fast route for non closable HTML tags
 		if (($render_mode == 'html') && in_array($this->tag, self::$html_single_tags))
-		
 			return $str . ' >';
 
 		// Fast route for XHTML tags with no childs

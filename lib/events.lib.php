@@ -142,8 +142,8 @@ class EventDispatcher
     public function stop_observing_all($previous_callback)
     {    return self::stop_observing_event('*', $previous_callback);    }
         
-    //! Raise a declared event and inform all observers of it
-    public function raise_event($event, $args = NULL)
+    //! Triger a declared event and inform all observers for this
+    public function notify($event, $args = NULL)
     {   if ($event == '*')
             return false;
             

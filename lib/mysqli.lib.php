@@ -100,7 +100,7 @@ class dbconn
        	{
        	    // Prepare statement
            if (!($stmt = dbconn::$dbconn->prepare(dbconn::$stmts[$key]['query'])))
-      	    {   dbconn::raise_error("Cannot prepare statement '" . $key . "'.\n" . dbconn::$dbconn->error);
+      	    {   dbconn::raise_error("Cannot prepare statement '" . $key . "'. " . dbconn::$dbconn->error);
       	        return false;
       	    }
       	    dbconn::$stmts[$key]['handler'] = $stmt;
@@ -196,7 +196,7 @@ class dbconn
        	// Check if statement exist
        	if (!isset(dbconn::$stmts[$key]))
        	{
-       	    dbconn::raise_error('dbconn::execute(' . $key . ') The supplied statement must first be prepared using dbconn::prepare().');
+       	    dbconn::raise_error('dbconn::execute("' . $key . '") The supplied statement must first be prepared using dbconn::prepare().');
        	    return false;
        	}
        	

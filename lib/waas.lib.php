@@ -149,7 +149,7 @@ class Waas extends IntraSessionSingleton
 		      waas::logout();
 
 		// Raise event pre-login
-		$pthis->events->raise_event('pre-login');
+		$pthis->events->notify('pre-login');
 
 		// Check for users with that username and that password.
 		$count_records = dbconn::execute_fetch_all('user-validate', 'ss', $user, $pass);
@@ -163,7 +163,7 @@ class Waas extends IntraSessionSingleton
 		session_regenerate_id(true);
 		
 		// Raise event post-login
-		$pthis->events->raise_event('post-login');		
+		$pthis->events->notify('post-login');		
 		return true;
 	}
 	
@@ -181,13 +181,13 @@ class Waas extends IntraSessionSingleton
             return false;
             
         // Raise event pre-logout
-		$pthis->events->raise_event('pre-logout');
+		$pthis->events->notify('pre-logout');
 		
 		// Unsect current user
 		unset($pthis->m_current_user);
 		
 		// Raise event post-logout
-		$pthis->events->raise_event('post-logout');
+		$pthis->events->notify('post-logout');
 	}
 	
 	//! Get current logged-in user

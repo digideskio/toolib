@@ -48,17 +48,17 @@ abstract class StupidCondition
 	{	return $this->back_references;	}
 	
 	//! Published interface for evaluation
-	public function evaluate()
+	public function evaluate($previous_backrefs= array())
 	{	if ( (isset($this->options['not'])) && ($this->options['not'] === true ))
-			return ! $this->evaluate_impl();	
-		return $this->evaluate_impl();
+			return ! $this->evaluate_impl($previous_backrefs);	
+		return $this->evaluate_impl($previous_backrefs);
 	}
 	
 	//! @b ABSTRACT Returns the unique type of evaluator
 	abstract public static function type();
 	
 	//! @b ABSTRACT To be implemented by evaluator
-	abstract protected function evaluate_impl();
+	abstract protected function evaluate_impl($previous_arguments);
 }
 
 //! Implementation of url_params StupidCondition
@@ -96,7 +96,7 @@ class UrlParamsCondition extends StupidCondition
 	{	return 'url_params';	}
 	
  
-	public function evaluate_impl()
+	public function evaluate_impl($previous_backrefs)
 	{
 		// Default condition values
 		$defcond = array(
@@ -164,7 +164,7 @@ class UrlPathCondition extends StupidCondition
 	public static function type()
 	{	return 'url_path';	}
  
-	public function evaluate_impl()
+	public function evaluate_impl($previous_backrefs)
 	{
 		// Default condition values
 		$defcond = array(
@@ -263,7 +263,7 @@ class AuthenticationCondition extends StupidCondition
 	public static function type()
 	{	return 'auth';	}
 
-	public function evaluate_impl()
+	public function evaluate_impl($previous_backrefs)
 	{
 		// Default condition values
 		$defcond = array(
@@ -287,6 +287,60 @@ class AuthenticationCondition extends StupidCondition
 	}
 }
 AuthenticationCondition::register();
+
+//! Implementation of func StupidCondition
+/**
+ * A condition evaluator that will execute a user defined function.\n
+ * This evaluator implements the <b> type = "func"</b> 
+ * 
+ * @par Acceptable condition options
+ * - @b func [@b Mandatory]: A callback to the function (see php official documentation for callbacks)
+ * - @b args [Default = array()]: An array with arguments to pass on function 
+ * - @b backref_as_arg[Default = true]: Pass as function arguments the backrefernces from previous evaluations in the rule.
+ * - @b backref_first[Default = true]: If both @b args and @b backref exists, put backref first 
+ * 		and then @b args, otherwise use @b args firstly and then @b backrefs.
+ * .
+ * 
+ * @par Examples
+ * @code
+ * function is_day(){
+ * 	// Check if current time is morning and return true or false
+ * }
+ * // Adding a rule that checks what part of day is it
+ * Stupid::add_rule("view_forum",
+ *     array('type' => 'func', 'func' => 'is_morning'));
+ * 
+ * @endcode
+ * @author sque
+ */
+class FuncCondition extends StupidCondition
+{
+	public static function type()
+	{	return 'func';	}
+	
+	public function evaluate_impl($previous_backrefs)
+	{
+		// Default condition values
+		$defcond = array(
+			'args' => array(),
+			'backref_as_arg' => true,
+			'backref_first' => true
+		);
+		
+		// Merge default with user supplied parameters
+		$options = array_merge($defcond, $this->options);
+		
+		$args = $options['args'];
+		if ($options['backref_as_arg'])
+			if ($options['backref_first'])
+				$args = array_merge($previous_backrefs, $args);
+			else
+				$args = array_merge($args, $previous_backrefs);
+		
+		return call_user_func_array($options['func'], $args);
+	}
+};
+FuncCondition::register();
 
 //! A simple expert system processor
 /**
@@ -425,7 +479,7 @@ class Stupid
 		{	$cond_res = true;
 			$action_args = array();
 			foreach($rule['conditions'] as $condition)
-				if (! ($cond_res = $condition->evaluate()))
+				if (! ($cond_res = $condition->evaluate($action_args)))
 					break;
 				else
 					$action_args = array_merge($action_args, $condition->action_arguments());
