@@ -1,6 +1,62 @@
 <?php
 	require_once('mysqli.lib.php');
 
+//! Collection of records
+class DBRecordCollection implements ArrayAccess, Countable, Iterator
+{
+	private $records =  array();
+	private $model = '';
+	
+	public function __construct($records, $model)
+	{
+		$this->records = $records;
+		$this->model = $model;
+	}
+	
+	/* ArrayAccess Methods */
+	public function offsetExists ($offset )
+	{	return isset($this->records[$offset]);	}
+	public function offsetGet($offset)
+	{	if (isset($this->records[$offset]))
+		{	if ($this->records[$offset] !== FALSE)
+				return $this->records[$offset];
+			return $this->records[$offset] = DBRecord::open($offset, $this->model);
+		}			
+	}
+	public function offsetSet ($offset , $value){}
+	public function offsetUnset ($offset ){}
+	
+	/*  Iterator Methods */
+	public function current()
+	{	return $this->offsetGet($this->key());	}
+	public function key()
+	{	return key($this->records);	}
+	public function next()
+	{	return next($this->records);	}
+	public function rewind()
+	{	reset($this->records);	}
+	public function valid()
+	{	return ($this->key() !== NULL);	}
+	
+	/* Countable Methods */
+	public function count()
+	{	return count($this->records);	}
+	
+	//! Take a subset of collection
+	public function slice($offset, $length = NULL)
+	{	
+		return new DBRecordCollection(array_slice($this->records, $offset, $length, true), $this->model);
+	}
+
+	//! Get a row of this collection based on its index in this collection
+	public function row($num_offset)
+	{	if ($num_offset >= $this->count())
+			return FALSE;
+		$keys = array_keys($this->records);
+		return $this[$keys[$num_offset]];
+	}
+}
+
 //! DBRecord is the primative to ORM
 /**
  * @todo Multi PKs Internaly PKs are saved as an array, however
@@ -56,8 +112,8 @@
  * 		this option will be set to false.
  * 	- @b sqlfield: [Default = "array entry key"] If you want to create a field that has a different name
  * 		than the database field, you must set this value to the name of the SQL's field.
- * 	- @b type: [Default = "general"] Supported types are "general", "datetime", "serialized"
- * 		- "general" type will cast data as string.
+ * 	- @b type: [Default = "generic"] Supported types are "generic", "datetime", "serialized"
+ * 		- "generic" type will cast data as string.
  * 		- "datetime" will accept only php DateTime objects and returns php DateTime objects.
  * 		- "serialized" will serialize provided data and save them to database and will unserialize them 
  * 			from database trasparently. It will not check for proper SQL field size.
@@ -94,9 +150,6 @@
  */
 class DBRecord
 {
-	//! Parameter of DBRecord to use session to cache classes
-	public static $session_cache = false;
-	
 	//! Parameter for controlling cacher
 	public static $cacher = NULL;
 	
@@ -111,19 +164,19 @@ class DBRecord
 	
 	//! Class description
 	protected $class_desc = false;
-	
+
 	//! Final constructor of dbrecord 
 	/**
-	 * Constructor is declared final and procted to prohibit direct instantiantion
+	 * Constructor is declared final and protected to prohibit direct instantiantion
 	 * of this class.
 	 * @remarks
-	 * You DON'T new to create objects manually instead use create()
+	 * You DON'T use @b new to create objects manually instead use create()
 	 * and open() functions that will create objects for you.
 	 */
 	final protected function __construct($class_name)
 	{
 		// Save class description
-		$this->class_desc = & self::$classes[$class_name];
+		$this->class_desc = & self::$classes[strtolower($class_name)];
 		
 		// Populate data
 		foreach($this->class_desc['fields'] as $field_name => $field)
@@ -131,23 +184,42 @@ class DBRecord
 			$this->data_cast_cache[$field_name] = NULL;
 		}
 	}
+	
+	//! Open a connection of relation ships
+	private function open_relationship($field, $key)
+	{	if (($res_array = dbconn::execute_fetch_all($this->class_desc['sql']['rels'][$field['foreign_model']]['stmt'], 
+			's', $key)) === FALSE)
+			return false;
+
+		$records = array();
+		foreach($res_array as $rec)
+			$records[$rec[0]] = FALSE;
+		return new DBRecordCollection($records, $field['foreign_model']);
+	}
 
 	//! Convert field from data to user format
-	private static function cast_data_to_sql($type, $obj)
-	{	if ($type == 'serialized')
-			return serialize($obj);
-		if ($type == 'datetime')
-			return $obj->format(DATE_ISO8601);
-		return $obj;
+	private static function cast_todb($field, $what)
+	{	if ($field['type'] == 'serialized')
+			return serialize($what);
+		else if ($field['type'] == 'datetime')
+			return $what->format(DATE_ISO8601);
+		else if ($field['type'] == 'relationship')
+			return $description;
+		return $what;
 	}
 
 	//! Convert field from user format to sql format
-	private static function cast_sql_to_data($type, $sql, & $obj_cache = NULL)
-	{	if ($type == 'serialized')
-			return ($obj_cache === NULL)?($obj_cache = unserialize($sql)):$obj_cache;
-		if ($type == 'datetime')
-			return ($obj_cache === NULL)?($obj_cache = new DateTime( $sql)):$obj_cache;	
-		return $sql;
+	private static function cast_fromdb($field, $what, & $obj_cache = NULL, $pthis = NULL)
+	{	if ($field['type'] == 'serialized')
+			return ($obj_cache === NULL)?($obj_cache = unserialize($what)):$obj_cache;
+		else if ($field['type'] == 'datetime')
+			return ($obj_cache === NULL)?($obj_cache = new DateTime( $what)):$obj_cache;
+		else if ($field['type'] == 'foreign')
+			return call_user_func(array($field['foreign_model'], 'open'), 
+					1, $field['foreign_model']);	//! Zong with custom late static binding we have to force class
+		else if ($field['type'] == 'relationship')
+			return $pthis->open_relationship($field, $what);		
+		return $what;
 	}
 
 	//! Craft sql queries based on a class description and save them in $class_desc
@@ -195,95 +267,100 @@ class DBRecord
 		$class_desc['sql']['all']['query'] = 'SELECT ' . 
 			$class_desc['fields'][$class_desc['meta']['pk'][0]]['sqlfield'] . ' FROM ' . $class_desc['table'];
 		$class_desc['sql']['all']['stmt'] = 'dbrecord-' . strtolower($class_desc['class']) . '-all';
+		
+		// RELATIONSHIPS
+		foreach($class_desc['fields'] as $field_name => $field)
+		{	if (($field['type'] != 'relationship') || ($field['has_many'] != true))
+				continue;
+
+			$class_desc['sql']['rels'][$field_name]['query'] = 'SELECT ' .
+				' id ' . ' FROM ' . $field['foreign_model'] . ' WHERE ' . $field['foreign_field'] . ' = ?';
+			$class_desc['sql']['rels'][$field_name]['stmt'] = 'dbrecord-' . 
+				strtolower($class_desc['class']) . '-rel-' . strtolower($field_name);
+		}
 	}
-	
-	
+
 	//! Initialize static parameters of the dbrecord specialization
 	private static function init_static($called_class)
-	{
-		// Check if this is cached class
-		if (!isset(self::$classes[$called_class]))
+	{	// Check if this is cached class
+		if (!isset(self::$classes[strtolower($called_class)]))
 		{	
-			// Keep cache in session
-			if ((!self::$session_cache) || !isset($_SESSION['dbrecord-cache-2'][$called_class]))
-			{	// Initialize values
-				$child_fields = get_static_var($called_class, 'fields');
-				$child_table = get_static_var($called_class, 'table');
-				$child_meta['pk'] = array();
-				$child_meta['ai'] = array();
-								
-				// Check if fields are defined
-				if (!is_array($child_fields))
-				{	error_log('DBRecord::$fields is not defined in derived class');
-					return false;
-				}
-		
-				// Check if table is defined
-				if (!is_string($child_table))
-				{	error_log('DBRecord::$table is not defined in derived class');
-					return false;
-				}
-				
-				// Validate and copy all fields
-				$filtered_fields = array();
-				foreach($child_fields as $field_name => $field)
-				{	// Check if it was given as number entry or associative entry
-					if (is_numeric($field_name) && is_string($field))
-					{	$field_name = $field; 
-						$field = array();
-					}
-					
-					// Setup default values of fields
-					$default_field_values = array(
-						'sqlfield' => $field_name,	
-						'type' => 'general',
-						'pk' => false,
-						'ai' => false,
-					);
-					$filtered_field = array_merge($default_field_values, $field);
-					
-					// Find primary key(s)
-					if ($filtered_field['pk'])
-					{
-						$child_meta['pk'][] = $field_name;
-						if ($filtered_field['ai'])
-							$child_meta['ai'][] = $field_name;
-					}
-					else if ($filtered_field['ai'])
-						$filtered_field['ai'] = false;
-						
-					$filtered_fields[$field_name] = $filtered_field;
-				}
-				
-				// Add extra meta data
-				$child_meta['total_fields'] = count($filtered_fields);
-				
-				// Save class characteristics
-				self::$classes[$called_class] = array(
-					'fields' => $filtered_fields, 
-					'table' => $child_table,
-					'meta' => $child_meta,
-					'class' => $called_class
-				);
-				$class_desc = & self::$classes[$called_class];
-				 
-				// Create sql-queries
-				self::craft_sql($class_desc);
+			// Initialize values
+			$child_fields = get_static_var($called_class, 'fields');
+			$child_table = get_static_var($called_class, 'table');
+			$child_meta['pk'] = array();
+			$child_meta['ai'] = array();
+							
+			// Check if fields are defined
+			if (!is_array($child_fields))
+			{	error_log('DBRecord::$fields is not defined in derived class');
+				return false;
+			}
 	
-				$_SESSION['dbrecord-cache-2'][$called_class] = self::$classes[$called_class];
+			// Check if table is defined
+			if (!is_string($child_table))
+			{	error_log('DBRecord::$table is not defined in derived class');
+				return false;
 			}
-			else
-			{	self::$classes[$called_class] = $_SESSION['db-record-cache-2'][$called_class];
-				$class_desc = & self::$classes[$called_class];
+			
+			// Validate and copy all fields
+			$filtered_fields = array();
+			foreach($child_fields as $field_name => $field)
+			{	// Check if it was given as number entry or associative entry
+				if (is_numeric($field_name) && is_string($field))
+				{	$field_name = $field; 
+					$field = array();
+				}
+				
+				// Setup default values of fields
+				$default_field_options = array(
+					'sqlfield' => $field_name,	
+					'type' => 'generic',
+					'pk' => false,
+					'ai' => false,
+				);
+				$filtered_field = array_merge($default_field_options, $field);
+				
+				// Find primary key(s)
+				if ($filtered_field['pk'])
+				{
+					$child_meta['pk'][] = $field_name;
+					if ($filtered_field['ai'])
+						$child_meta['ai'][] = $field_name;
+				}
+				else if ($filtered_field['ai'])
+					$filtered_field['ai'] = false;
+					
+				$filtered_fields[$field_name] = $filtered_field;
 			}
+			
+			// Add extra meta data
+			$child_meta['total_fields'] = count($filtered_fields);
+			
+			// Save class characteristics
+			self::$classes[strtolower($called_class)] = array(
+				'fields' => $filtered_fields, 
+				'table' => $child_table,
+				'meta' => $child_meta,
+				'class' => $called_class
+			);
+			$class_desc = & self::$classes[strtolower($called_class)];			
+			 
+			// Create sql-queries
+			self::craft_sql($class_desc);
 
 			// Prepare sql statements
 			foreach($class_desc['sql'] as $entry_name => $entry)
-				dbconn::prepare($entry['stmt'], $entry['query']);
+				if ($entry_name == 'rels')
+					foreach($entry as $rel)
+						dbconn::prepare($rel['stmt'], $rel['query']);
+				else
+					dbconn::prepare($entry['stmt'], $entry['query']);
 		}
-		return self::$classes[$called_class];
+		return self::$classes[strtolower($called_class)];
 	}
 	
+
 	//! Create a new record
 	/**
 	 * 
@@ -343,7 +420,7 @@ class DBRecord
 		
 		// Convert user data to sql
 		foreach($field_values as $name => $value)
-			$field_values[$name] = self::cast_data_to_sql($class_desc['fields'][$name]['type'], $value);
+			$field_values[$name] = self::cast_todb($class_desc['fields'][$name], $value);
 		
 
 		// Execute query
@@ -448,7 +525,7 @@ class DBRecord
 	 * 	"Late static binding" on PHP version earlier than PHP5.3
 	 * @return 
 	 * 	- @b false If any error occurs
-	 * 	- An @b array of DBRecords derived class instances for all database records.
+	 * 	- An @b DBRecordCollection for all database records.
 	 * 	.	
 	 * 
 	 * @code
@@ -470,9 +547,9 @@ class DBRecord
 		
 		$recs = array();
 		foreach($res_array as $res)
-			$recs[] = self::open($res[0], $called_class);
+			$recs[$res[0]] = FALSE;
 			
-		return $recs;	
+		return new DBRecordCollection($recs, $called_class);
 	}
 
 	/**
@@ -630,10 +707,12 @@ class DBRecord
 			return NULL;
 		}
 
-		return self::cast_sql_to_data(
-			$this->class_desc['fields'][$name]['type'], 
+		// Check for data
+		return self::cast_fromdb(
+			$this->class_desc['fields'][$name], 
 			$this->data[$name],
-			$this->data_cast_cache[$name]
+			$this->data_cast_cache[$name],
+			$this
 		);
 	}
 	
@@ -671,8 +750,8 @@ class DBRecord
 		}
 			
 		$this->data_cast_cache[$name] = $value;
-		$this->data[$name] = self::cast_data_to_sql(
-			$this->class_desc['fields'][$name]['type'],
+		$this->data[$name] = self::cast_todb(
+			$this->class_desc['fields'][$name],
 			$value
 		);
 		return $value;
@@ -738,7 +817,7 @@ class DBRecord
 			self::$cacher->delete('dbrecord: ' . $this->class_desc['class'] . '-' . $this_pk);
 		return true;
 	}
-	
+	 
 	//! Serialization implementation
 	public function __sleep()
 	{	return array('data');
