@@ -1,4 +1,5 @@
 <?php 
+require_once(dirname(__FILE__) . '/./dbmodel.lib.php');
 require_once(dirname(__FILE__) . '/../functions.lib.php');
 
 //! Execute SQL queries on models
@@ -14,11 +15,11 @@ class DBModelQuery
 	//! Query type
 	protected $query_type = NULL;
 	
-	//! Pointer to model meta data
-	protected $model_meta = NULL;
+	//! Pointer to model
+	protected $model = NULL;
 	
 	//! SELECT retrieve fields
-	protected $select_fields = array();
+	protected $select_fields = NULL;
 	
 	//! UPDATE set fields
 	protected $set_fields = array();
@@ -39,21 +40,43 @@ class DBModelQuery
 	protected $conditions = array();
 	
 	//! Hash populated by the user instructions
-	protected $sql_hash = '';
+	protected $sql_hash = NULL;
 	
 	//! The final sql string
 	protected $sql_export = NULL;
 	
+	//! Data wrapper callback
+	protected $data_wrapper_callback = NULL;
+	
 	//! Use DBRecord::query() factory to create DBModelQuery objects
 	/**
 	 * @see DBRecord::query() on how to create objects of this class.
-	 * @param $model_meta Pass model meta data
+	 * @param $model Pass model object
+	 * @param $data_wrapper_callback A callback to wrap data after execution
 	 */
-	final public function __construct(& $model_meta)
+	final public function __construct($model, $data_wrapper_callback = NULL)
 	{	
 		// Save pointer of the model
-		$this->model_meta = & $model_meta;
-		$this->sql_hash .= 'HASH:' . $model_meta['table'] .':';
+		$this->model = & $model;
+		$this->data_wrapper_callback = $data_wrapper_callback;
+		$this->reset();
+	}
+	
+	//! Reset query so that it can be used again
+	public function & reset()
+	{	// Reset all values to default
+		$this->query_type = NULL;
+		$this->select_fields = array();
+		$this->set_fields = array();
+		$this->insert_fields = array();
+		$this->insert_values = array();
+		$this->limit = NULL;
+		$this->order_by = NULL;
+		$this->conditions = array();
+		$this->sql_hash = 'HASH:' . $this->model->table() .':';
+		$this->sql_export = NULL;
+
+		return $this; 
 	}
 	
 	//! Check if statement is alterablee
@@ -163,9 +186,10 @@ class DBModelQuery
 	private function generate_select_query()
 	{	$query = 'SELECT';
 		foreach($this->select_fields as $field)
-			$fields[] = "`" . $this->model_meta['fields'][$field]['sqlfield'] . "`";
+			$fields[] = "`" . $this->model->field_info($field, 'sqlfield') . "`";
+
 		$query .= ' ' . implode(', ', $fields);
-		$query  .= ' FROM ' . $this->model_meta['table'];
+		$query  .= ' FROM ' . $this->model->table();
 		if (count($this->conditions) > 0)
 		{	$query .= ' WHERE';
 			$first = true;
@@ -193,8 +217,9 @@ class DBModelQuery
 		
 		// Order by
 		if ($this->order_by !== NULL)
-			$query .= ' ORDER BY ' . $this->model_meta['fields'][$this->order_by['field']]['sqlfield'] .
+			$query .= ' ORDER BY ' . $this->model->field_info($this->order_by['field'], 'sqlfield') .
 				' ' . $this->order_by['order'];
+
 		// Limit
 		if ($this->limit !== NULL)
 		{	if ($this->limit['offset'] !== NULL)
@@ -207,14 +232,14 @@ class DBModelQuery
 	
 	//! Generate UPDATE query
 	private function generate_update_query()
-	{	$query = 'UPDATE ' . $this->model_meta['table'] . ' SET';
+	{	$query = 'UPDATE ' . $this->model->table() . ' SET';
 	
 		if (count($this->set_fields) === 0)
 			throw new InvalidArgumentException("Cannot execute update() command without using set()");
 			
 		foreach($this->set_fields as $params)
 		{
-			$set_query = "`" . $this->model_meta['fields'][$params['field']]['sqlfield'] . "` = ";
+			$set_query = "`" . $this->model->field_info($params['field'], 'sqlfield') . "` = ";
 			if ($params['value'] === NULL)
 				$set_query .= '?';
 			else
@@ -249,9 +274,8 @@ class DBModelQuery
 		
 		// Order by
 		if ($this->order_by !== NULL)
-			$query .= ' ORDER BY ' . $this->model_meta['fields'][$this->order_by['field']]['sqlfield'] .
+			$query .= ' ORDER BY ' . $this->model->field_info($this->order_by['field'], 'sqlfield') .
 				' ' . $this->order_by['order'];
-			
 		// Limit
 		if ($this->limit !== NULL)
 			$query .= " LIMIT {$this->limit['length']}";
@@ -260,13 +284,14 @@ class DBModelQuery
 	
 	//! Generate INSERT query
 	private function generate_insert_query()
-	{	$query = 'INSERT INTO ' . $this->model_meta['table'];
+	{	$query = 'INSERT INTO ' . $this->model->table();
 	
 		if (count($this->insert_fields) === 0)
 			throw new InvalidArgumentException("Cannot execute insert() with no fields!");
 			
 		foreach($this->insert_fields as $field)
-			$fields[] = "`" . $this->model_meta['fields'][$field]['sqlfield'] . "`";
+			$fields[] = "`" . $this->model->field_info($field, 'sqlfield') . "`";
+
 		$query .= ' (' . implode(', ', $fields) . ') VALUES';
 		if (count($this->insert_values) === 0)
 			throw new InvalidArgumentException("Cannot insert() with no values, use values() to define them.");
@@ -285,7 +310,7 @@ class DBModelQuery
 	
 	//! Generate DELETE query
 	private function generate_delete_query()
-	{	$query = 'DELETE FROM ' . $this->model_meta['table'];
+	{	$query = 'DELETE FROM ' . $this->model->table();
 	
 		if (count($this->conditions) > 0)
 		{	$query .= ' WHERE';
@@ -314,9 +339,10 @@ class DBModelQuery
 		
 		// Order by
 		if ($this->order_by !== NULL)
-			$query .= ' ORDER BY ' . $this->model_meta['fields'][$this->order_by['field']]['sqlfield'] .
+			$query .= ' ORDER BY ' . 
+				$this->model->field_info($this->order_by['fielld'], 'sqlfield') .
 				' ' . $this->order_by['order'];
-			
+		
 		// Limit
 		if ($this->limit !== NULL)
 			$query .= " LIMIT {$this->limit['length']}";
@@ -333,7 +359,14 @@ class DBModelQuery
 	{	// Check if sql has been already crafted
 		if ($this->sql_export !== NULL)
 			return $this->sql_export;
-			
+		
+		// Check cache
+		$query = $this->model->fetch_cache($this->sql_hash, $succ);
+		if ($succ)
+		{	$this->sql_export = $query;
+			return $this->sql_export;
+		}
+		
 		if ($this->query_type === 'select')
 			$this->sql_export = $this->generate_select_query();
 		else if ($this->query_type === 'update')
@@ -344,8 +377,11 @@ class DBModelQuery
 			$this->sql_export = $this->generate_insert_query();
 		else
 			throw new RuntimeException('Query is not finished to be exported.' .
-				' You have to use at least use one of main commands insert()/update()/delete()/select(). ');
+				' You have to use at least one of the main commands insert()/update()/delete()/select(). ');
 
+		// Save in cache
+		$this->model->push_cache($this->sql_hash, $this->sql_export);
+		
 		return $this->sql_export;
 	}
 	
@@ -365,7 +401,11 @@ class DBModelQuery
 	{	$this->prepare();	
 		$args = func_get_args();
 		$args = array_merge(array($this->sql_hash), $args);
-		return call_user_func_array(array('dbconn','execute_fetch_all'), $args);
+		$data = call_user_func_array(array('dbconn','execute_fetch_all'), $args);
+		
+		if ($this->data_wrapper_callback)
+			$data = call_user_func($this->data_wrapper_callback, $data);
+		return $data;
 	}
 }
 
