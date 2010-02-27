@@ -31,13 +31,13 @@ class DBModel
 	}
 	
 	//! Create a model
-	static public function create($model_name, & $meta_data)
+	static public function create($model_name, $table, $fields)
 	{	
 		// Return error if already existign
 		if (self::exists($model_name))
 			return false;
 			
-		$md = new DBModel($meta_data);
+		$md = new DBModel($model_name, $table, $fields);
 		self::$models[$model_name] = $md;
 		
 		// Save in model cache
@@ -65,9 +65,53 @@ class DBModel
 	private $meta_data = NULL;
 		
 	//! Create a DBModel object
-	final private function __construct(&$meta_data)
+	final private function __construct($model_name, $table, $fields)
 	{
-		$this->meta_data = & $meta_data;
+		$info = array('pk' => array(), 'ai' => array());
+		
+		// Validate and copy all fields
+		$filtered_fields = array();
+		foreach($fields as $field_name => $field)
+		{	// Check if it was given as number entry or associative entry
+			if (is_numeric($field_name) && is_string($field))
+			{	$field_name = $field; 
+				$field = array();
+			}
+			
+			// Setup default values of fields
+			$default_field_options = array(
+				'name' => $field_name,
+				'sqlfield' => $field_name,	
+				'type' => 'generic',
+				'pk' => false,
+				'ai' => false,
+				'default' => NULL,
+				'unique' => false
+			);
+			$filtered_field = array_merge($default_field_options, $field);
+			
+			// Find primary key(s)
+			if ($filtered_field['pk'])
+			{
+				$filtered_field['unique'] = true;
+				$info['pk'][] = $filtered_field;
+				if ($filtered_field['ai'])
+					$info['ai'][] = $filtered_field;
+			}
+			else if ($filtered_field['ai'])
+				$filtered_field['ai'] = false;
+				
+			$filtered_fields[$field_name] = $filtered_field;
+		}
+		
+		// Store data in meta database
+		$this->meta_data = array(
+			'fields' => $filtered_fields, 
+			'table' => $table,		
+			'model' => $model_name,
+			'pk' => $info['pk'],
+			'ai' => $info['ai']
+		);
 		
 		// Add more statistical data
 		$this->meta_data['field_names'] = array_keys($this->meta_data['fields']);
@@ -105,6 +149,19 @@ class DBModel
 		if (!isset($this->meta_data['fields'][$name][$property]))
 			throw InvalidArgumentException("There is no field property with name $property");
 		return $this->meta_data['fields'][$name][$property];
+	}
+	
+	//! Get a field's friendly name based on sqlfield value
+	/**
+	 * 
+	 * @param $sqlfield The name of field as it is defined in sql table.
+	 * @return @b FieldName The name of the field or @b NULL if it was not found
+	 */
+	public function field_name_by_sqlfield($sqlfield)
+	{	foreach($this->meta_data['fields'] as $field)
+			if ($field['sqlfield'] === $sqlfield)
+				return $field['name'];
+		return NULL;
 	}
 	
 	//! Get the primary key of this model

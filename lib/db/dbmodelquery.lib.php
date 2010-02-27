@@ -1,5 +1,6 @@
 <?php 
 require_once(dirname(__FILE__) . '/./dbmodel.lib.php');
+require_once(dirname(__FILE__) . '/./dbmodelquerycache.lib.php');
 require_once(dirname(__FILE__) . '/../functions.lib.php');
 
 //! Execute SQL queries on models
@@ -43,10 +44,16 @@ class DBModelQuery
 	protected $sql_hash = NULL;
 	
 	//! The final sql string
-	protected $sql_export = NULL;
+	protected $sql_query = NULL;
 	
 	//! Data wrapper callback
 	protected $data_wrapper_callback = NULL;
+	
+	//! Query profiling
+	protected $profiling;
+	
+	//! Query cache
+	protected $query_cache;
 	
 	//! Use DBRecord::query() factory to create DBModelQuery objects
 	/**
@@ -59,7 +66,8 @@ class DBModelQuery
 		// Save pointer of the model
 		$this->model = & $model;
 		$this->data_wrapper_callback = $data_wrapper_callback;
-		$this->reset();
+		$this->query_cache = DBModelQueryCache::open($model);
+		$this->reset();		
 	}
 	
 	//! Reset query so that it can be used again
@@ -74,18 +82,18 @@ class DBModelQuery
 		$this->order_by = NULL;
 		$this->conditions = array();
 		$this->sql_hash = 'HASH:' . $this->model->table() .':';
-		$this->sql_export = NULL;
+		$this->sql_query = NULL;
 
 		return $this; 
 	}
 	
-	//! Check if statement is alterablee
+	//! Check if statement is alterable
 	/**
 	 * Alterable means that there can be more options on the query. 
 	 * @return @b TRUE if query is alterable, @b FALSE if the query is closed for changes. 
 	 */
 	public function is_alterable()
-	{	return ($this->sql_export === NULL);	}
+	{	return ($this->sql_query === NULL);	}
 	
 	//! Check if it i alterable otherwise throw exception
 	private function assure_alterable()
@@ -161,6 +169,7 @@ class DBModelQuery
 			'ltype' => NULL,
 			'rvalue' => NULL,
 			'rtype' => NULL,
+			'require_argument' => false,
 		);
 		$this->sql_hash .= ':where:' . $bool_op . ':' . $exp;
 		return $this;
@@ -182,28 +191,42 @@ class DBModelQuery
 		return $this;
 	}
 	
-	//! Generate SELECT query
-	private function generate_select_query()
-	{	$query = 'SELECT';
-		foreach($this->select_fields as $field)
-			$fields[] = "`" . $this->model->field_info($field, 'sqlfield') . "`";
-
-		$query .= ' ' . implode(', ', $fields);
-		$query  .= ' FROM ' . $this->model->table();
+	//! Get the type of query
+	public function type()
+	{	return $this->query_type;	
+	} 
+	
+	//! Get query hash
+	public function hash()
+	{	if ($this->is_alterable())
+			throw new RuntimeException('You cannot get the hash while the query is still alterable');
+		return $this->sql_hash;
+	}
+	
+	//! Analyze WHERE conditions and return where statement
+	private function analyze_where_conditions()
+	{	$query = '';
 		if (count($this->conditions) > 0)
-		{	$query .= ' WHERE';
+		{	$query = ' WHERE';
 			$first = true;
 			foreach($this->conditions as & $cond)
 			{	$matched = 
-					preg_match_all('/^[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*([=<>]+|like|between|in)[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*$/',
-					$cond['expression'], $matches);
+					preg_match_all('/^[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*' .
+						'([=<>]+|like|between|in)' .
+						'[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*$/',
+						$cond['expression'], $matches);
 				
 				if ($matched != 1)
 					throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
 				
 				$cond['op'] = $matches[2][0];
 				$cond['lvalue'] = $matches[1][0];
+				if (($cond['affected_field'] = $this->model->field_name_by_sqlfield($cond['lvalue'])) === NULL)
+					throw new RuntimeException("There is no field with name {$cond['lvalue']} in model {$this->model->name()}");
+					
 				$cond['rvalue'] = $matches[3][0];
+				if (($cond['rvalue'] === '?') || ($cond['lvalue'] === '?'))
+					$cond['require_argument'] = true;
 				
 				if ($first)
 					$first = false;
@@ -214,6 +237,18 @@ class DBModelQuery
 			}
 			unset($cond);
 		}
+		return $query;
+	}
+
+	//! Generate SELECT query
+	private function analyze_select_query()
+	{	$query = 'SELECT';
+		foreach($this->select_fields as $field)
+			$fields[] = "`" . $this->model->field_info($field, 'sqlfield') . "`";
+
+		$query .= ' ' . implode(', ', $fields);
+		$query  .= ' FROM ' . $this->model->table();
+		$query .= $this->analyze_where_conditions();
 		
 		// Order by
 		if ($this->order_by !== NULL)
@@ -231,7 +266,7 @@ class DBModelQuery
 	}
 	
 	//! Generate UPDATE query
-	private function generate_update_query()
+	private function analyze_update_query()
 	{	$query = 'UPDATE ' . $this->model->table() . ' SET';
 	
 		if (count($this->set_fields) === 0)
@@ -247,30 +282,7 @@ class DBModelQuery
 			$fields[] = $set_query;
 		}
 		$query .= ' ' . implode(', ', $fields);
-		if (count($this->conditions) > 0)
-		{	$query .= ' WHERE';
-			$first = true;
-			foreach($this->conditions as & $cond)
-			{	$matched = 
-					preg_match_all('/^[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*([=<>]+|like|between|in)[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*$/',
-					$cond['expression'], $matches);
-				
-				if ($matched != 1)
-					throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
-				
-				$cond['op'] = $matches[2][0];
-				$cond['lvalue'] = $matches[1][0];
-				$cond['rvalue'] = $matches[3][0];
-				
-				if ($first)
-					$first = false;
-				else
-					$query .= ' ' . $cond['bool_op'];
-				$query .= " {$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
-					
-			}
-			unset($cond);
-		}
+		$query .= $this->analyze_where_conditions();
 		
 		// Order by
 		if ($this->order_by !== NULL)
@@ -283,7 +295,7 @@ class DBModelQuery
 	}
 	
 	//! Generate INSERT query
-	private function generate_insert_query()
+	private function analyze_insert_query()
 	{	$query = 'INSERT INTO ' . $this->model->table();
 	
 		if (count($this->insert_fields) === 0)
@@ -308,34 +320,10 @@ class DBModelQuery
 		return $query;
 	}
 	
-	//! Generate DELETE query
-	private function generate_delete_query()
+	//! Analyze DELETE query
+	private function analyze_delete_query()
 	{	$query = 'DELETE FROM ' . $this->model->table();
-	
-		if (count($this->conditions) > 0)
-		{	$query .= ' WHERE';
-			$first = true;
-			foreach($this->conditions as & $cond)
-			{	$matched = 
-					preg_match_all('/^[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*([=<>]+|like|between|in)[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*$/',
-					$cond['expression'], $matches);
-				
-				if ($matched != 1)
-					throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
-				
-				$cond['op'] = $matches[2][0];
-				$cond['lvalue'] = $matches[1][0];
-				$cond['rvalue'] = $matches[3][0];
-				
-				if ($first)
-					$first = false;
-				else
-					$query .= ' ' . $cond['bool_op'];
-				$query .= " {$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
-					
-			}
-			unset($cond);
-		}
+		$query .= $this->analyze_where_conditions();
 		
 		// Order by
 		if ($this->order_by !== NULL)
@@ -357,32 +345,32 @@ class DBModelQuery
 	 */
 	public function sql()
 	{	// Check if sql has been already crafted
-		if ($this->sql_export !== NULL)
-			return $this->sql_export;
+		if ($this->sql_query !== NULL)
+			return $this->sql_query;
 		
-		// Check cache
+		// Check model cache
 		$query = $this->model->fetch_cache($this->sql_hash, $succ);
 		if ($succ)
-		{	$this->sql_export = $query;
-			return $this->sql_export;
+		{	$this->sql_query = $query;
+			return $this->sql_query;
 		}
 		
 		if ($this->query_type === 'select')
-			$this->sql_export = $this->generate_select_query();
+			$this->sql_query = $this->analyze_select_query();
 		else if ($this->query_type === 'update')
-			$this->sql_export = $this->generate_update_query();
+			$this->sql_query = $this->analyze_update_query();
 		else if ($this->query_type === 'delete')
-			$this->sql_export = $this->generate_delete_query();
+			$this->sql_query = $this->analyze_delete_query();
 		else if ($this->query_type === 'insert')
-			$this->sql_export = $this->generate_insert_query();
+			$this->sql_query = $this->analyze_insert_query();
 		else
 			throw new RuntimeException('Query is not finished to be exported.' .
 				' You have to use at least one of the main commands insert()/update()/delete()/select(). ');
 
 		// Save in cache
-		$this->model->push_cache($this->sql_hash, $this->sql_export);
+		$this->model->push_cache($this->sql_hash, $this->sql_query);
 		
-		return $this->sql_export;
+		return $this->sql_query;
 	}
 	
 	//! Force preparation of statement
@@ -398,13 +386,35 @@ class DBModelQuery
 	
 	//! Execute statement and return the results
 	public function execute()
-	{	$this->prepare();	
-		$args = func_get_args();
-		$args = array_merge(array($this->sql_hash), $args);
-		$data = call_user_func_array(array('dbconn','execute_fetch_all'), $args);
+	{	$args = func_get_args();
+
+		// Check cache if select
+		if ($this->query_type === 'select')
+		{
+			$data = $this->query_cache->fetch_results($this, $args, $succ);
+			if ($succ)
+			{	if ($this->data_wrapper_callback)
+					$data = call_user_func($this->data_wrapper_callback, $data);
+				return $data; 
+			}
+		}
 		
+		// Execute query
+		$this->prepare();
+		$args = array_merge(array($this->sql_hash), $args);
+		if ($this->query_type === 'select')
+			$data = call_user_func_array(array('dbconn','execute_fetch_all'), $args);
+		else
+			$data = call_user_func_array(array('dbconn','execute'), $args);
+		
+		// User wrapper
 		if ($this->data_wrapper_callback)
 			$data = call_user_func($this->data_wrapper_callback, $data);
+			
+		// Cache it
+		$this->query_cache->process_query($this, $args, $data);
+		
+		// Return data
 		return $data;
 	}
 }
