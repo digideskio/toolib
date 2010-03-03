@@ -256,9 +256,7 @@ class DBRecord
 		// If we have all the attributes of model, directly create object,
 		// otherwise open object from database.
 		if (count($values) === count($model->fields()))
-		{	error_log('Create no need to query, we have all data!');
-
-			// Translate data to sql based key
+		{	// Translate data to sql based key
 			$sql_fields = array();
 			foreach($values as $field_name => $value)
 				$sql_fields[$model->field_info($field_name, 'sqlfield')] = $value;			

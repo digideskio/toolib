@@ -50,7 +50,13 @@ class DBModelQueryCache
 	{
 		$it_tracker = self::$cache_engine->get($this->invalidation_tracker_key(), $succ);
 		if (!$succ)
-			$it_tracker = array('update', 'insert', 'delete');
+			$it_tracker = array(
+				'update',
+				'insert',
+				'delete',
+				'stats' => 
+					array('unsets' => 0)
+			);
 		
 		return $it_tracker;
 	}
@@ -72,7 +78,7 @@ class DBModelQueryCache
 		);
 		self::$cache_engine->set($cache_key.'[RESULTS]', $results);
 		self::$cache_engine->set($cache_key.'[INVALIDATE_ON]', $invalidate_on);
-		
+				
 		// Save invalidators
 		$itracker = $this->get_invalidation_tracker();
 		$itracker['update']['*'][] = $cache_key;
@@ -81,11 +87,47 @@ class DBModelQueryCache
 		$this->set_invalidation_tracker($itracker);
 	}
 	
+	//! Remove a query from the cache
+	private function invalidate_query(& $itracker, $query_key)
+	{	// Get query invalidation_on ptrs
+		$inv_ptrs = self::$cache_engine->get($query_key.'[INVALIDATE_ON]', $succ);
+		if (!$succ) $inv_ptrs = array();
+		
+		// Remove other pointers before removing this query
+		foreach($inv_ptrs as $ptr)
+		{
+			$key = array_search($query_key, $itracker[$ptr[0]][$ptr[1]], true);
+			unset($itracker[$ptr[0]][$ptr[1]][$key]);
+			
+			// Increase unset pointer
+			$itracker['stats']['unsets'] ++;
+		}
+		
+		// Remove query
+		self::$cache_engine->delete($query_key.'[RESULTS]', $succ);
+		self::$cache_engine->delete($query_key.'[INVALIDATE_ON]', $succ);		
+	}
+	
 	//! Process an invalidator query
 	private function process_invalidators_query($query, & $args)
 	{	$itracker = $this->get_invalidation_tracker();
-		foreach($itracker[$query->type()]['*'] as $idx => & $query)
-			$query;
+
+		// Search itrackers		
+		foreach($itracker[$query->type()]['*'] as $idx => $cache_key)
+		{	if ($cache_key != NULL)
+				$this->invalidate_query($itracker, $cache_key);	
+		}
+		
+		// The key to cleanup unsets
+		if ($itracker['stats']['unsets'] > 100)
+		{	foreach(array('update', 'delete', 'insert') as  $action)
+				foreach($itracker[$action] as $update_rule => $ptrs )
+				$itracker[$action][$update_rule] = array_values($itracker[$action][$update_rule]);
+			$itracker['stats']['unsets'] = 0;
+		}
+		
+		// save tracker
+		$this->set_invalidation_tracker($itracker);
 	}
 	
 	//! Process a query
