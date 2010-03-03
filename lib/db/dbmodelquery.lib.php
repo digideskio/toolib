@@ -135,16 +135,21 @@ class DBModelQuery
 		return $this;
 	}
 	
-	//! Define values of insert command
-	public function & values()
+	//! Define values of insert command as an array
+	public function & values_array($values)
 	{	$this->assure_alterable();
-		$args = func_get_args();
-		if (count($args) != count($this->insert_fields))
-			throw new InvalidArgumentException('The quantity of values must exactly ' .
+		if (count($values) != count($this->insert_fields))
+			throw new InvalidArgumentException('The quantity of values, must be exactly ' .
 				'the same with the fields defined with insert()');
-		$this->insert_values[] = $args;
-		$this->sql_hash .= ':' . implode(':', $args);
+		$this->insert_values[] = $values;
+		$this->sql_hash .= ':' . implode(':', $values);
 		return $this;
+	}
+	
+	//! Define values of insert command as arguments
+	public function & values()
+	{	$args = func_get_args();
+		return $this->values_array($args);
 	}
 	
 	//! Set a field value
@@ -198,10 +203,7 @@ class DBModelQuery
 	
 	//! Get query hash
 	public function hash()
-	{	if ($this->is_alterable())
-			throw new RuntimeException('You cannot get the hash while the query is still alterable');
-		return $this->sql_hash;
-	}
+	{	return $this->sql_hash;		}
 	
 	//! Analyze WHERE conditions and return where statement
 	private function analyze_where_conditions()
@@ -220,9 +222,9 @@ class DBModelQuery
 					throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
 				
 				$cond['op'] = $matches[2][0];
-				$cond['lvalue'] = $matches[1][0];
-				if (($cond['affected_field'] = $this->model->field_name_by_sqlfield($cond['lvalue'])) === NULL)
-					throw new RuntimeException("There is no field with name {$cond['lvalue']} in model {$this->model->name()}");
+				$cond['lvalue'] = $this->model->field_info($matches[1][0], 'sqlfield');
+				if ($cond['lvalue'] === NULL)
+					throw new RuntimeException("There is no field with name {$matches[1][0]} in model {$this->model->name()}");
 					
 				$cond['rvalue'] = $matches[3][0];
 				if (($cond['rvalue'] === '?') || ($cond['lvalue'] === '?'))
@@ -232,7 +234,7 @@ class DBModelQuery
 					$first = false;
 				else
 					$query .= ' ' . $cond['bool_op'];
-				$query .= " {$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
+				$query .= " `{$cond['lvalue']}` {$cond['op']} {$cond['rvalue']}";
 					
 			}
 			unset($cond);
@@ -386,33 +388,40 @@ class DBModelQuery
 	
 	//! Execute statement and return the results
 	public function execute()
-	{	$args = func_get_args();
-
+	{	$func_args = func_get_args();
+		$this->prepare();
+		
 		// Check cache if select
 		if ($this->query_type === 'select')
 		{
-			$data = $this->query_cache->fetch_results($this, $args, $succ);
+			$data = $this->query_cache->fetch_results($this, $func_args, $succ);
 			if ($succ)
-			{	if ($this->data_wrapper_callback)
-					$data = call_user_func($this->data_wrapper_callback, $data);
-				return $data; 
+			{	if ($this->data_wrapper_callback !== NULL)
+					if (!is_object($data))
+					{	
+						error_log('ERROR! Asked for object but array returned');
+						error_log($this->sql_hash . print_r($func_args, true));
+						trigger_error(print_r($data, true));
+					}
+				return $data;
 			}
 		}
 		
-		// Execute query
-		$this->prepare();
-		$args = array_merge(array($this->sql_hash), $args);
+		// Execute query		
+		$excargs = array_merge(array($this->sql_hash), $func_args);
 		if ($this->query_type === 'select')
-			$data = call_user_func_array(array('dbconn','execute_fetch_all'), $args);
+			$data = call_user_func_array(array('dbconn','execute_fetch_all'), $excargs);
 		else
-			$data = call_user_func_array(array('dbconn','execute'), $args);
+			$data = call_user_func_array(array('dbconn','execute'), $excargs);
 		
 		// User wrapper
-		if ($this->data_wrapper_callback)
-			$data = call_user_func($this->data_wrapper_callback, $data);
-			
+		if ($this->data_wrapper_callback !== NULL)
+		{
+			$data = call_user_func($this->data_wrapper_callback, $data, $this->model);
+		}
+		
 		// Cache it
-		$this->query_cache->process_query($this, $args, $data);
+		$this->query_cache->process_query($this, $func_args, $data);
 		
 		// Return data
 		return $data;

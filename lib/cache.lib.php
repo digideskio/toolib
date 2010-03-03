@@ -26,7 +26,7 @@ abstract class Cache
 	 * - @b TRUE if value was stored succesfully.
 	 * - @b FALSE on any kind of error.
 	 */
-	abstract public function set($key, $value, $ttl = 0);
+	abstract public function set($key, & $value, $ttl = 0);
 	
 	//! Set multiple entries
 	/**
@@ -41,7 +41,7 @@ abstract class Cache
 	 * - @b TRUE if all values were stored succesfully.
 	 * - @b FALSE on any kind of error.
 	 */
-	abstract public function set_multi($values, $ttl = 0);
+	abstract public function set_multi(& $values, $ttl = 0);
 	
 	//! Add new entry in cache database
 	/**
@@ -54,7 +54,7 @@ abstract class Cache
 	 * - @b TRUE if value was stored succesfully.
 	 * - @b FALSE on any kind of error.
 	 */
-	abstract public function add($key, $value, $ttl = 0);
+	abstract public function add($key, & $value, $ttl = 0);
 	
 	//! Read an entry from cache database
 	/**
@@ -121,14 +121,14 @@ class Cache_Apc extends Cache
 	public function __construct($apc_key_prefix = '')
 	{	$this->apc_key_prefix = $apc_key_prefix; }
 	
-	public function add($key, $value, $ttl = 0)
-	{	apc_add($this->apc_key_prefix . $key, $value, $ttl);	}
+	public function add($key, & $value, $ttl = 0)
+	{	return apc_add($this->apc_key_prefix . $key, $value, $ttl);	}
 	
 
-	public function set($key, $value, $ttl = 0)
-	{	apc_store($this->apc_key_prefix . $key, $value, $ttl);	}
+	public function set($key, & $value, $ttl = 0)
+	{	return apc_store($this->apc_key_prefix . $key, $value, $ttl);	}
 
-	public function set_multi($values, $ttl = 0)
+	public function set_multi(& $values, $ttl = 0)
 	{	foreach($values as $key => $value)
 			$this->set($key, $value, $ttl);
 	}
@@ -167,23 +167,20 @@ class Cache_Memcached extends Cache
 			throw new RuntimeException("Cannot connect to memcached server $host:$port");	
 	}
 	
-	public function add($key, $value, $ttl = 0)
-	{	$this->memc->add($key, $value, $ttl);	}
+	public function add($key, & $value, $ttl = 0)
+	{	return $this->memc->add($key, $value, $ttl);	}
 	
 
-	public function set($key, $value, $ttl = 0)
-	{	$this->memc->set($key, $value, $ttl);	}
+	public function set($key, & $value, $ttl = 0)
+	{	return $this->memc->set($key, $value, $ttl);	}
 	
-	public function set_multi($values, $ttl = 0)
-	{	$this->memc->setMulti($values, $ttl);	}
+	public function set_multi(& $values, $ttl = 0)
+	{	return $this->memc->setMulti($values, $ttl);	}
 	
 	public function get($key, & $succeded)
 	{	
-		if (($obj = $this->memc->get($key)) !== FALSE)
-		{	$succeded = TRUE;
-			return $obj;
-		}
-		else if ($this->memc->getResultCode() == Memcached::RES_SUCCESS)
+		if ((($obj = $this->memc->get($key)) !== FALSE) ||
+				($this->memc->getResultCode() == Memcached::RES_SUCCESS))
 		{	$succeded = TRUE;
 			return $obj;
 		}
@@ -196,7 +193,7 @@ class Cache_Memcached extends Cache
 	{	return $this->memc->getMulti($keys);	}
 	
 	public function delete($key)
-	{	$this->memc->delete($key);	}
+	{	return $this->memc->delete($key);	}
 	
 	public function delete_all()
 	{	return $this->memc->flush();	}
@@ -225,7 +222,7 @@ class Cache_File extends Cache
 			throw new Exception("Directory {$this->directory} is not writable by Cache_File");		
 	}
 	
-	public function set($key, $value, $ttl = 0)
+	public function set($key, & $value, $ttl = 0)
 	{	if (($fh = fopen($this->filename_by_key($key),'w+')) === false)
 			return false; 
 		
@@ -244,12 +241,12 @@ class Cache_File extends Cache
 		return true;
 	}
 	
-	public function set_multi($values, $ttl = 0)
+	public function set_multi(& $values, $ttl = 0)
 	{	foreach($values as $key => $value)
 			$this->set($key, $value, $ttl);
 	}
 	
-	public function add($key, $value, $ttl = 0)
+	public function add($key, & $value, $ttl = 0)
 	{	if (file_exists($this->filename_by_key($key)))
 			return false;
 		return $this->get($key);
@@ -350,17 +347,17 @@ class Cache_Sqlite extends Cache
 	public function __destruct()
 	{	sqlite_close($this->dbhandle);	}
 	
-	public function set($key, $value, $ttl = 0)
+	public function set($key, &$value, $ttl = 0)
 	{	$this->delete($key);
 		return $this->add($key, $value, $ttl);		
 	}
 	
-	public function set_multi($values, $ttl = 0)
+	public function set_multi(&$values, $ttl = 0)
 	{	foreach($values as $key => $value)
 			$this->set($key, $value, $ttl);
 	}
 	
-	public function add($key, $value, $ttl = 0)
+	public function add($key, &$value, $ttl = 0)
 	{ 	$res = sqlite_query($this->dbhandle,
 			"INSERT INTO cache_sqlite (key, value, ttl) VALUES( '" .
 				sqlite_escape_string($key) . "', '" .

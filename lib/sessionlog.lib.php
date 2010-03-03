@@ -34,8 +34,8 @@ class SessionLog extends IntraSessionSingleton
         $this->cur_session_id = false;
         
         // Observe events on the Waas object
-        waas::events()->observe_event('post-login', array('SessionLog', 'create'));
-        waas::events()->observe_event('post-logout', array('SessionLog', 'expire'));
+        waas::events()->observe('post-login', array('SessionLog', 'create'));
+        waas::events()->observe('post-logout', array('SessionLog', 'expire'));
     }
     
     //! Get the current instance of the object

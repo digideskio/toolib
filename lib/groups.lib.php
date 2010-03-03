@@ -1,5 +1,5 @@
 <?php
-require_once('dbrecord.lib.php');
+require_once('db/dbrecord.lib.php');
 
 dbconn::prepare('groups-hasuser', 'SELECT * FROM group_members WHERE groupname=? AND username = ?');
 dbconn::prepare('groups-members', 'SELECT username FROM group_members WHERE groupname = ?');

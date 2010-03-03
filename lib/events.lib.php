@@ -29,9 +29,9 @@
         public function random_mood()
         {
             if (my_random())
-                $this->events->raise_event('hungry', $this);
+                $this->events->notify('hungry', $this);
             else
-                $this->events->raise_event('bored', $this);
+                $this->events->notify('bored', $this);
         }
     }
     
@@ -51,8 +51,8 @@
     
     Now that we have all our actors we need to declare who wants to be informed for.
     @code
-    $TheirCat->events->observe_event('hungry', array($Bob, 'feed_pet'));
-    $TheirCat->events->observe_event('bored', array($Alice, 'entertain_pet'));
+    $TheirCat->events->observe('hungry', array($Bob, 'feed_pet'));
+    $TheirCat->events->observe('bored', array($Alice, 'entertain_pet'));
     @endcode
     
     When ever $TheirCat->random_mood() the appropriate callback of Bob or Alice will be called
@@ -99,7 +99,7 @@ class EventDispatcher
             Check http://www.php.net/manual/en/language.pseudo-types.php#language.types.callback
             for more information on how to format callback type in PHP.
     */
-    public function observe_event($event, $callback)
+    public function observe($event, $callback)
     {   if (! $this->event_exists($event))
             return false;
             
@@ -111,17 +111,17 @@ class EventDispatcher
         return true;
     }
 
-    //! Observe all events of this dispatcher
+    //! Observe any events of this dispatcher
     /** 
-        This is an alias for observe_event("*", $callback);
+        This is an alias for observe("*", $callback);
     */
-    public function observe_all($callback)
+    public function observe_any($callback)
     {
-        return self::observe_event("*", $callback);
+        return self::observe("*", $callback);
     }
 
     //! Stop observing an event
-    public function stop_observing_event($event, $previous_callback)
+    public function stop_observing($event, $previous_callback)
     {    if (! $this->event_exists($event))
             return false;
             
@@ -137,10 +137,10 @@ class EventDispatcher
     
     //! Stop observing any event
     /** 
-        This is an alias for stop_observing_event('*', $previous_callback)
+        This is an alias for stop_observing('*', $previous_callback)
     */
-    public function stop_observing_all($previous_callback)
-    {    return self::stop_observing_event('*', $previous_callback);    }
+    public function stop_observing_any($previous_callback)
+    {    return self::stop_observing('*', $previous_callback);    }
         
     //! Triger a declared event and inform all observers for this
     public function notify($event, $args = NULL)

@@ -239,6 +239,7 @@ class Benchmark
 			return;
 			
 		// Calculate time delta and memory delta
+		$previous_mem = 0;
 		foreach($passes as & $pass)
 		{	$pass['time_prog'] =  $pass['time_real'] - $start_time;
 			$pass['time_delta'] =  $pass['time_real'] - $previous_time;

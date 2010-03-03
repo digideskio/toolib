@@ -17,7 +17,7 @@ class DBModel
 			
 		// If model caching is disabled, quit
 		if (self::$model_cache === NULL)
-			return false;
+			return NULL;
 		
 		// Check cache
 		$md = self::$model_cache->get('model-' . $model_name, $succ);
@@ -27,7 +27,7 @@ class DBModel
 		}
 		
 		// Otherwise return false
-		return false;
+		return NULL;
 	}
 	
 	//! Create a model
@@ -94,9 +94,9 @@ class DBModel
 			if ($filtered_field['pk'])
 			{
 				$filtered_field['unique'] = true;
-				$info['pk'][] = $filtered_field;
+				$info['pk'][$filtered_field['name']] = $filtered_field;
 				if ($filtered_field['ai'])
-					$info['ai'][] = $filtered_field;
+					$info['ai'][$filtered_field['name']] = $filtered_field;
 			}
 			else if ($filtered_field['ai'])
 				$filtered_field['ai'] = false;
@@ -133,6 +133,24 @@ class DBModel
 			return $this->meta_data['fields'];
 	}
 	
+	//! Get the primary key fields
+	public function pk_fields($fields_info = false)
+	{	if ($fields_info === false)
+			return array_keys($this->meta_data['pk']);
+		return $this->meta_data['pk'];
+	}
+	
+	//! Get the autoincrement fields
+	public function ai_fields($fields_info = false)
+	{	if ($fields_info === false)
+			return array_keys($this->meta_data['ai']);
+		return $this->meta_data['ai'];
+	}
+	
+	//! Check if there is a field
+	public function has_field($name)
+	{	return isset($this->meta_data['fields'][$name]);	}
+	
 	//! Query fields properties
 	/**
 	 * Ask for a propertiy of a field or all of them.
@@ -153,7 +171,6 @@ class DBModel
 	
 	//! Get a field's friendly name based on sqlfield value
 	/**
-	 * 
 	 * @param $sqlfield The name of field as it is defined in sql table.
 	 * @return @b FieldName The name of the field or @b NULL if it was not found
 	 */
@@ -164,21 +181,9 @@ class DBModel
 		return NULL;
 	}
 	
-	//! Get the primary key of this model
-	public function primary_key($index = NULL)
-	{
-		return $this->meta_data['pk'];
-	}
-	
-	//! Get the autoincrement fields
-	public function autoincrement_fields($index = NULL)
-	{
-		return $this->meta_data['ai'];
-	}
-	
 	//! Cast data to user format
 	public function user_field_data($field_name, $db_data)
-	{	if (($field = $this->field($field_name)) === NULL)
+	{	if (($field = $this->field_info($field_name)) === NULL)
 			throw new InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
 	
 		if ($field['type'] == 'serialized')
@@ -191,7 +196,7 @@ class DBModel
 	//! Cast data to db format
 	public function db_field_data($field_name, $user_data)
 	{
-		if (($field = $this->field($field_name)) === NULL)
+		if (($field = $this->field_info($field_name)) === NULL)
 			throw new InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
 			
 		if ($field['type'] == 'serialized')

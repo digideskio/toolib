@@ -185,12 +185,11 @@ if (!function_exists('get_called_class'))
 {	
 	//! This function has been added at php 5.3
 	/** 
-		Although this hack is working very well, it is slow.
+		Although this hack is working well, it is slow,
+		and there are cases that will not work.
 	*/
 	function get_called_class()
-	{
-		$bt = debug_backtrace();
-//		error_log(print_r($bt, true));
+	{	$bt = debug_backtrace();
 		$lines = file($bt[1]['file']);
 		preg_match('/([a-zA-Z0-9\_]+)::'.$bt[1]['function'].'/',
 		           $lines[$bt[1]['line']-1],
@@ -224,7 +223,7 @@ function get_static_var($class_name, $var_name)
 	if (version_compare(PHP_VERSION, '5.3.0', '>='))
 		error_log('get_static_var() should not be used with PHP 5.3 > as there is native support.!');
 		
-	return eval("return $class_name::\$$var_name;");
+	return eval("return {$class_name}::\${$var_name};");
 }
 
 ?>

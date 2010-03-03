@@ -1,7 +1,7 @@
 <?php
 require_once('singleton.lib.php');
 require_once('events.lib.php');
-require_once('mysqli.lib.php');
+require_once('db/mysqli.lib.php');
 
 // Prepare the needed statements for waas
 dbconn::prepare('user-validate', 'SELECT COUNT(*) FROM users WHERE is_enabled != 0 AND user=? AND password=MD5(?)');
