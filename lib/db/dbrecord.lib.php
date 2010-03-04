@@ -16,23 +16,13 @@ class DBRecordCollection implements ArrayAccess, Countable, Iterator
 	//! Flag if we have records
 	private $records_have_all_data = false;
 	
-	//! Build from sqldata
-	public function & from_sqldata(& $model, & $sql_data)
+	//! Construct from sqldata
+	public function & create_from_sqldata(& $model, & $sql_data)
 	{	$db = new DBRecordCollection($model);
 		$db->records = $sql_data;
 		return $db;
-		$objs =array();
-		$model_name = $model->name();
-				
-		foreach($sql_data as $rec)
-			$objs[] = new $model_name($model, $rec);
-		return $objs; 
 	}
 	
-	public function from_pks(& $model, & $pks)
-	{
-		
-	}
 	//! Construct a DBRecordCollection object
 	final private function __construct(& $model)
 	{
@@ -100,7 +90,7 @@ class DBRecord
 		// Create model constructor
 		if (!isset(self::$model_constr[$model_name]))
 			self::$model_constr[$model_name] = create_function('$sql_data, $model', 
-				"return DBRecordCollection::from_sqldata(\$model, \$sql_data, true);");
+				"return DBRecordCollection::create_from_sqldata(\$model, \$sql_data, true);");
 		
 		// Open model if it exists
 		if (($md = DBModel::open($model_name)) !== NULL)
@@ -214,6 +204,23 @@ class DBRecord
 			->execute();
 	}
 	
+	//! Count records of model
+	static public function count($model_name = NULL)
+	{	if ($model_name === NULL)
+			$model_name = get_called_class();
+
+		// Initialize model
+		$model = & self::init_model($model_name);
+		
+		// Execute query and check return value
+		$res = self::raw_query($model_name)
+			->select(array('count(*)'))
+			->execute();
+		
+		// Return results from database
+		return $res[0][0];
+	}	
+	
 	//! Create a new record in database of this model
 	static public function create($args)
 	{	// Initialize model
@@ -302,6 +309,7 @@ class DBRecord
 		}
 	}
 	
+	//! Save changes in database
 	public function save()
 	{	
 		if(count($this->altered_fields) === 0)

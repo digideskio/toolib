@@ -246,7 +246,12 @@ class DBModelQuery
 	private function analyze_select_query()
 	{	$query = 'SELECT';
 		foreach($this->select_fields as $field)
+		{	if (strcasecmp($field, 'count(*)') === 0)
+			{	$fields[] = 'count(*)';
+				continue;
+			}
 			$fields[] = "`" . $this->model->field_info($field, 'sqlfield') . "`";
+		}
 
 		$query .= ' ' . implode(', ', $fields);
 		$query  .= ' FROM ' . $this->model->table();
