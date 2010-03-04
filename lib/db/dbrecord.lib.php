@@ -144,7 +144,10 @@ class DBRecord
 	 * It will query database table for a record with the supplied primary key. It will
 	 * read the data and return an DBRecord object for this record.
 	 * 
-	 * @param $primary_key The primary key value of the desired record.
+	 * @param $primary_keys It can be a string or associative array
+	 * 	- @b string The value of PK column if the PK is single-column.
+	 *  - @b array The values of all PK columns if the PK is multi-column.
+	 *  .
 	 * @param $called_class This parameter must be @b ALWAYS NULL. It would be better
 	 * 	if you never used it all, as it is a reserved one for internal use to simulate
 	 * 	"Late static binding" on PHP version earlier than PHP5.3
@@ -166,12 +169,28 @@ class DBRecord
 		// Initialize model
 		$model = & self::init_model($model_name);
 		
+		// Check parameters
+		$pk_fields = $model->pk_fields(false);
+
+		// 1 value to array
+		if (!is_array($primary_keys))
+			$primary_keys = array($pk_fields[0] => $primary_keys);
+				
+		// Check for given quantity
+		if (count($pk_fields) != count($primary_keys))
+			return false;
+
 		// Execute query and check return value
 		$q = self::open_query($model_name);
-		foreach($model->pk_fields(false) as $pk)
-			$q->where($pk . ' = ?');
-		if (count($res = $q->execute('s', $primary_keys)) !== 1)
-			return false;	
+		$select_args = array(str_repeat('s', count($pk_fields)));
+		foreach($pk_fields as $pk_name)
+		{	$q->where($pk_name . ' = ?');
+			$select_args[] = $primary_keys[$pk_name];
+		}
+
+		// Check return value
+		if (count($res = call_user_func_array(array($q, 'execute'), $select_args)) !== 1)
+			return false;
 		return $res[0];
 	}
 	
@@ -272,8 +291,9 @@ class DBRecord
 		}
 		
 		// Open data based on primary key.
-		$pks = $model->pk_fields();
-		return DBRecord::open($values[$pks[0]], $model_name);
+		foreach($model->pk_fields() as $pk_name)
+			$pk_values[$pk_name] = $values[$pk_name];
+		return DBRecord::open($pk_values, $model_name);
 	}
 	
 	//! Data values of this instance
