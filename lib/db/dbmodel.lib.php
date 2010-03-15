@@ -31,13 +31,13 @@ class DBModel
 	}
 	
 	//! Create a model
-	static public function create($model_name, $table, $fields)
+	static public function create($model_name, $table, $fields, $relationships)
 	{	
 		// Return error if already existign
 		if (self::exists($model_name))
 			return false;
 			
-		$md = new DBModel($model_name, $table, $fields);
+		$md = new DBModel($model_name, $table, $fields, $relationships);
 		self::$models[$model_name] = $md;
 		
 		// Save in model cache
@@ -65,7 +65,7 @@ class DBModel
 	private $meta_data = NULL;
 		
 	//! Create a DBModel object
-	final private function __construct($model_name, $table, $fields)
+	final private function __construct($model_name, $table, $fields, $relationships)
 	{
 		$info = array('pk' => array(), 'ai' => array());
 		
@@ -107,7 +107,8 @@ class DBModel
 		// Store data in meta database
 		$this->meta_data = array(
 			'fields' => $filtered_fields, 
-			'table' => $table,		
+			'table' => $table,
+			'relationships' => $relationships,
 			'model' => $model_name,
 			'pk' => $info['pk'],
 			'ai' => $info['ai']
@@ -153,7 +154,7 @@ class DBModel
 	
 	//! Query fields properties
 	/**
-	 * Ask for a propertiy of a field or all of them.
+	 * Ask for a property of a field or all of them.
 	 * @param $name The name of the field as it was defined in model
 	 * @param $property Specify proparty by name or pass NULL to get all properties in an array.
 	 * @return The string with the property value or an associative array with all properties.
@@ -208,9 +209,39 @@ class DBModel
 		return $user_data;
 	}
 	
-	//! Push in model's cache
+	//! Check if there is a relationship with name
+	public function has_relationship($name)
+	{	return isset($this->meta_data['relationships'][$name]);	}
+	
+	//! All the relationships of this model
+	public function relationships($info = false)
+	{	if ($info === false)
+			return array_keys($this->meta_data['relationships']);
+		else
+			return $this->meta_data['relationships'];
+	}
+	
+	//! Query relationships properties
 	/**
-	 * Push something in model's cache
+	 * Ask for a property of a field or all of them.
+	 * @param $name The name of the field as it was defined in model
+	 * @param $property Specify proparty by name or pass NULL to get all properties in an array.
+	 * @return The string with the property value or an associative array with all properties.
+	 */
+	public function relationship_info($name, $property = NULL)
+	{
+		if (!isset($this->meta_data['relationships'][$name]))
+			return NULL;
+		if ($property === NULL)
+			return $this->meta_data['relationships'][$name];
+		if (!isset($this->meta_data['relationships'][$name][$property]))
+			throw InvalidArgumentException("There is no relationship property with name $property");
+		return $this->meta_data['relationships'][$name][$property];
+	}
+	
+	//! Push in model's private cache
+	/**
+	 * Push something in model's private cache
 	 * @param $key A key that must be unique inside the model
 	 * @param $obj The object to push
 	 * @return @b TRUE if it was cached succesfully.
@@ -222,9 +253,9 @@ class DBModel
 		return self::$model_cache->set('dbmodel[' . $this->name() . ']' . $key, $obj);
 	}
 	
-	//! Fetch from model's cache
+	//! Fetch from model's private cache
 	/**
-	 * Fetch something from model's cache
+	 * Fetch something from model's private cache
 	 * @param $key The key of the slot in model's cache
 	 * @param $succ A by ref boolean that will hold the result of the action 
 	 * @return The object that was found inside the cache, or @b NULL if it was not found.
@@ -243,10 +274,10 @@ class DBModel
 		return NULL;
 	}
 	
-	//! Invalidates something in model's cache
+	//! Invalidates something in model's private cache
 	/**
-	 * Invalidate (delete) something from model's cache
-	 * @param $key The key of the slot in model's cache
+	 * Invalidate (delete) something from model's private cache
+	 * @param $key The key of the slot in model's private cache
 	 */
 	public function invalidate_cache($key)
 	{

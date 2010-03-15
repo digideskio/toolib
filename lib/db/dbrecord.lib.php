@@ -21,8 +21,7 @@ class DBRecordCollection implements ArrayAccess, Countable, Iterator
 	{	$db = new DBRecordCollection($model);
 		$db->records = $sql_data;
 		return $db;
-	}
-	
+	}	
 	//! Construct a DBRecordCollection object
 	final private function __construct(& $model)
 	{
@@ -79,6 +78,11 @@ class DBRecordCollection implements ArrayAccess, Countable, Iterator
 	}
 }
 
+class DBRecordRelationshipCollection
+{
+	
+} 
+
 class DBRecord
 {
 	//! Array with record constructors
@@ -98,6 +102,10 @@ class DBRecord
 
 		$fields = get_static_var($model_name, 'fields');
 		$table = get_static_var($model_name, 'table');
+		$rels = (isset_static_var($model_name, 'relationships')
+					?get_static_var($model_name, 'relationships')
+					:array()
+		);
 					
 		// Check if fields are defined
 		if (!is_array($fields))
@@ -107,7 +115,7 @@ class DBRecord
 		if (!is_string($table))
 			throw new InvalidArgumentException('DBRecord::$table is not defined in derived class');
 		
-		return DBModel::create($model_name, $table, $fields);
+		return DBModel::create($model_name, $table, $fields, $rels);
 	}
 	
 	//! Perform arbitary query on model and get raw sql results
@@ -302,8 +310,8 @@ class DBRecord
 	//! Cache used for cachings casts
 	protected $data_cast_cache = array();
 	
-	//! Track altered fields for delta updates
-	protected $altered_fields = array();
+	//! Track dirty fields for delta updates
+	protected $dirty_fields = array();
 	
 	//! Model meta data pointer
 	protected $model = NULL;
@@ -332,19 +340,19 @@ class DBRecord
 	//! Save changes in database
 	public function save()
 	{	
-		if(count($this->altered_fields) === 0)
+		if(count($this->dirty_fields) === 0)
 			return true;	// No changes
 			
 		// Create update query
 		$update_args = array(str_repeat('s', 
-			count($this->altered_fields) + count($this->model->pk_fields()))
+			count($this->dirty_fields) + count($this->model->pk_fields()))
 		);
 		$q = self::raw_query($this->model->name())
 			->update()
 			->limit(1);
 			
 		// Add delta fields
-		foreach($this->altered_fields as $field_name => $flag)
+		foreach($this->dirty_fields as $field_name => $flag)
 		{	$q->set($field_name);
 			$update_args[] = $this->fields_data[$field_name];
 		}
@@ -409,46 +417,85 @@ class DBRecord
 	 */
 	public function __get($name)
 	{
-		if (!$this->model->has_field($name))
-		{	// Oops!
-		    $trace = debug_backtrace();
-			throw new InvalidArgumentException("{$this->model->name()}(DBRecord)->{$name}" . 
-				" is not valid field of model {$this->model->name()}, requested at {$trace[0]['file']} ".
-				" on line {$trace[0]['line']}");			
+		if ($this->model->has_field($name))
+		{	// Check for data
+			return $this->model->user_field_data(
+				$name,
+				$this->fields_data[$name]
+			);
 		}
 		
-		// Check for data
-		return $this->model->user_field_data(
-			$name,
-			$this->fields_data[$name]
-		);
+		if ($this->model->has_relationship($name))
+		{	var_dump("GET relation ship $name found");
+			$rel = $this->model->relationship_info($name);
+			
+			if ($rel['type'] == 'one')
+				return DBRecord::open(
+						$this->__get($rel['field']),
+						$rel['foreign_model']
+				);
+			
+			if ($rel['type'] == 'many')
+				false;
+			
+			throw new RuntimeException('Unknown internal error with relationships');			
+		}
+		
+		// Oops!
+		$trace = debug_backtrace();
+		throw new InvalidArgumentException("{$this->model->name()}(DBRecord)->{$name}" . 
+			" is not valid field of model {$this->model->name()}, requested at {$trace[0]['file']} ".
+			" on line {$trace[0]['line']}");
 	}
 	
 	//! Set the value of a field
 	public function __set($name, $value)
 	{
-	if (!$this->model->has_field($name))
-		{	// Oops!
-		    $trace = debug_backtrace();
-			throw new InvalidArgumentException("{$this->model->name()}(DBRecord)->{$name}" . 
-				" is not valid field of model {$this->model->name()}, requested at {$trace[0]['file']} ".
-				" on line {$trace[0]['line']}");			
+		if ($this->model->has_field($name))
+		{
+			// Mark it as dirty
+			$this->dirty_fields[$name] = true;
+			
+			// Set data
+			return $this->fields_data[$name] = 
+				$this->model->db_field_data(
+					$name,
+					$value
+				);			
 		}
 		
-		// Marke it as altered
-		$this->altered_fields[$name] = true;
+		if ($this->model->has_relationship($name))
+		{	var_dump("SET relation ship $name found");
+			$rel = $this->model->relationship_info($name);
+			
+			if ($rel['type'] == 'one')
+			{	if (is_object($value))
+				{	$fm = DBModel::open($rel['foreign_model']);
+					$pks = $fm->pk_fields();
+					$this->__set($rel['field'], $value->__get($pks[0]));
+				}
+				else
+					$this->__set($rel['field'], $value);
+
+				return $value;
+			}
+			
+			if ($rel['type'] == 'many')
+				return false;
+			
+			throw new RuntimeException('Unknown internal error with relationships');			
+		}
 		
-		// Set data
-		return $this->fields_data[$name] = 
-			$this->model->db_field_data(
-				$name,
-				$value
-			);		
+		// Oops!
+	    $trace = debug_backtrace();
+		throw new InvalidArgumentException("{$this->model->name()}(DBRecord)->{$name}" . 
+			" is not valid field of model {$this->model->name()}, requested at {$trace[0]['file']} ".
+			" on line {$trace[0]['line']}");
 	}
 	
 	//! Serialization implementation
 	public function __sleep()
-	{	return array('fields_data', 'altered_fields');
+	{	return array('fields_data', 'dirty_fields');
 	}
 	
 	//! Unserilization implementation
