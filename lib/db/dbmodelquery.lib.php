@@ -55,6 +55,9 @@ class DBModelQuery
 	//! Query cache
 	protected $query_cache;
 	
+	//! Execute parameters
+	protected $exec_params = array();
+	
 	//! Use DBRecord::query() factory to create DBModelQuery objects
 	/**
 	 * @see DBRecord::query() on how to create objects of this class.
@@ -104,6 +107,11 @@ class DBModelQuery
 	//! Start a deletion on model
 	public function & delete()
 	{	$this->assure_alterable();
+	
+		// Check if there is already a type command
+		if ($this->query_type !== NULL)
+			throw new RuntimeException('This DBModelQuery instance has already defined its type "' . $this->query_type . '"!');
+
 		$this->query_type = 'delete';
 		$this->sql_hash .= ':delete:';
 		return $this; 
@@ -112,6 +120,11 @@ class DBModelQuery
 	//! Start an update on model
 	public function & update()
 	{	$this->assure_alterable();
+	
+		// Check if there is already a type command
+		if ($this->query_type !== NULL)
+			throw new RuntimeException('This DBModelQuery instance has already defined its type "' . $this->query_type . '"!');
+
 		$this->query_type = 'update';
 		$this->sql_hash .= ':update:';
 		return $this; 
@@ -120,6 +133,11 @@ class DBModelQuery
 	//! Start a selection query on model
 	public function & select($fields)
 	{	$this->assure_alterable();
+	
+		// Check if there is already a type command
+		if ($this->query_type !== NULL)
+			throw new RuntimeException('This DBModelQuery instance has already defined its type "' . $this->query_type . '"!');
+		
 		$this->query_type = 'select';
 		$this->select_fields = $fields;
 		$this->sql_hash .= ':select:' . implode(':', $fields);
@@ -129,6 +147,11 @@ class DBModelQuery
 	//Start an insertation query on model
 	public function & insert($fields)
 	{	$this->assure_alterable();
+	
+		// Check if there is already a type command
+		if ($this->query_type !== NULL)
+			throw new RuntimeException('This DBModelQuery instance has already defined its type "' . $this->query_type . '"!');
+		
 		$this->query_type = 'insert';
 		$this->insert_fields = $fields;
 		$this->sql_hash .= ':insert:' . implode(':', $fields);
@@ -193,6 +216,12 @@ class DBModelQuery
 	{	$this->assure_alterable();
 		$this->order_by = array('field' => $field, 'order' => $order);
 		$this->sql_hash .= ':order:' . $field . ':' . $order;
+		return $this;
+	}
+	
+	//! Push an execute parameter
+	public function & push_exec_param($value)
+	{	$this->exec_params[] = $value;
 		return $this;
 	}
 	
@@ -393,27 +422,36 @@ class DBModelQuery
 	
 	//! Execute statement and return the results
 	public function execute()
-	{	$func_args = func_get_args();
+	{	$params = func_get_args();
 		$this->prepare();
 		
 		// Check cache if select
 		if ($this->query_type === 'select')
 		{
-			$data = $this->query_cache->fetch_results($this, $func_args, $succ);
+			$data = $this->query_cache->fetch_results($this, $params, $succ);
 			if ($succ)
 			{	if ($this->data_wrapper_callback !== NULL)
 					if (!is_object($data))
 					{	
 						error_log('ERROR! Asked for object but array returned');
-						error_log($this->sql_hash . print_r($func_args, true));
+						error_log($this->sql_hash . print_r($params, true));
 						trigger_error(print_r($data, true));
 					}
 				return $data;
 			}
 		}
 		
-		// Execute query		
-		$excargs = array_merge(array($this->sql_hash), $func_args);
+		// Merge pushed parameters with functions
+		$this->exec_params = array_merge($this->exec_params, $params);
+		if (count($this->exec_params) === 0)
+			$excargs = array_merge(array($this->sql_hash), $this->exec_params);
+		else
+			$excargs = array_merge(array($this->sql_hash), 
+				array(str_repeat('s', count($this->exec_params))),
+				$this->exec_params
+			);
+				
+		// Execute query
 		if ($this->query_type === 'select')
 			$data = call_user_func_array(array('dbconn','execute_fetch_all'), $excargs);
 		else
@@ -426,7 +464,7 @@ class DBModelQuery
 		}
 		
 		// Cache it
-		$this->query_cache->process_query($this, $func_args, $data);
+		$this->query_cache->process_query($this, $params, $data);
 		
 		// Return data
 		return $data;

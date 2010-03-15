@@ -190,7 +190,7 @@ class DBRecord
 
 		// Execute query and check return value
 		$q = self::open_query($model_name);
-		$select_args = array(str_repeat('s', count($pk_fields)));
+		$select_args = array();
 		foreach($pk_fields as $pk_name)
 		{	$q->where($pk_name . ' = ?');
 			$select_args[] = $primary_keys[$pk_name];
@@ -254,7 +254,7 @@ class DBRecord
 		$model = & self::init_model($model_name = get_called_class());
 
 		// Prepare values
-		$insert_args = array('');
+		$insert_args = array();
 		$values = array();
 		foreach($model->fields(true) as $field_name => $field)
 		{	if ($field['ai'])
@@ -269,7 +269,6 @@ class DBRecord
 			else
 				continue;	// No user input and no default values
 				
-			$insert_args[0] .= 's';
 			$insert_args[] = $values[$field_name]; 
 		}
 		
@@ -344,9 +343,7 @@ class DBRecord
 			return true;	// No changes
 			
 		// Create update query
-		$update_args = array(str_repeat('s', 
-			count($this->dirty_fields) + count($this->model->pk_fields()))
-		);
+		$update_args = array();
 		$q = self::raw_query($this->model->name())
 			->update()
 			->limit(1);
