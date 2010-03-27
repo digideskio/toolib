@@ -32,7 +32,7 @@ class User
 	@return A User object of the new user or false in case of error.
 	*/
 	public static function create($username, $password)
-	{    if (!$stm = dbconn::execute('user-create', 'ss', $username, $password))
+	{    if (!$stm = dbconn::execute('user-create', array($username, $password)))
 			return false;
 			
 		return User::open($username);
@@ -43,7 +43,7 @@ class User
 	*/	   
 	public static function open($username)
 	{
-		$user = dbconn::execute_fetch_all('user-info', 's', $username);
+		$user = dbconn::execute_fetch_all('user-info', array($username));
         if (count($user) != 1)
             return false;
 
@@ -56,14 +56,14 @@ class User
 	
 	//! Reset password of user
 	public function reset_password($new_password)
-	{	dbconn::execute('user-resetpwd', 'ss', $new_password, $username);
+	{	dbconn::execute('user-resetpwd', array($new_password, $username));
 		return true;
 	}
 	
 	//! Save changes to the database
 	public function save_object()
 	{	// Update database
-		dbconn::execute('user-update', 'ss', $this->is_enabled, $this->username);
+		dbconn::execute('user-update', array($this->is_enabled, $this->username));
 	}
 	
 	//! Change the password of this user by validating the old one.
@@ -73,7 +73,7 @@ class User
 	public function change_password($current, $new)
 	{
 	    // Update database
-		if (!($stm = dbconn::execute('user-changepwd', 'sss', $new, $this->username, $current)))
+		if (!($stm = dbconn::execute('user-changepwd', array($new, $this->username, $current))))
 		  return false;
 		  
 	    if ($stm->affected_rows != 1)
@@ -152,7 +152,7 @@ class Waas extends IntraSessionSingleton
 		$pthis->events->notify('pre-login');
 
 		// Check for users with that username and that password.
-		$count_records = dbconn::execute_fetch_all('user-validate', 'ss', $user, $pass);
+		$count_records = dbconn::execute_fetch_all('user-validate', array($user, $pass));
 		if ($count_records[0][0] != 1)
 		      return false;
 
@@ -239,7 +239,7 @@ class Waas extends IntraSessionSingleton
 	   in any case of error.
     */
 	static public function delete_user($username)
-	{	if (!dbconn::execute('user-delete','s', $username))
+	{	if (!dbconn::execute('user-delete', array($username)))
 			return false;
 		return true;
 	}

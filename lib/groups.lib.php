@@ -38,7 +38,7 @@ class Group extends DBRecord
 	public function has_user($username)
 	{	if (($res_array = 
 			dbconn::execute_fetch_all('groups-hasuser',
-				'ss', $this->name, $username)) === false)
+				array($this->name, $username))) === false)
 			return false;
 			
 		if (count($res_array) != 1)
@@ -78,7 +78,7 @@ class Group extends DBRecord
 	{	if ($this->has_user($username))
 			return false;
 			
-		if (dbconn::execute('groups-addmember', 'ss', $this->name, $username) === false)
+		if (dbconn::execute('groups-addmember', array($this->name, $username)) === false)
 			return false;
 			
 		return true;
@@ -99,7 +99,7 @@ class Group extends DBRecord
 	{	if (!$this->has_user($username))
 			return false;
 			
-		if (dbconn::execute('groups-removemember', 'ss', $this->name, $username) === false)
+		if (dbconn::execute('groups-removemember', array($this->name, $username)) === false)
 			return false;
 			
 		return true;
@@ -111,8 +111,7 @@ class Group extends DBRecord
 	*/
 	public function count_members()
 	{	if (($res_array = 
-			dbconn::execute_fetch_all('groups-countmembers',
-				's', $this->name)) === false)
+			dbconn::execute_fetch_all('groups-countmembers', array($this->name))) === false)
 			return false;
 			
 		if (count($res_array) != 1)
@@ -127,8 +126,7 @@ class Group extends DBRecord
 	*/
 	public function members()
 	{	if (($res_array = 
-			dbconn::execute_fetch_all('groups-members',
-				's', $this->name)) === false)
+			dbconn::execute_fetch_all('groups-members', array($this->name))) === false)
 			return false;
 			
 		$users = array();
@@ -146,8 +144,7 @@ class Group extends DBRecord
 	*/
 	public static function open_memberships($username)
 	{	if (($res_array = 
-			dbconn::execute_fetch_all('groups-memberships',
-				's', $username)) === false)
+			dbconn::execute_fetch_all('groups-memberships', array($username))) === false)
 			return false;
 			
 		$groups = array();

@@ -424,7 +424,7 @@ class DBModelQuery
 	public function execute()
 	{	$params = func_get_args();
 		$this->prepare();
-		
+
 		// Check cache if select
 		if ($this->query_type === 'select')
 		{
@@ -440,29 +440,21 @@ class DBModelQuery
 				return $data;
 			}
 		}
-		
+
 		// Merge pushed parameters with functions
-		$this->exec_params = array_merge($this->exec_params, $params);
-		if (count($this->exec_params) === 0)
-			$excargs = array_merge(array($this->sql_hash), $this->exec_params);
-		else
-			$excargs = array_merge(array($this->sql_hash), 
-				array(str_repeat('s', count($this->exec_params))),
-				$this->exec_params
-			);
-				
+		$params = array_merge($this->exec_params, $params);
+
 		// Execute query
 		if ($this->query_type === 'select')
-			$data = call_user_func_array(array('dbconn','execute_fetch_all'), $excargs);
+			$data = dbconn::execute_fetch_all($this->sql_hash, $params);
 		else
-			$data = call_user_func_array(array('dbconn','execute'), $excargs);
-		
+			$data = dbconn::execute($this->sql_hash, $params);
+
 		// User wrapper
 		if ($this->data_wrapper_callback !== NULL)
-		{
-			$data = call_user_func($this->data_wrapper_callback, $data, $this->model);
+		{	$data = call_user_func($this->data_wrapper_callback, $data, $this->model);
 		}
-		
+
 		// Cache it
 		$this->query_cache->process_query($this, $params, $data);
 		

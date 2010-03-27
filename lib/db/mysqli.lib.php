@@ -222,24 +222,21 @@ class dbconn
         return $results;
     }
     
-    //! A macro for binding and executing a statement
+	//! A macro for binding and executing a statement
     /**
-     * 
-     * It must be used in the form <b> dbconn::execute($stmt_key, $bind_desc_string, $bind1, .. ,$bindN) </b> \n
-     * If there are no parametes you can use it stmt_bind_and_execute($stmt_key)
+     * @param $key The key of the statement that was used to prepare.
+     * @param $param_data An associative array with all data that will be passed as parameters to prepared statement.
+     * 	Key of array must be the order of parameter in the statement or the name of parameter if it was declared
+     *  using names in the statement.
+     * @param $param_types An associative array with type of data of previous array. If an entry is missing
+     * 	it defaults to string type.
      * @return It will return false on fail or the statement handler to fetch data.
      * @note If you are executing statement that contains a binary parameter (marked with "b") the data are
      *	send in chunks with maximum size $binary_packet_size . Modifiyng this public variable may change the
      *	significantly the performance of this query.
      */
-    static public function execute()
+    static public function execute($key, $param_data = NULL, $param_types = NULL)
     {	
-        if (func_num_args() < 1)
-        {   self::raise_error('dbconn::stmt_execute() requires at least 1 arguments. See the manual for more info.');
-            return false;
-        }
-       	$key = func_get_arg(0);
-       	
        	// Check if statement exist
        	if (!isset(self::$stmts[$key]))
        	{
@@ -252,20 +249,28 @@ class dbconn
        	    return false;
 
         // Bind parameters if it is needed
-        if (func_num_args() >=3)
-        {
-            $args = array_slice(func_get_args(), 1);
-	        call_user_func_array(array(self::$stmts[$key]['handler'], 'bind_param'), $args);
-
+        if (($param_data !== NULL) && (count($param_data) !== 0))
+        {	
+			$params = array('');
+        	foreach($param_data as $index => $data)
+        	{	// Normalize type
+        		$params[0] .= (isset($param_types[$index]))?$param_types[$index]:'s';        		
+        		$params[] = & $param_data[$index];
+        	}
+        	// Bind parameters
+			call_user_func_array(array(self::$stmts[$key]['handler'], 'bind_param'), $params);
+        	
         	// Send blob data
-        	$types = str_split($args[0], 1);
-        	foreach($types as $pos => $type)
-        		if ($type == 'b')
-        		{	foreach(str_split($args[$pos+1], self::$binary_packet_size) as $data )
-        				call_user_func(array(self::$stmts[$key]['handler'], 'send_long_data'), $pos, $data);
-        		}
-        }	    
-	    
+        	if ($param_types !== NULL)
+        	{
+	        	foreach($param_types as $pos => $type)
+	        		if ($type == 'b')
+	        		{	foreach(str_split($param_data[$pos], self::$binary_packet_size) as $data )
+	        				self::$stmts[$key]['handler']->send_long_data($pos, $data);
+	        		}
+        	}
+        }
+
 	    // Execute statement
 	    if (!self::$stmts[$key]['handler']->execute())
 	    {   self::raise_error('Cannot execute the prepared statement "' . $key . '". ' . self::$stmts[$key]['handler']->error);
@@ -277,26 +282,25 @@ class dbconn
 	    return self::$stmts[$key]['handler'];
     }
 
-    //! A macro for executing a statement and getting all results
+    //! A macro for executing a statement and getting all results in one query
     /** 
      * @note This function is not slower than getting manually one-by-one rows and loading in memory.      
      * 	To use this function check the documentation of dbconn::execute().
      * @return It will return false on fail or an array with all results.
      */
-    static public  function & execute_fetch_all()
-    {   // Execute the statement
-        $exec_params = func_get_args();
-		
-        if (!($stmt = call_user_func_array(array('dbconn', 'execute'), $exec_params)))
+    static public function & execute_fetch_all($key, $param_data = NULL, $param_types = NULL)
+    {   
+		if (! ($stmt = self::execute($key, $param_data, $param_types)))
         {	$res = false;
             return $res;
         }
 
         if ($stmt->field_count <= 0)
-        {	$res = array();
+        {	
+        	$res = array();
             return $res;        // This statement has no result
         }
-        
+		
         // Get the name of fields
         if (($result = $stmt->result_metadata()) === NULL)
         	return array();	// This query has no result set
