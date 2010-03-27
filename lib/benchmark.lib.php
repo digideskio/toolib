@@ -141,7 +141,7 @@ class Benchmark
 	 *  	- @b mem_total  : The current usage of memory php application at pass time.
 	 *  	- @b mem_delta	: The delta of memory usage between this and any previous pass occured in any checkpoint.
 	 *  	.  
-	 * @see cvs_dump()
+	 * @see csv_dump()
 	 * @see html_dump()
 	 * 
 	 * <b> Simple usage example </b>
@@ -273,7 +273,7 @@ class Benchmark
 	 * 		by $show_only filter.
 	 * @return NULL
 	 * @see passes()
-	 * @see cvs_dump()
+	 * @see csv_dump()
 	 */
 	public static function html_dump($show_only = NULL, $exclude = NULL)
 	{	$passes = self::passes($show_only, $exclude);
@@ -307,10 +307,10 @@ class Benchmark
 		echo "</table>\n";
 	}
 	
-	//! Dump all measurements in cvs format
+	//! Dump all measurements in comma-seperated values (CSV) format
 	/**
-	 * This function execute passes() and displays results in CVS format.
-	 * @param $delimiter The delimiter to use for CVS format.
+	 * This function execute passes() and displays results in CSV format.
+	 * @param $delimiter The delimiter to use for CSV format.
 	 * @param $show_only An array with checkpoint names that will be included (the rest will be excluded).
 	 * 		NULL will return all of them.
 	 * @param $exclude An array with checkpoint names that will be excluded from the final list. If
@@ -320,7 +320,7 @@ class Benchmark
 	 * @see passes()
 	 * @see html_dump()
 	 */
-	public static function cvs_dump($delimiter = ",", $show_only = NULL, $exclude = NULL)
+	public static function csv_dump($delimiter = ",", $show_only = NULL, $exclude = NULL)
 	{	$passes = self::passes($show_only, $exclude);
 
 		// Render dump

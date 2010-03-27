@@ -189,7 +189,7 @@ class Cache_Memcached extends Cache
 		return FALSE;
 	}
 	
-	public public function get_multi($keys)
+	public function get_multi($keys)
 	{	return $this->memc->getMulti($keys);	}
 	
 	public function delete($key)
