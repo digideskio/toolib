@@ -434,15 +434,7 @@ class DBModelQuery
 		{
 			$data = $this->query_cache->fetch_results($this, $params, $succ);
 			if ($succ)
-			{	if ($this->data_wrapper_callback !== NULL)
-					if (!is_object($data))
-					{	
-						error_log('ERROR! Asked for object but array returned');
-						error_log($this->sql_hash . print_r($params, true));
-						trigger_error(print_r($data, true));
-					}
 				return $data;
-			}
 		}		
 
 		// Execute query
