@@ -1,4 +1,5 @@
 <?php
+require_once(dirname(__FILE__) . '/./functions.lib.php');
 
 //! Simple DOM representation interface 
 /**

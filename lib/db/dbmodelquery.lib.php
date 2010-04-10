@@ -422,7 +422,11 @@ class DBModelQuery
 	
 	//! Execute statement and return the results
 	public function execute()
-	{	$params = func_get_args();
+	{	// Merge pushed parameters with functions
+		$params = func_get_args();		
+		$params = array_merge($this->exec_params, $params);
+		
+		// Prepare query
 		$this->prepare();
 
 		// Check cache if select
@@ -439,10 +443,7 @@ class DBModelQuery
 					}
 				return $data;
 			}
-		}
-
-		// Merge pushed parameters with functions
-		$params = array_merge($this->exec_params, $params);
+		}		
 
 		// Execute query
 		if ($this->query_type === 'select')

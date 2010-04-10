@@ -118,15 +118,29 @@ class Cache_Apc extends Cache
 {
 	private $apc_key_prefix;
 	
-	public function __construct($apc_key_prefix = '')
-	{	$this->apc_key_prefix = $apc_key_prefix; }
+	/**
+	 * @param $serialize_data A flag to serialize/unserialize data before
+	 * pushing/fetching them from apc sma.
+     */
+	public function __construct($apc_key_prefix = '', $serialize_data = false)
+	{	$this->apc_key_prefix = $apc_key_prefix;
+		$this->serialize_data = $serialize_data;
+	}
 	
 	public function add($key, & $value, $ttl = 0)
-	{	return apc_add($this->apc_key_prefix . $key, $value, $ttl);	}
+	{	if ($this->serialize_data)
+			return apc_add($this->apc_key_prefix . serialize($key), $value, $ttl);
+		else
+			return apc_add($this->apc_key_prefix . $key, $value, $ttl);
+	}
 	
 
 	public function set($key, & $value, $ttl = 0)
-	{	return apc_store($this->apc_key_prefix . $key, $value, $ttl);	}
+	{	if ($this->serialize_data)
+			return apc_store($this->apc_key_prefix . serialize($key), $value, $ttl);
+		else
+			return apc_store($this->apc_key_prefix . $key, $value, $ttl);
+	}
 
 	public function set_multi(& $values, $ttl = 0)
 	{	foreach($values as $key => $value)
@@ -134,7 +148,11 @@ class Cache_Apc extends Cache
 	}
 	
 	public function get($key, & $succeded)
-	{	return apc_fetch($this->apc_key_prefix . $key, $succeded);	}
+	{	if ($this->serialize_data)
+			return unserialize(apc_fetch($this->apc_key_prefix . $key, $succeded));
+		else
+			return apc_fetch($this->apc_key_prefix . $key, $succeded);
+	}
 	
 	public function get_delayed($key, $callback){}
 	

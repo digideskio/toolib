@@ -17,11 +17,17 @@ class DBRecordCollection implements ArrayAccess, Countable, Iterator
 	private $records_have_all_data = false;
 	
 	//! Construct from sqldata
-	public function & create_from_sqldata(& $model, & $sql_data)
-	{	$db = new DBRecordCollection($model);
+	static public function & create_from_sqldata(& $model,& $sql_data)
+	{	$records = array();
+		$model_name = $model->name();
+		foreach($sql_data as $key => $rec)
+			$records[] =  new $model_name($model, $rec);
+		return $records;
+		$db = new DBRecordCollection($model);
 		$db->records = $sql_data;
 		return $db;
-	}	
+	}
+	
 	//! Construct a DBRecordCollection object
 	final private function __construct(& $model)
 	{
@@ -31,7 +37,6 @@ class DBRecordCollection implements ArrayAccess, Countable, Iterator
 	/* ArrayAccess Methods */
 	public function offsetExists ($offset )
 	{	return isset($this->records[$offset]);	}
-	
 	public function offsetGet($offset)
 	{	if (isset($this->records[$offset]))
 		{	if ($this->records[$offset] === FALSE)
@@ -78,10 +83,30 @@ class DBRecordCollection implements ArrayAccess, Countable, Iterator
 	}
 }
 
-class DBRecordRelationshipCollection
+//! Object managing 1-to-many relationship 
+class DBRecordManyRelationship
 {
-	
-} 
+	private $model_name;
+	private $foreign_field;
+	private $field_value;
+	private $query_obj;
+
+	public function __construct($model_name, $foreign_field, $field_value)
+	{	// Only query_obj is actually usefull
+		$this->model_name = $model_name;
+		$this->foreign_field = $foreign_field;
+		$this->field_value = $field_value;
+		$this->query_obj = DBRecord::open_query($this->model_name)
+			->where($this->foreign_field . ' = ?')
+			->push_exec_param($this->field_value);	
+	}
+
+	public function all()
+	{	return $this->query_obj->execute();	}
+
+	public function subquery()
+	{	return $this->query_obj;	}
+}
 
 class DBRecord
 {
@@ -170,7 +195,7 @@ class DBRecord
 	 * @endcode
 	*/
 	public static function open($primary_keys, $model_name = NULL)
-	{	benchmark::checkpoint('pre-get_called');
+	{	//benchmark::checkpoint('pre-get_called');
 		if ($model_name === NULL)
 			$model_name = get_called_class();
 
@@ -391,6 +416,19 @@ class DBRecord
 		// Execute query
 		return call_user_func_array(array($q, 'execute'), $delete_args);
 	}
+
+	//! Get the key of this record
+	public function key($assoc = false)
+	{	$values = array();
+
+		if ($assoc)
+			foreach($this->model->pk_fields() as $pk)
+				$values[$pk] = $this->fields_data[$pk];
+		else
+			foreach($this->model->pk_fields() as $pk)
+				$values[] = $this->fields_data[$pk];
+		return $values;
+	}
 	
 	//! Get the value of a field
 	/**
@@ -413,7 +451,7 @@ class DBRecord
 	 * @see __set()
 	 */
 	public function __get($name)
-	{
+	{	//benchmark::checkpoint('__get - start', $name);
 		if ($this->model->has_field($name))
 		{	// Check for data
 			return $this->model->user_field_data(
@@ -428,12 +466,17 @@ class DBRecord
 			
 			if ($rel['type'] == 'one')
 				return DBRecord::open(
-						$this->__get($rel['field']),
-						$rel['foreign_model']
+					$this->__get($rel['field']),
+					$rel['foreign_model']
 				);
 			
 			if ($rel['type'] == 'many')
-				false;
+			{	$pks = $this->key();
+				return new DBRecordManyRelationship(
+					$rel['foreign_model'],
+					$rel['foreign_field'],
+					$pks[0]);
+			}
 			
 			throw new RuntimeException('Unknown internal error with relationships');			
 		}
@@ -458,7 +501,7 @@ class DBRecord
 				$this->model->db_field_data(
 					$name,
 					$value
-				);			
+				);
 		}
 		
 		if ($this->model->has_relationship($name))

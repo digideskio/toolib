@@ -159,7 +159,7 @@ class DBModelQueryCache
 	//! Process and store a select query
 	private function process_select_query($query, & $args, & $results)
 	{	$cache_key = $this->cache_key($query, $args);
-				
+
 		// Cache it
 		$invalidate_on = array(
 				array('update', '*'),
