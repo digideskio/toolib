@@ -4,85 +4,6 @@ require_once(dirname(__FILE__) . '/./dbmodelquery.lib.php');
 require_once(dirname(__FILE__) . '/./dbmodel.lib.php');
 require_once(dirname(__FILE__) . '/../functions.lib.php');
 
-//! Collection of records
-class DBRecordCollection implements ArrayAccess, Countable, Iterator
-{
-	//! Array of data/objects/ok of records
-	private $records =  array();
-	
-	//! The model of contained objects
-	private $model = NULL;
-	
-	//! Flag if we have records
-	private $records_have_all_data = false;
-	
-	//! Construct from sqldata
-	static public function & create_from_sqldata(& $model,& $sql_data)
-	{	$records = array();
-		$model_name = $model->name();
-		foreach($sql_data as $key => $rec)
-			$records[] =  new $model_name($model, $rec);
-		return $records;
-		$db = new DBRecordCollection($model);
-		$db->records = $sql_data;
-		return $db;
-	}
-	
-	//! Construct a DBRecordCollection object
-	final private function __construct(& $model)
-	{
-		$this->model = $model;
-	}
-	
-	/* ArrayAccess Methods */
-	public function offsetExists ($offset )
-	{	return isset($this->records[$offset]);	}
-	public function offsetGet($offset)
-	{	if (isset($this->records[$offset]))
-		{	if ($this->records[$offset] === FALSE)
-				return $this->records[$offset] = DBRecord::open($offset, $this->model);		
-
-			else if (is_array($this->records[$offset]))
-			{	$model_name = $this->model->name();
-				return $this->records[$offset] = new $model_name($this->model, $this->records[$offset]);
-			}
-			return $this->records[$offset];
-		}			
-	}
-	public function offsetSet ($offset , $value){}
-	public function offsetUnset ($offset ){}
-	
-	/*  Iterator Methods */
-	public function current()
-	{	return $this->offsetGet($this->key());	}
-	public function key()
-	{	return key($this->records);	}
-	public function next()
-	{	return next($this->records);	}
-	public function rewind()
-	{	reset($this->records);	}
-	public function valid()
-	{	return ($this->key() !== NULL);	}
-	
-	/* Countable Methods */
-	public function count()
-	{	return count($this->records);	}
-	
-	//! Take a subset of collection
-	public function slice($offset, $length = NULL)
-	{	
-		return new DBRecordCollection(array_slice($this->records, $offset, $length, true), $this->model);
-	}
-
-	//! Get a row of this collection based on its index in this collection
-	public function row($num_offset)
-	{	if ($num_offset >= $this->count())
-			return FALSE;
-		$keys = array_keys($this->records);
-		return $this[$keys[$num_offset]];
-	}
-}
-
 //! Object managing 1-to-many relationship 
 class DBRecordManyRelationship
 {
@@ -101,9 +22,11 @@ class DBRecordManyRelationship
 			->push_exec_param($this->field_value);	
 	}
 
+	//! Get all records of this relationship
 	public function all()
 	{	return $this->query_obj->execute();	}
 
+	//! Perform a subquery on this relationship
 	public function subquery()
 	{	return $this->query_obj;	}
 }
@@ -119,7 +42,11 @@ class DBRecord
 		// Create model constructor
 		if (!isset(self::$model_constr[$model_name]))
 			self::$model_constr[$model_name] = create_function('$sql_data, $model', 
-				"return DBRecordCollection::create_from_sqldata(\$model, \$sql_data, true);");
+				'$records = array();
+				$model_name = $model->name();
+				foreach($sql_data as $key => $rec)
+					$records[] =  new $model_name($model, $rec);
+				return $records;');
 		
 		// Open model if it exists
 		if (($md = DBModel::open($model_name)) !== NULL)
@@ -461,8 +388,7 @@ class DBRecord
 		}
 		
 		if ($this->model->has_relationship($name))
-		{	var_dump("GET relation ship $name found");
-			$rel = $this->model->relationship_info($name);
+		{	$rel = $this->model->relationship_info($name);
 			
 			if ($rel['type'] == 'one')
 				return DBRecord::open(
@@ -505,8 +431,7 @@ class DBRecord
 		}
 		
 		if ($this->model->has_relationship($name))
-		{	var_dump("SET relation ship $name found");
-			$rel = $this->model->relationship_info($name);
+		{	$rel = $this->model->relationship_info($name);
 			
 			if ($rel['type'] == 'one')
 			{	if (is_object($value))

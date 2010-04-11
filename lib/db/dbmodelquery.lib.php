@@ -435,7 +435,7 @@ class DBModelQuery
 			$data = $this->query_cache->fetch_results($this, $params, $succ);
 			if ($succ)
 				return $data;
-		}		
+		}
 
 		// Execute query
 		if ($this->query_type === 'select')
@@ -445,8 +445,7 @@ class DBModelQuery
 
 		// User wrapper
 		if ($this->data_wrapper_callback !== NULL)
-		{	$data = call_user_func($this->data_wrapper_callback, $data, $this->model);
-		}
+		{	$data = call_user_func($this->data_wrapper_callback, $data, $this->model);		}
 
 		// Cache it
 		$this->query_cache->process_query($this, $params, $data);

@@ -184,13 +184,21 @@ class DBModel
 	
 	//! Cast data to user format
 	public function user_field_data($field_name, $db_data)
-	{	if (($field = $this->field_info($field_name)) === NULL)
+	{	
+		if (($field = $this->field_info($field_name)) === NULL)
 			throw new InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
-	
-		if ($field['type'] == 'serialized')
+
+		// Fast exit for generic
+		if ($field['type'] === 'generic')
+			return $db_data;
+
+		// Check cast cache
+		if ($field['type'] === 'serialized')
 			return unserialize($db_data);
-		else if ($field['type'] == 'datetime')
+		else if ($field['type'] === 'datetime')
 			return new DateTime($db_data);
+
+		// Unknown type return same
 		return $db_data;
 	}
 	
@@ -199,12 +207,16 @@ class DBModel
 	{
 		if (($field = $this->field_info($field_name)) === NULL)
 			throw new InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
-			
-		if ($field['type'] == 'serialized')
+
+		// Fast exit for generic
+		if ($field['type'] === 'generic')
+			return $user_data;
+
+		if ($field['type'] === 'serialized')
 			return serialize($user_data);
-		else if ($field['type'] == 'datetime')
+		else if ($field['type'] === 'datetime')
 			return $user_data->format(DATE_ISO8601);
-		else if ($field['type'] == 'relationship')
+		else if ($field['type'] === 'relationship')
 			return $description;
 		return $user_data;
 	}
@@ -264,7 +276,7 @@ class DBModel
 	{	$succ = false;
 		if (self::$model_cache === NULL)
 			return NULL;
-			
+
 		$obj = self::$model_cache->get('dbmodel[' . $this->name() . ']' . $key, $rsucc);
 		if ($rsucc)
 		{	$succ = true;
