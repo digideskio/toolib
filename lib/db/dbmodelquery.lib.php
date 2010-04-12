@@ -36,6 +36,9 @@ class DBModelQuery
 	
 	//! Order of output data (on select only)
 	protected $order_by = NULL;
+
+    //! Left join table
+    protected $ljoin = NULL;
 	
 	//! WHERE conditions
 	protected $conditions = array();
@@ -49,8 +52,8 @@ class DBModelQuery
 	//! Data wrapper callback
 	protected $data_wrapper_callback = NULL;
 	
-	//! Query profiling
-	protected $profiling;
+	//! Query cache hints
+	protected $cache_hints = NULL;
 	
 	//! Query cache
 	protected $query_cache;
@@ -83,9 +86,11 @@ class DBModelQuery
 		$this->insert_values = array();
 		$this->limit = NULL;
 		$this->order_by = NULL;
+		$this->ljoin = NULL;
 		$this->conditions = array();
 		$this->sql_hash = 'HASH:' . $this->model->table() .':';
 		$this->sql_query = NULL;
+		$this->cache_hints = NULL;
 
 		return $this; 
 	}
@@ -202,7 +207,24 @@ class DBModelQuery
 		$this->sql_hash .= ':where:' . $bool_op . ':' . $exp;
 		return $this;
 	}
-	
+
+	//! Declare left join table (for extra criteria only)
+	public function & left_join($model_name, $primary_field, $joined_field)
+	{   $this->assure_alterable();
+
+	    // Check if there is already a type command
+		if ($this->query_type !== 'select')
+			throw new RuntimeException('You cannot declare left_join on DBModelQuery that is not of SELECT type!');
+
+		$this->ljoin = array(
+		    'model_name' => $model_name,
+		    'join_local_field' => $primary_field,
+		    'join_foreign_field' => $joined_field
+		);
+		$this->sql_hash .= ':ljoin:' . $model_name . ':' . $primary_field . ':' . $joined_field;
+	    return $this;
+	}
+
 	//! Limit the query
 	public function & limit($length, $offset = NULL)
 	{	$this->assure_alterable();
@@ -218,6 +240,13 @@ class DBModelQuery
 		$this->sql_hash .= ':order:' . $field . ':' . $order;
 		return $this;
 	}
+
+	//! Set the callback wrapper function
+	public function & set_data_wrapper($callback)
+	{   $this->assure_alterable();
+	    $this->data_wrapper_callback = $callback;
+	    return $this;
+	}
 	
 	//! Push an execute parameter
 	public function & push_exec_param($value)
@@ -227,12 +256,52 @@ class DBModelQuery
 	
 	//! Get the type of query
 	public function type()
-	{	return $this->query_type;	
-	} 
+	{	return $this->query_type;	} 
 	
 	//! Get query hash
 	public function hash()
 	{	return $this->sql_hash;		}
+
+	//! Analyze WHERE side value
+	private function analyze_where_value(& $cond, $side, $string)
+	{   $matched = preg_match_all(
+	        '/^[\s]*' . // Pre-field space
+	        '(' .
+	            '((p|l)\.)?([\w]+)' .          // column reference
+	            '|\?' .                         // prepared statement wildcard
+	            '|\'[^\']+\'' .                 // literal string value
+	            '|[\d]+' .                      // literal decimal value
+	        ')' . 
+	        '[\s]*/', // Post-field space
+	        $string,
+	        $matches
+	    );
+
+	    if ($matched != 1)
+		    throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
+
+	    if ($matches[1][0] === '?')
+	    {   $cond['require_argument'] = true;
+	        $cond[$side] = '?';
+	    }
+	    else if(! empty($matches[4][0]))
+	    {   $table_shorthand = (empty($matches[3][0])?'p':$matches[3][0]);
+
+	        if ($table_shorthand === 'p')
+    	        $sqlfield = $this->model->field_info($matches[4][0], 'sqlfield');
+    	    else if ($table_shorthand === 'l')
+    	        $sqlfield = $this->ljoin['model']->field_info($matches[4][0], 'sqlfield');
+    	        	    
+            if ($sqlfield === NULL)
+			    throw new RuntimeException("There is no field with name {$matches[4][0]} in model {$this->model->name()}");
+
+            //! Construct valid sql query
+            $cond[$side] = $table_shorthand . '.`' . $sqlfield . '`';
+	    }
+	    else
+	    {   $cond[$side] = $matches[1][0];  }
+	    
+	}
 	
 	//! Analyze WHERE conditions and return where statement
 	private function analyze_where_conditions()
@@ -242,28 +311,29 @@ class DBModelQuery
 			$first = true;
 			foreach($this->conditions as & $cond)
 			{	$matched = 
-					preg_match_all('/^[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*' .
+					preg_match_all('/^[\s]*([\w\.]+|\?|\'[^\']+\')[\s]*' .
 						'([=<>]+|like|between|in)' .
-						'[\s]*([\w\d]+|\?|\'[^\']+\')[\s]*$/',
+						'[\s]*([\w\.]+|\?|\'[^\']+\')[\s]*$/',
 						$cond['expression'], $matches);
-				
+
 				if ($matched != 1)
 					throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
-				
+
+                // Operator
 				$cond['op'] = $matches[2][0];
-				$cond['lvalue'] = $this->model->field_info($matches[1][0], 'sqlfield');
-				if ($cond['lvalue'] === NULL)
-					throw new RuntimeException("There is no field with name {$matches[1][0]} in model {$this->model->name()}");
-					
-				$cond['rvalue'] = $matches[3][0];
-				if (($cond['rvalue'] === '?') || ($cond['lvalue'] === '?'))
-					$cond['require_argument'] = true;
-				
+                $cond['require_argument'] = false;
+
+                // L-value
+                $this->analyze_where_value($cond, 'lvalue', $matches[1][0]);
+                
+                // R-value
+                $this->analyze_where_value($cond, 'rvalue', $matches[3][0]);
+
 				if ($first)
 					$first = false;
 				else
 					$query .= ' ' . $cond['bool_op'];
-				$query .= " `{$cond['lvalue']}` {$cond['op']} {$cond['rvalue']}";
+				$query .= " {$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
 					
 			}
 			unset($cond);
@@ -279,18 +349,31 @@ class DBModelQuery
 			{	$fields[] = 'count(*)';
 				continue;
 			}
-			$fields[] = "`" . $this->model->field_info($field, 'sqlfield') . "`";
+			$fields[] = "p.`" . $this->model->field_info($field, 'sqlfield') . "`";
 		}
 
 		$query .= ' ' . implode(', ', $fields);
-		$query  .= ' FROM ' . $this->model->table();
+		$query .= ' FROM `' . $this->model->table() . '` p';
+
+        // Left join
+        if ($this->ljoin !== NULL)
+        {   if (! isset($this->ljoin['model']))
+            {
+                $lmodel_name = $this->ljoin['model_name'];
+                $this->ljoin['model'] = call_user_func(array($lmodel_name, 'model'));
+            }
+            $lfield = $this->ljoin['model']->field_info($this->ljoin['join_foreign_field'], 'sqlfield');
+            $pfield = $this->model->field_info($this->ljoin['join_local_field'], 'sqlfield');   
+            $query .= " LEFT JOIN `{$this->ljoin['model']->table()}` l ON l.`{$lfield}` = p.`{$pfield}`";
+        }
+        
+		// Conditions
 		$query .= $this->analyze_where_conditions();
 		
 		// Order by
 		if ($this->order_by !== NULL)
-			$query .= ' ORDER BY ' . $this->model->field_info($this->order_by['field'], 'sqlfield') .
+			$query .= ' ORDER BY p.' . $this->model->field_info($this->order_by['field'], 'sqlfield') .
 				' ' . $this->order_by['order'];
-
 		// Limit
 		if ($this->limit !== NULL)
 		{	if ($this->limit['offset'] !== NULL)
@@ -372,6 +455,30 @@ class DBModelQuery
 			$query .= " LIMIT {$this->limit['length']}";
 		return $query;
 	}
+
+
+	//! Get cache hint for caching query results
+	public function cache_hints()
+	{   // Return if it is already generated
+	    if ($this->cache_hints !== NULL)
+	        return $this->cache_hints;
+
+        // Check that it is no longer altera ble
+	    if ($this->sql_query === NULL)
+	        return NULL;
+	        
+	    // Initialize array
+	    $this->cache_hints = array(
+	        'cachable' => ($this->query_type === 'select'),
+	        'invalidate_on' => array()
+	    );
+
+        // Left joins are not cachable
+	    if ($this->ljoin !== NULL)
+	        $this->cache_hints['cachable'] = false;
+
+	    return $this->cache_hints;
+	}
 	
 	//! Create the sql command for this query
 	/**
@@ -385,9 +492,10 @@ class DBModelQuery
 			return $this->sql_query;
 		
 		// Check model cache
-		$query = $this->model->fetch_cache($this->sql_hash, $succ);
+		$cache = $this->model->fetch_cache($this->sql_hash, $succ);
 		if ($succ)
-		{	$this->sql_query = $query;
+		{	$this->sql_query = $cache['query'];
+		    $this->cache_hints = $cache['cache_hints'];
 			return $this->sql_query;
 		}
 		
@@ -403,9 +511,17 @@ class DBModelQuery
 			throw new RuntimeException('Query is not finished to be exported.' .
 				' You have to use at least one of the main commands insert()/update()/delete()/select(). ');
 
+        // Cache hints
+        $this->cache_hints();
+        
 		// Save in cache
-		$this->model->push_cache($this->sql_hash, $this->sql_query);
-		
+		$this->model->push_cache($this->sql_hash, 
+		    array(
+		        'query' => $this->sql_query,
+		        'cache_hints' => $this->cache_hints
+		    )
+		);
+        
 		return $this->sql_query;
 	}
 	

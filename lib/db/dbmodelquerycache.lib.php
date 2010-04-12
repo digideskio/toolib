@@ -158,8 +158,12 @@ class DBModelQueryCache
 	
 	//! Process and store a select query
 	private function process_select_query($query, & $args, & $results)
-	{	$cache_key = $this->cache_key($query, $args);
+	{	$hints = $query->cache_hints();
+	    if (!$hints['cachable'])
+	        return false;       // This query is not cachable
 
+	    $cache_key = $this->cache_key($query, $args);
+        
 		// Cache it
 		$invalidate_on = array(
 				array('update', '*'),
@@ -248,6 +252,7 @@ class DBModelQueryCache
 
 		$ret = $this->model_effective_query_cache
 			->get($this->cache_key($query, $args) . '[RESULTS]', $succ);
+
 		if ($succ)
 			return $ret;
 					
