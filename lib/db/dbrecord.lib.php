@@ -4,31 +4,122 @@ require_once(dirname(__FILE__) . '/./dbmodelquery.lib.php');
 require_once(dirname(__FILE__) . '/./dbmodel.lib.php');
 require_once(dirname(__FILE__) . '/../functions.lib.php');
 
-//! Object managing 1-to-many relationship 
+
+//! Object handling collection from 1-to-M relationship
+/**
+ * This object is constructed when requesting a relationship from a DBRecord.
+ * Check DBRecord for more information on how to construct it.
+ */
 class DBRecordManyRelationship
 {
-	private $model_name;
-	private $foreign_field;
-	private $field_value;
-	private $query_obj;
+    //! The model type of this collection
+	private $collection_model_name;
 
-	public function __construct($model_name, $foreign_field, $field_value)
-	{	// Only query_obj is actually usefull
-		$this->model_name = $model_name;
+	//! The field that points to foreign model
+	private $foreign_field;
+
+	//! The value that this field must have
+	private $field_value;
+
+	//! The constructed query
+	private $query;
+
+	public function __construct($collection_model_name, $foreign_field, $field_value)
+	{	// Save parameters
+		$this->collection_model_name = $collection_model_name;
 		$this->foreign_field = $foreign_field;
 		$this->field_value = $field_value;
-		$this->query_obj = DBRecord::open_query($this->model_name)
+
+		// Construct query object
+		$this->query = DBRecord::open_query($this->collection_model_name)
 			->where($this->foreign_field . ' = ?')
-			->push_exec_param($this->field_value);	
+			->push_exec_param($this->field_value);
 	}
 
 	//! Get all records of this relationship
 	public function all()
-	{	return $this->query_obj->execute();	}
+	{	return $this->query->execute();	}
 
 	//! Perform a subquery on this relationship
 	public function subquery()
-	{	return $this->query_obj;	}
+	{	return $this->query;	}
+}
+
+
+//! Object handling collection from N-to-M relationship
+/**
+ * This object is constructed when requesting a relationship from a DBRecord.
+ * Check DBRecord for more information on how to construct it.
+ */
+class DBRecordBridgeRelationship
+{
+    //! Relationship options
+    private $rel_params;
+
+    //! Query object
+    private $query;
+    
+    //! Construct relationship
+    public function __construct($bridge_model_name, $foreign_rel, $local_rel, $local_value)
+    {   
+        // Construct relationship array
+        $bridge_model = call_user_func(array($bridge_model_name, 'model'));
+		$bridge2foreign_rel = $bridge_model->relationship_info($foreign_rel);
+		$bridge2local_rel = $bridge_model->relationship_info($local_rel);
+
+        $rel = array();
+		$rel['local_model_name'] = $bridge2local_rel['foreign_model'];
+		    $local_model = call_user_func(array($rel['local_model_name'], 'model'));
+		$rel['bridge_model_name'] = $bridge_model_name;    		
+		$rel['foreign_model_name'] = $bridge2foreign_rel['foreign_model'];
+		    $foreign_model = call_user_func(array($rel['foreign_model_name'], 'model'));
+		    $pks = $local_model->pk_fields();
+	    $rel['local2bridge_field'] = $pks[0];
+	    $rel['bridge2local_field'] = $bridge2local_rel['field'];
+	    $rel['bridge2foreign_field'] = $bridge2foreign_rel['field'];
+	        $pks = $foreign_model->pk_fields();
+	    $rel['foreign2bridge_field'] = $pks[0];
+	    $rel['local_bridge_value'] = $local_value;
+        
+		// Construct joined query
+		$this->query = DBRecord::open_query($rel['foreign_model_name'])
+            ->left_join($rel['bridge_model_name'], $rel['foreign2bridge_field'], $rel['bridge2foreign_field'])
+            ->where('? = l.' . $rel['bridge2local_field'])
+            ->push_exec_param($rel['local_bridge_value']);
+
+        // Save relationship
+        $this->rel_params = $rel;
+    }
+
+    public function add($record)
+    {   $keys = $record->key();
+        $params = array(
+            $this->rel_params['bridge2local_field'] => $this->rel_params['local_bridge_value'],
+            $this->rel_params['bridge2foreign_field'] => $keys[0]
+        );
+        return DBRecord::create($params, $this->rel_params['bridge_model_name']);
+    }
+
+    public function remove($record)
+    {   $keys = $record->key();
+        $params = array(
+            $this->rel_params['bridge2local_field'] => $this->rel_params['local_bridge_value'],
+            $this->rel_params['bridge2foreign_field'] => $keys[0]
+        );
+        if (($bridge_record = DBRecord::open($params, $this->rel_params['bridge_model_name'])) === FALSE)
+            return false;
+
+        return $bridge_record->delete();
+    }
+
+	//! Get all records of this relationship
+	public function all()
+	{	return $this->query->execute();	}
+
+    //! Perform a subquery on this relationship
+	public function subquery()
+	{	return $this->query;	}
+
 }
 
 class DBRecord
@@ -55,8 +146,8 @@ class DBRecord
 		$fields = get_static_var($model_name, 'fields');
 		$table = get_static_var($model_name, 'table');
 		$rels = (isset_static_var($model_name, 'relationships')
-					?get_static_var($model_name, 'relationships')
-					:array()
+			?get_static_var($model_name, 'relationships')
+			:array()
 		);
 					
 		// Check if fields are defined
@@ -144,7 +235,7 @@ class DBRecord
 		$q = self::open_query($model_name);
 		$select_args = array();
 		foreach($pk_fields as $pk_name)
-		{	$q->where($pk_name . ' = ?');
+		{	$q->where('? = p.' .$pk_name);
 			$select_args[] = $primary_keys[$pk_name];
 		}
 
@@ -201,9 +292,12 @@ class DBRecord
 	}	
 	
 	//! Create a new record in database of this model
-	static public function create($args)
-	{	// Initialize model
-		$model = & self::init_model($model_name = get_called_class());
+	static public function create($args, $model_name = NULL)
+	{	if ($model_name === NULL)
+			$model_name = get_called_class();
+
+	    // Initialize model
+		$model = & self::init_model($model_name);
 
 		// Prepare values
 		$insert_args = array();
@@ -329,15 +423,15 @@ class DBRecord
 	public function delete()
 	{	
 		// Create delete query
-		$delete_args = array(str_repeat('s', count($this->model->pk_fields())));
+		$delete_args = array();
 		$q = self::raw_query($this->model->name())
 			->delete()
 			->limit(1);
 		
 		// Add Where clause based on primary keys
-		foreach($this->model->pk_fields() as $pk)
+		foreach($this->key(true) as $pk => $value)
 		{	$q->where("{$pk} = ?");
-			$delete_args[] = $this->fields_data[$pk];
+			$delete_args[] = $value;
 		}
 		
 		// Execute query
@@ -390,18 +484,28 @@ class DBRecord
 		if ($this->model->has_relationship($name))
 		{	$rel = $this->model->relationship_info($name);
 			
-			if ($rel['type'] == 'one')
+			if ($rel['type'] === 'one')
 				return DBRecord::open(
 					$this->__get($rel['field']),
 					$rel['foreign_model']
 				);
 			
-			if ($rel['type'] == 'many')
+			if ($rel['type'] === 'many')
 			{	$pks = $this->key();
 				return new DBRecordManyRelationship(
 					$rel['foreign_model'],
 					$rel['foreign_field'],
 					$pks[0]);
+			}
+
+			if ($rel['type'] === 'bridge')
+			{   $pks = $this->key();
+			    return new DBRecordBridgeRelationship(
+			        $rel['bridge_model'],
+			        $rel['foreign_rel'],
+			        $rel['local_rel'],
+			        $pks[0]
+			    );
 			}
 			
 			throw new RuntimeException('Unknown internal error with relationships');			

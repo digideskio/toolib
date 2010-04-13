@@ -290,13 +290,16 @@ class DBModelQuery
 	        if ($table_shorthand === 'p')
     	        $sqlfield = $this->model->field_info($matches[4][0], 'sqlfield');
     	    else if ($table_shorthand === 'l')
+    	    {   if ($this->ljoin === NULL)
+    	            throw new RuntimeException("You cannot use \"l\" shorthand in WHERE when there is no LEFT JOIN!");
     	        $sqlfield = $this->ljoin['model']->field_info($matches[4][0], 'sqlfield');
+    	    }
     	        	    
             if ($sqlfield === NULL)
 			    throw new RuntimeException("There is no field with name {$matches[4][0]} in model {$this->model->name()}");
 
             //! Construct valid sql query
-            $cond[$side] = $table_shorthand . '.`' . $sqlfield . '`';
+            $cond[$side] = (($this->ljoin !== NULL)?$table_shorthand . '.':'') . '`' . $sqlfield . '`';
 	    }
 	    else
 	    {   $cond[$side] = $matches[1][0];  }
@@ -349,11 +352,11 @@ class DBModelQuery
 			{	$fields[] = 'count(*)';
 				continue;
 			}
-			$fields[] = "p.`" . $this->model->field_info($field, 'sqlfield') . "`";
+			$fields[] = (($this->ljoin !== NULL)?'p.':'') . "`" . $this->model->field_info($field, 'sqlfield') . "`";
 		}
 
 		$query .= ' ' . implode(', ', $fields);
-		$query .= ' FROM `' . $this->model->table() . '` p';
+		$query .= ' FROM `' . $this->model->table() . '`' . (($this->ljoin !== NULL)?' p':'');
 
         // Left join
         if ($this->ljoin !== NULL)
@@ -372,7 +375,9 @@ class DBModelQuery
 		
 		// Order by
 		if ($this->order_by !== NULL)
-			$query .= ' ORDER BY p.' . $this->model->field_info($this->order_by['field'], 'sqlfield') .
+			$query .= ' ORDER BY ' . 
+			    (($this->ljoin !== NULL)?' p.':'') .
+			    $this->model->field_info($this->order_by['field'], 'sqlfield') .
 				' ' . $this->order_by['order'];
 		// Limit
 		if ($this->limit !== NULL)
@@ -386,7 +391,7 @@ class DBModelQuery
 	
 	//! Generate UPDATE query
 	private function analyze_update_query()
-	{	$query = 'UPDATE ' . $this->model->table() . ' SET';
+	{	$query = 'UPDATE `' . $this->model->table() . '` SET';
 	
 		if (count($this->set_fields) === 0)
 			throw new InvalidArgumentException("Cannot execute update() command without using set()");

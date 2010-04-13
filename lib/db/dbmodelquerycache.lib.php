@@ -213,7 +213,7 @@ class DBModelQueryCache
 	private function process_invalidators_query($query, & $args)
 	{	$itracker = $this->get_invalidation_tracker();
 
-		// Search itrackers		
+		// Search itrackers	
 		foreach($itracker[$query->type()]['*'] as $idx => $cache_key)
 		{	if ($cache_key != NULL)
 				$this->invalidate_query($itracker, $cache_key);	
