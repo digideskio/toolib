@@ -221,7 +221,10 @@ if ( !function_exists('sys_get_temp_dir')) {
 function get_static_var($class_name, $var_name)
 {
 	if (version_compare(PHP_VERSION, '5.3.0', '>='))
+	{
 		error_log('get_static_var() should not be used with PHP >= 5.3 as there is native support.!');
+		return $class_name::$$var_name;
+	}
 		
 	return eval("return {$class_name}::\${$var_name};");
 }
@@ -229,7 +232,10 @@ function get_static_var($class_name, $var_name)
 function isset_static_var($class_name, $var_name)
 {
 	if (version_compare(PHP_VERSION, '5.3.0', '>='))
+	{
 		error_log('isset_static_var() should not be used with PHP >= 5.3 as there is native support.!');
+		return isset($class_name::$$var_name);
+	}
 		
 	return eval("return isset({$class_name}::\${$var_name});");
 }

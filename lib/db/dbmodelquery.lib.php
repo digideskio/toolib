@@ -267,10 +267,10 @@ class DBModelQuery
 	{   $matched = preg_match_all(
 	        '/^[\s]*' . // Pre-field space
 	        '(' .
-	            '((p|l)\.)?([\w]+)' .          // column reference
-	            '|\?' .                         // prepared statement wildcard
+	            '\?' .                          // prepared statement wildcard
 	            '|\'[^\']+\'' .                 // literal string value
 	            '|[\d]+' .                      // literal decimal value
+	            '|((p|l)\.)?([\w]+)' .          // column reference
 	        ')' . 
 	        '[\s]*/', // Post-field space
 	        $string,

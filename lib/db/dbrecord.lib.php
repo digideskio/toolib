@@ -12,28 +12,17 @@ require_once(dirname(__FILE__) . '/../functions.lib.php');
  */
 class DBRecordManyRelationship
 {
-    //! The model type of this collection
-	private $collection_model_name;
-
-	//! The field that points to foreign model
-	private $foreign_field;
-
-	//! The value that this field must have
-	private $field_value;
-
 	//! The constructed query
 	private $query;
 
-	public function __construct($collection_model_name, $foreign_field, $field_value)
-	{	// Save parameters
-		$this->collection_model_name = $collection_model_name;
-		$this->foreign_field = $foreign_field;
-		$this->field_value = $field_value;
-
-		// Construct query object
-		$this->query = DBRecord::open_query($this->collection_model_name)
-			->where($this->foreign_field . ' = ?')
-			->push_exec_param($this->field_value);
+    //! Construct relationship handler
+	public function __construct($local_model, $foreign_model_name, $field_value)
+	{	// Construct query object
+	    $foreign_model = call_user_func(array($foreign_model_name, 'model'));
+	    
+		$this->query = DBRecord::open_query($foreign_model_name)
+			->where($foreign_model->fk_field_for($local_model->name()) . ' = ?')
+			->push_exec_param($field_value);
 	}
 
 	//! Get all records of this relationship
@@ -60,23 +49,20 @@ class DBRecordBridgeRelationship
     private $query;
     
     //! Construct relationship
-    public function __construct($bridge_model_name, $foreign_rel, $local_rel, $local_value)
+    public function __construct($local_model, $bridge_model_name, $foreign_model_name, $local_value)
     {   
         // Construct relationship array
         $bridge_model = call_user_func(array($bridge_model_name, 'model'));
-		$bridge2foreign_rel = $bridge_model->relationship_info($foreign_rel);
-		$bridge2local_rel = $bridge_model->relationship_info($local_rel);
+        $foreign_model = call_user_func(array($foreign_model_name, 'model'));
 
         $rel = array();
-		$rel['local_model_name'] = $bridge2local_rel['foreign_model'];
-		    $local_model = call_user_func(array($rel['local_model_name'], 'model'));
+		$rel['local_model_name'] = $local_model->name();
 		$rel['bridge_model_name'] = $bridge_model_name;    		
-		$rel['foreign_model_name'] = $bridge2foreign_rel['foreign_model'];
-		    $foreign_model = call_user_func(array($rel['foreign_model_name'], 'model'));
+		$rel['foreign_model_name'] = $foreign_model_name;
 		    $pks = $local_model->pk_fields();
 	    $rel['local2bridge_field'] = $pks[0];
-	    $rel['bridge2local_field'] = $bridge2local_rel['field'];
-	    $rel['bridge2foreign_field'] = $bridge2foreign_rel['field'];
+	    $rel['bridge2local_field'] = $bridge_model->fk_field_for($local_model->name());
+	    $rel['bridge2foreign_field'] = $bridge_model->fk_field_for($foreign_model_name);
 	        $pks = $foreign_model->pk_fields();
 	    $rel['foreign2bridge_field'] = $pks[0];
 	    $rel['local_bridge_value'] = $local_value;
@@ -126,6 +112,9 @@ class DBRecord
 {
 	//! Array with record constructors
 	static $model_constr = array();
+
+	//! Array with dynamic relationships
+	static $dynamic_relationships = array();
 	
 	//! Initialize model based on the structure of derived class
 	static private function init_model($model_name)
@@ -149,6 +138,8 @@ class DBRecord
 			?get_static_var($model_name, 'relationships')
 			:array()
 		);
+		if (isset(self::$dynamic_relationships[$model_name]))
+		    $rels = array_merge($rels, self::$dynamic_relationships[$model_name]);
 					
 		// Check if fields are defined
 		if (!is_array($fields))
@@ -181,12 +172,43 @@ class DBRecord
 		$query = new DBModelQuery($model, self::$model_constr[$model_name]);
 		return $query->select($model->fields());
 	}
-	
-	
+
 	//! Get the model of this record
 	static public function model()
 	{	$model_name = get_called_class();
 		return self::init_model($model_name);
+	}
+
+	//! Declare 1-to-many relationship
+	static public function one_to_many($many_model_name, $one_rel_name, $many_rel_name)
+	{	$model_name = get_called_class();
+
+	    self::$dynamic_relationships[$model_name][$many_rel_name] = 
+	        array('type' => 'many', 'foreign_model' => $many_model_name);
+
+
+	    self::$dynamic_relationships[$many_model_name][$one_rel_name] =
+	        array('type' => 'one', 'foreign_model' => $model_name);
+	}
+
+	//! Declare 1-to-many relationship
+	static public function many_to_many($foreign_model_name, $bridge_model_name, $foreign_rel_name, $local_rel_name)
+	{	$model_name = get_called_class();
+
+	    self::$dynamic_relationships[$model_name][$local_rel_name] = array(
+	        'type' => 'bridge',
+	        'foreign_model' => $foreign_model_name,
+	        'bridge_model' => $bridge_model_name
+	    );
+
+
+	    self::$dynamic_relationships[$foreign_model_name][$foreign_rel_name] = array(
+	        'type' => 'bridge',
+	        'foreign_model' => $model_name,
+	        'bridge_model' => $bridge_model_name
+	    );
+
+	    var_dump(self::$dynamic_relationships);
 	}
 	
 	//! Open the dbrecord based on its primary key
@@ -485,30 +507,31 @@ class DBRecord
 		{	$rel = $this->model->relationship_info($name);
 			
 			if ($rel['type'] === 'one')
+			{
 				return DBRecord::open(
-					$this->__get($rel['field']),
+					$this->__get($this->model->fk_field_for($rel['foreign_model'])),
 					$rel['foreign_model']
 				);
-			
+			}
 			if ($rel['type'] === 'many')
 			{	$pks = $this->key();
 				return new DBRecordManyRelationship(
+			        $this->model,
 					$rel['foreign_model'],
-					$rel['foreign_field'],
 					$pks[0]);
 			}
 
 			if ($rel['type'] === 'bridge')
 			{   $pks = $this->key();
 			    return new DBRecordBridgeRelationship(
+			        $this->model,
 			        $rel['bridge_model'],
-			        $rel['foreign_rel'],
-			        $rel['local_rel'],
+			        $rel['foreign_model'],
 			        $pks[0]
 			    );
 			}
 			
-			throw new RuntimeException('Unknown internal error with relationships');			
+			throw new RuntimeException("Unknown DBRecord relation type '{$rel['type']}'");
 		}
 		
 		// Oops!
@@ -541,10 +564,15 @@ class DBRecord
 			{	if (is_object($value))
 				{	$fm = DBModel::open($rel['foreign_model']);
 					$pks = $fm->pk_fields();
-					$this->__set($rel['field'], $value->__get($pks[0]));
+					$this->__set(
+					    $this->model->fk_field_for($rel['foreign_model']),
+					    $value->__get($pks[0]));
 				}
 				else
-					$this->__set($rel['field'], $value);
+					$this->__set(
+					    $this->model->fk_field_for($rel['foreign_model']),
+					    $value
+					);
 
 				return $value;
 			}
@@ -552,7 +580,7 @@ class DBRecord
 			if ($rel['type'] == 'many')
 				return false;
 			
-			throw new RuntimeException('Unknown internal error with relationships');			
+			throw new RuntimeException("Unknown DBRecord relation type '{$rel['type']}'");
 		}
 		
 		// Oops!

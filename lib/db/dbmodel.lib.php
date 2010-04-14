@@ -67,7 +67,7 @@ class DBModel
 	//! Create a DBModel object
 	final private function __construct($model_name, $table, $fields, $relationships)
 	{
-		$info = array('pk' => array(), 'ai' => array());
+		$info = array('pk' => array(), 'ai' => array(), 'fk' => array());
 		
 		// Validate and copy all fields
 		$filtered_fields = array();
@@ -86,11 +86,12 @@ class DBModel
 				'pk' => false,
 				'ai' => false,
 				'default' => NULL,
-				'unique' => false
+				'unique' => false,
+				'fk' => false
 			);
 			$filtered_field = array_merge($default_field_options, $field);
 			
-			// Find primary key(s)
+			// Find key(s)
 			if ($filtered_field['pk'])
 			{
 				$filtered_field['unique'] = true;
@@ -100,7 +101,10 @@ class DBModel
 			}
 			else if ($filtered_field['ai'])
 				$filtered_field['ai'] = false;
-				
+
+			if ($filtered_field['fk'] != false)
+			    $info['fk'][$filtered_field['name']] = $filtered_field;
+			
 			$filtered_fields[$field_name] = $filtered_field;
 		}
 		
@@ -111,7 +115,8 @@ class DBModel
 			'relationships' => $relationships,
 			'model' => $model_name,
 			'pk' => $info['pk'],
-			'ai' => $info['ai']
+			'ai' => $info['ai'],
+			'fk' => $info['fk']
 		);
 		
 		// Add more statistical data
@@ -139,6 +144,25 @@ class DBModel
 	{	if ($fields_info === false)
 			return array_keys($this->meta_data['pk']);
 		return $this->meta_data['pk'];
+	}
+
+	//! Get the foreign key fields	
+	public function fk_fields($fields_info = false)
+	{	if ($fields_info === false)
+			return array_keys($this->meta_data['pk']);
+		return $this->meta_data['pk'];
+	}
+
+	//! Get the foreign key for model
+	public function fk_field_for($model, $field_info = false)
+	{   foreach($this->meta_data['fk'] as $fk)
+	    {   if ($fk['fk'] === $model)
+	            if ($field_info)
+	                return $fk;
+	            else
+	                return $fk['name'];
+	    }
+	    return NULL;
 	}
 	
 	//! Get the autoincrement fields
