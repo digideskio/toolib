@@ -15,10 +15,18 @@ class DBRecordManyRelationship
 	//! The constructed query
 	private $query;
 
+    //! Relationship info
+    private $rel_params = array();
+    
     //! Construct relationship handler
 	public function __construct($local_model, $foreign_model_name, $field_value)
 	{	// Construct query object
 	    $foreign_model = call_user_func(array($foreign_model_name, 'model'));
+
+	    // Save parameters
+	    $this->rel_params['local_model'] = $local_model;
+	    $this->rel_params['foreign_model'] = $foreign_model;
+	    $this->rel_params['field_value'] = $field_value;
 	    
 		$this->query = DBRecord::open_query($foreign_model_name)
 			->where($foreign_model->fk_field_for($local_model->name()) . ' = ?')
@@ -32,6 +40,15 @@ class DBRecordManyRelationship
 	//! Perform a subquery on this relationship
 	public function subquery()
 	{	return $this->query;	}
+
+	//! Get one only member with a specific primary key
+	public function get($primary_key)
+	{   $pks = $this->rel_params['foreign_model']->pk_fields();
+	    $res = $this->subquery()->where("{$pks[0]} = ?")->execute($primary_key);
+	    if (count($res) > 0)
+	        return $res[0];
+	    return NULL;
+    }
 }
 
 
