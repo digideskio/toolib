@@ -21,7 +21,7 @@ class DBRecordManyRelationship
     //! Construct relationship handler
 	public function __construct($local_model, $foreign_model_name, $field_value)
 	{	// Construct query object
-	    $foreign_model = call_user_func(array($foreign_model_name, 'model'));
+	    $foreign_model = DBRecord::model($foreign_model_name);
 
 	    // Save parameters
 	    $this->rel_params['local_model'] = $local_model;
@@ -69,8 +69,8 @@ class DBRecordBridgeRelationship
     public function __construct($local_model, $bridge_model_name, $foreign_model_name, $local_value)
     {   
         // Construct relationship array
-        $bridge_model = call_user_func(array($bridge_model_name, 'model'));
-        $foreign_model = call_user_func(array($foreign_model_name, 'model'));
+        $bridge_model = DBRecord::model($bridge_model_name);
+        $foreign_model = DBRecord::model($foreign_model_name);
 
         $rel = array();
 		$rel['local_model_name'] = $local_model->name();
@@ -191,8 +191,10 @@ class DBRecord
 	}
 
 	//! Get the model of this record
-	static public function model()
-	{	$model_name = get_called_class();
+	static public function model($model_name = NULL)
+	{	if ($model_name === NULL)
+			$model_name = get_called_class();
+
 		return self::init_model($model_name);
 	}
 
