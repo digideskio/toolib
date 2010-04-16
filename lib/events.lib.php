@@ -6,11 +6,11 @@ class Event
     //! The name of the event
     public $name;
 
-    //! User parameters passed to event
-    public $parameters = array();
+    //! User arguments passed to event
+    public $arguments = array();
 
     //! Value to be filtered by the event
-    public $value = NULL;
+    public $filtered_value = NULL;
 
     //! Type of notification
     public $type;
@@ -19,9 +19,9 @@ class Event
     public $processed = false;
 
     //! Construct event object
-    public function __construct($name, $type, $parameters = array())
+    public function __construct($name, $type, $arguments = array())
     {   $this->name = $name;
-        $this->parameters = $parameters;
+        $this->arguments = $arguments;
         $this->type = $type;
     }
 }
@@ -233,16 +233,16 @@ class EventDispatcher
         
     //! Notify all listeners for this event
     /** 
-     * @param $event_name The name of the event or @b NULL for @i any event.
-     * @param $callable The callable object that was passed on connection.
-     * @return @b true if it was disconnected succesfully or @b false on any error.
+     * @param $event_name The name of the event that notification belongs to.
+     * @param $arguments Array with user defined arguments for the listeners.
+     * @return @b Event object with the details of the event.
      */
-    public function notify($event_name, $parameters = NULL)
+    public function notify($event_name, $arguments = array())
     {   if (! $this->has_event($event_name))
             return false;
 
         // Create event object
-        $e = new Event($event_name, 'notify', $parameters);
+        $e = new Event($event_name, 'notify', $arguments);
         
         // Call event listeners
         foreach($this->event_listeners[$event_name] as $callback)
@@ -259,19 +259,66 @@ class EventDispatcher
         return $e;
     }
 
-    //! Filter value through listeners
-    public function filter($event_name, & $value)
+    //! Notify all listeners for this event until one returns non null value
+    /** 
+     * @param $event_name The name of the event that notification belongs to.
+     * @param $arguments Array with user defined arguments for the listeners.
+     * @return @b Event object with the details of the event.
+     */
+    public function notify_until($event_name, $arguments = array())
     {   if (! $this->has_event($event_name))
             return false;
+
+        // Create event object
+        $e = new Event($event_name, 'notify_until', $arguments);
         
         // Call event listeners
         foreach($this->event_listeners[$event_name] as $callback)
-        {    call_user_func($callback, $event_name, $value);    }
-
+        	if (call_user_func($callback, $e) !== NULL)
+            {	$e->processed = true;   // Mark it as processed
+				return $e;
+			}
+        
         // Call global listeners
         foreach($this->global_listeners as $callback)
-        {    $value = call_user_func($callback, $event_name, $value);    }
+			if (call_user_func($callback, $e) !== NULL)
+            {	$e->processed = true;   // Mark it as processed
+				return $e;
+			}
+
+        return $e;
     }
+
+    //! Filter value through listeners
+    /** 
+     * @param $event_name The name of the event that notification belongs to.
+     * @param $value The value that must be filtered by listeners.
+     * @param $arguments Array with user defined arguments for the listeners.
+     * @return @b Event object with the details of the event.
+     */
+    public function filter($event_name, & $value, $arguments = array())
+    {   if (! $this->has_event($event_name))
+            return false;
+
+        // Create event object
+        $e = new Event($event_name, 'filter', $arguments);
+		$e->filtered_value = & $value;
+        
+        // Call event listeners
+        foreach($this->event_listeners[$event_name] as $callback)
+        {   call_user_func($callback, $e);
+            $e->processed = true;   // Mark it as processed
+        }
+        
+        // Call global listeners
+        foreach($this->global_listeners as $callback)
+        {   call_user_func($callback, $e);
+            $e->processed = true;   // Mark it as processed
+        }
+
+        return $e;
+    }
+
 }
 
 ?>
