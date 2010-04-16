@@ -29,12 +29,12 @@ class dbconn
 	/**
 	 * Events are exported through an EventsDispatcher object. The following
 	 * events are exported:
-	 * 	- @b error : Executed in case of any error produced by 
-	 *  - @b init : Executed after dbconn has been initialized
-	 *  - @b req-prepare: Request preparation of a statement. 
-	 *  - @b prepared: A requested statement was prepared.
-	 *  - @b executed: A prepared statement was executed.
-	 *  - @b query: Perform a direct query on the connection
+	 * 	- @b dbconn.error : Executed on any error that has been emitted from dbconn.
+	 *  - @b dbconn.init: Executed after dbconn has been initialized.
+	 *  - @b dbconn.query: Perform a direct query on the connection.
+	 *  - @b dbconn.stmt.declared: Request preparation of a statement. 
+	 *  - @b dbconn.stmt.prepared: A requested statement was prepared.
+	 *  - @b dbconn.stmt.executed: A prepared statement was executed.
 	 * .
 	 */
 	static public $events = NULL;
