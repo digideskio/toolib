@@ -236,10 +236,11 @@ class EventDispatcher
      * @param $event_name The name of the event that notification belongs to.
      * @param $arguments Array with user defined arguments for the listeners.
      * @return @b Event object with the details of the event.
+     * @throws InvalidArgumentException if the $event_name is not valid
      */
     public function notify($event_name, $arguments = array())
     {   if (! $this->has_event($event_name))
-            return false;
+            throw new InvalidArgumentException("Cannot notify unknown ${event_name}");
 
         // Create event object
         $e = new Event($event_name, 'notify', $arguments);
@@ -264,10 +265,11 @@ class EventDispatcher
      * @param $event_name The name of the event that notification belongs to.
      * @param $arguments Array with user defined arguments for the listeners.
      * @return @b Event object with the details of the event.
+     * @throws InvalidArgumentException if the $event_name is not valid
      */
     public function notify_until($event_name, $arguments = array())
     {   if (! $this->has_event($event_name))
-            return false;
+            throw new InvalidArgumentException("Cannot notify_until unknown ${event_name}");
 
         // Create event object
         $e = new Event($event_name, 'notify_until', $arguments);
@@ -295,10 +297,11 @@ class EventDispatcher
      * @param $value The value that must be filtered by listeners.
      * @param $arguments Array with user defined arguments for the listeners.
      * @return @b Event object with the details of the event.
+     * @throws InvalidArgumentException if the $event_name is not valid
      */
     public function filter($event_name, & $value, $arguments = array())
     {   if (! $this->has_event($event_name))
-            return false;
+            throw new InvalidArgumentException("Cannot filter unknown ${event_name}");
 
         // Create event object
         $e = new Event($event_name, 'filter', $arguments);
@@ -318,7 +321,6 @@ class EventDispatcher
 
         return $e;
     }
-
 }
 
 ?>

@@ -348,5 +348,33 @@ class EventsTest extends PHPUnit_Framework_TestCase
             $this->assertEquals($s->arguments, array('test', 'keke', '123' => '456'));
         }
     }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testNotifyUnknown()
+    {   $d = new EventDispatcher();
+
+        $d->notify('unknown');
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testNotifyUntilUnknown()
+    {   $d = new EventDispatcher();
+
+        $d->notify_until('unknown');
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testFilterUnknown()
+    {   $d = new EventDispatcher();
+
+        $value = 'tst';
+        $d->filter('unknown', $value);
+    }
 }
 ?>

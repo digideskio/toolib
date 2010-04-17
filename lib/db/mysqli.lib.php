@@ -29,12 +29,12 @@ class dbconn
 	/**
 	 * Events are exported through an EventsDispatcher object. The following
 	 * events are exported:
-	 * 	- @b dbconn.error : Executed on any error that has been emitted from dbconn.
-	 *  - @b dbconn.init: Executed after dbconn has been initialized.
-	 *  - @b dbconn.query: Perform a direct query on the connection.
-	 *  - @b dbconn.stmt.declared: Request preparation of a statement. 
-	 *  - @b dbconn.stmt.prepared: A requested statement was prepared.
-	 *  - @b dbconn.stmt.executed: A prepared statement was executed.
+	 * 	- @b error : Executed on any error that has been emitted from dbconn.
+	 *  - @b init: Executed after dbconn has been initialized.
+	 *  - @b query: Perform a direct query on the connection.
+	 *  - @b stmt.declared: Request preparation of a statement. 
+	 *  - @b stmt.prepared: A requested statement was prepared.
+	 *  - @b stmt.executed: A prepared statement was executed.
 	 * .
 	 */
 	static public $events = NULL;
@@ -58,10 +58,10 @@ class dbconn
 	        self::$events = new EventDispatcher(array(
 	        	'error',
 	        	'init',
-	        	'req-prepare',
-	        	'prepared',
-	        	'executed',
-	        	'query'
+	        	'query',
+	        	'stmt.declared',
+	        	'stmt.prepared',
+	        	'stmt.executed',
 	        ));
         self::$delayed_preparation = $delayed_preparation;
 
@@ -137,7 +137,7 @@ class dbconn
       	    }
       	    self::$stmts[$key]['handler'] = $stmt;
       	    
-      	    self::$events->notify('prepared', $key);
+      	    self::$events->notify('stmt.prepared', array('key' => $key));
        	}
        	return true;
     }
@@ -175,7 +175,7 @@ class dbconn
         if (!self::$delayed_preparation)
             return self::assure_preparation($key);
         
-        self::$events->notify('req-prepare', array('key' => $key, 'query' => $query));
+        self::$events->notify('stmt.declared', array('key' => $key, 'query' => $query));
         
 	    return self::$stmts[$key];
 	}
@@ -192,7 +192,8 @@ class dbconn
 
     //! Raise an error
     static private function raise_error($msg)
-    {	self::$events->notify('error', $msg);
+    {	// Notify about the error
+        self::$events->notify('error', array('message' => $msg));
 
         // Else back to default error action
         echo $msg;
@@ -200,12 +201,14 @@ class dbconn
 
     //! Execute a direct query in database and return result set
     static public function query($query)
-    {   // Query db connection
+    {       
+        // Query db connection
         if (!$res = self::$dbconn->query($query))
             self::raise_error('dbconn::query(' . $query . ') error on executing query.' . self::$dbconn->error);
-		
-        self::$events->notify('query', $query);
-        
+
+        // Command executed
+        self::$events->notify('query', array('query' => $query));
+
         return $res;
     }
     
@@ -277,7 +280,7 @@ class dbconn
 	        return false;
 	    }
 	    
-	    self::$events->notify('executed', array_merge(array($key), (isset($args)?$args:array())));
+	    self::$events->notify('stmt.executed', array_merge(array($key), (isset($args)?$args:array())));
 	    
 	    return self::$stmts[$key]['handler'];
     }
