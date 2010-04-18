@@ -1,6 +1,6 @@
 <?php
 
-//! The event object passed to listeners
+//! The event object transmitted by dispatcher
 class Event
 {
     //! The name of the event
@@ -32,9 +32,6 @@ class Event
     be declared at the dispatcher using declare_event() function. The
     concept is that an object raises_events and the registered listeners
     get informed using the callback function that they previously defined.
-    
-    @note There are is a special event, that you cannot raise it or declare it
-        the '*'. This is an alias for @b any event.
         
     @b Example \n
     To understand the concept of EventDispatcher we will demonstrate it with Cat,
