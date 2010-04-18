@@ -4,7 +4,7 @@ require_once __DIR__ .  '/../lib/events.lib.php';
 
 
 
-class EventsTest extends PHPUnit_Framework_TestCase
+class EventDispatcherTest extends PHPUnit_Framework_TestCase
 {
     public $called_listener = array();
     

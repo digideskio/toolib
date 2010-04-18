@@ -345,13 +345,14 @@ class Cache_Sqlite extends Cache
 			$new_db = true;
 		
 		// Open database
-		if (($this->dbhandle = @sqlite_open($db, 0666, $error_message)) === FALSE)
+		if (($this->dbhandle = sqlite_open($db, 0666, $error_message)) === FALSE)
 			throw new Exception("Cannot open sqlite cache database. " . $error_message);
 		
 		// Create schema if needed
 		if ($new_db)
 		{
-			$res = sqlite_query($this->dbhandle, 'CREATE TABLE cache_sqlite(\'key\' VARCHAR(255) PRIMARY KEY, value TEXT, ttl INTEGER);', 
+			$res = sqlite_query($this->dbhandle,
+				'CREATE TABLE cache_sqlite(\'key\' VARCHAR(255) PRIMARY KEY, value TEXT, ttl INTEGER);', 
 				SQLITE_ASSOC,	$error_message);
 			
 			if ($res === FALSE)
@@ -400,7 +401,7 @@ class Cache_Sqlite extends Cache
 		}
 		
 		// Check if it is expired and erase it
-		if ($data['ttl'] > time())
+		if ($data[0]['ttl'] > time())
 		{	$this->delete($key);
 			$succeded = false;
 			return false;
