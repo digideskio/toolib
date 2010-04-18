@@ -73,9 +73,6 @@ abstract class Cache
 	 */
 	abstract public function get($key, & $succeded);
 	
-	// Get a key with callback function (TODO)
-	//abstract public function get_delayed($key, $callback);
-	
 	//! Read multiple entries from cache database
 	/**
 	 * This works like get() but with multiple entries at
@@ -93,7 +90,7 @@ abstract class Cache
 	 * Delete an entry based on its key.
 	 * @param $key Unique identifier of the cache entry
 	 * @return
-	 * - @b TRUE on success
+	 * - @b TRUE if entry was found and deleted
 	 * - @b FALSE on any kind of error
 	 * .
 	 */
@@ -104,7 +101,7 @@ abstract class Cache
 	 * It will delete all entries from the cache.
 	 * database.
 	 * @return
-	 * - @b TRUE on success
+	 * - @b TRUE on success whetever was the number of deleted entries.
 	 * - @b FALSE on error.
 	 * 
 	 * @note This function will delete @b ALL entries, even
@@ -145,6 +142,7 @@ class Cache_Apc extends Cache
 	public function set_multi($values, $ttl = 0)
 	{	foreach($values as $key => $value)
 			$this->set($key, $value, $ttl);
+	    return true;
 	}
 	
 	public function get($key, & $succeded)
@@ -252,7 +250,7 @@ class Cache_File extends Cache
 		fwrite($fh, serialize(array(
 			'key' => $key,
 			'value' => $value,
-			'expires' => time() + $ttl
+			'expires' => (($ttl > 0)?time() + $ttl:0)
 		)));
 		
 		fclose($fh);
@@ -262,12 +260,13 @@ class Cache_File extends Cache
 	public function set_multi($values, $ttl = 0)
 	{	foreach($values as $key => $value)
 			$this->set($key, $value, $ttl);
+	    return true;
 	}
 	
 	public function add($key, $value, $ttl = 0)
 	{	if (file_exists($this->filename_by_key($key)))
 			return false;
-		return $this->get($key);
+		return $this->set($key, $value, $ttl);
 	}
 	
 	public function get($key, & $succeded)
@@ -295,7 +294,7 @@ class Cache_File extends Cache
 		}
 		
 		// Check expired
-		if ($data['expires'] >  time())
+		if (($data['expires'] !== 0) && ($data['expires'] < time()))
 		{	unlink($fname);
 			$succeded = false;
 			return false;
@@ -316,7 +315,8 @@ class Cache_File extends Cache
 	}
 	
 	public function delete($key)
-	{	ulink($this->filename_by_key($key));	}
+	{	return @unlink($this->filename_by_key($key));
+	}
 	
 	public function delete_all()
 	{	if (($dh = opendir($this->directory)) === FALSE)
@@ -330,7 +330,7 @@ class Cache_File extends Cache
 			if (substr($entry, 0, strlen($this->file_prefix)) === $this->file_prefix)
 				unlink($this->directory . '/' . $entry);
 		}
-		
+		return true;		
 	}
 }
 
@@ -352,7 +352,7 @@ class Cache_Sqlite extends Cache
 		if ($new_db)
 		{
 			$res = sqlite_query($this->dbhandle,
-				'CREATE TABLE cache_sqlite(\'key\' VARCHAR(255) PRIMARY KEY, value TEXT, ttl INTEGER);', 
+				'CREATE TABLE cache_sqlite(\'key\' VARCHAR(255) PRIMARY KEY, value TEXT, expir_time INTEGER);', 
 				SQLITE_ASSOC,	$error_message);
 			
 			if ($res === FALSE)
@@ -367,21 +367,31 @@ class Cache_Sqlite extends Cache
 	{	sqlite_close($this->dbhandle);	}
 	
 	public function set($key, $value, $ttl = 0)
-	{	$this->delete($key);
+	{	$expir_time = (($ttl === 0)?0:(time() + $ttl));
+    	$res = @sqlite_query($this->dbhandle,
+			"UPDATE cache_sqlite SET " .
+				"value = '" . sqlite_escape_string(serialize($value)) . "', " .
+				"expir_time = '" . $expir_time . "' " .
+				"WHERE key = '" . sqlite_escape_string($key) . "';");
+		if (($res !== FALSE) && (sqlite_changes($this->dbhandle) !== 0))
+		    return true;
+		
 		return $this->add($key, $value, $ttl);		
 	}
 	
 	public function set_multi($values, $ttl = 0)
 	{	foreach($values as $key => $value)
 			$this->set($key, $value, $ttl);
+		return true;
 	}
 	
 	public function add($key, $value, $ttl = 0)
-	{ 	$res = sqlite_query($this->dbhandle,
-			"INSERT INTO cache_sqlite (key, value, ttl) VALUES( '" .
+	{ 	$expir_time = (($ttl === 0)?0:(time() + $ttl));
+	    $res = @sqlite_query($this->dbhandle,
+			"INSERT INTO cache_sqlite (key, value, expir_time) VALUES( '" .
 				sqlite_escape_string($key) . "', '" .
 				sqlite_escape_string(serialize($value)) . "', '" .
-				(time() + $ttl) . "');");
+				$expir_time . "');");
 		
 		return ($res !== FALSE);
 	}
@@ -401,7 +411,7 @@ class Cache_Sqlite extends Cache
 		}
 		
 		// Check if it is expired and erase it
-		if ($data[0]['ttl'] > time())
+		if (($data[0]['expir_time']) && ($data[0]['expir_time'] < time()))
 		{	$this->delete($key);
 			$succeded = false;
 			return false;
@@ -421,8 +431,11 @@ class Cache_Sqlite extends Cache
 	}
 	
 	public function delete($key)
-	{	return (FALSE !== sqlite_query($this->dbhandle,
-			"DELETE FROM cache_sqlite WHERE key = '" . sqlite_escape_string($key) . "'"));
+	{	$res = sqlite_query($this->dbhandle,
+			"DELETE FROM cache_sqlite WHERE key = '" . sqlite_escape_string($key) . "'");
+	    if (($res === false) || (sqlite_changes($this->dbhandle) === 0))
+	        return false;
+        return true;
 	}
 	
 	public function delete_all()
