@@ -1,8 +1,6 @@
 <?php
 require_once 'PHPUnit/Framework.php';
-require_once __DIR__ .  '/../lib/events.lib.php';
-
-
+require_once __DIR__ .  '/./path.inc.php';
 
 class EventDispatcherTest extends PHPUnit_Framework_TestCase
 {

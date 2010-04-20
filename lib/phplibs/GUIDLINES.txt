@@ -1,0 +1,27 @@
+
+Coding Guidelines
+-----------------------
+
+Current Revision: R2
+
+ 1. Comments must all have left asterisk
+ 	/**
+ 	 * Never omit left asterisk
+ 	 */
+ 
+ 2. Functions must be named following php guidlines
+ 	- all lowercase
+ 	- words are seperated with _
+ 	e.g. $obj->check_this();
+ 	
+ 3. Class must be named following php guidlines
+ 	- Camelized text like MyVeryGoodClass
+ 	
+ 4. All classes must have their conformance revision in their brief description
+ 	e.g //! [R1] This is the best class
+
+ 5. Files that contain functions must have filename of the form package.lib.php
+
+ 6. Files that contain a class must have extension .class.php and
+    their name must conform to PSR-0 standard.
+    e.g. Cache_Apc class maps to path Cache/Apc.class.php
