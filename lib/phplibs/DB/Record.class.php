@@ -14,6 +14,9 @@ class DB_Record
 
 	//! Array with dynamic relationships
 	static protected $dynamic_relationships = array();
+
+	//! Array with events dispatchers of DB Records
+	static protected $event_dispatchers = array();
 	
 	//! Initialize model based on the structure of derived class
 	static private function init_model($model_name)
@@ -95,6 +98,57 @@ class DB_Record
 		return self::init_model($model_name);
 	}
 
+	//! Get the model event handler
+	/**
+	 * Events are announced through an EventDispatcher object per model.
+	 * The following events are valid:
+	 *  - @b op.pre.open: Filter before execution of open().
+	 *  - @b op.post.open: Notify after executeion of open().
+	 *  - @b op.pre.create: Filter before execution of create().
+	 *  - @b op.post.create: Notify after executeion of create().
+	 *  - @b op.pre.delete: Filter before execution of delete().
+	 *  - @b op.post.delete: Notify after executeion of delete().
+	 *  - @b op.pre.save: Filter before execution of save().
+	 *  - @b op.post.save: Notify after executeion of save().
+	 * .
+	 */
+	 * @return EventDispatcher for this model
+	 */
+    static public function events($model_name = NULL)
+    {   if ($model_name === NULL)
+            $model_name = get_called_class();
+
+        if (!isset(self::$event_dispatchers[$model_name]))
+            self::$event_dispatchers[$model_name] = new EventDispatcher(
+                array(
+                    'op.post.open',
+                    'op.post.create',
+                    'op.post.delete',
+                    'op.post.save',
+                    'op.pre.open',
+                    'op.pre.create',
+                    'op.pre.delete',
+                    'op.pre.save'
+                )
+            );
+
+        return self::$event_dispatchers[$model_name];
+    }
+
+    //! Notify an event listener
+    static private function notify_event($model_name, $event_name, $args)
+    {   if (!isset(self::$event_dispatchers[$model_name]))
+            return false;
+        return self::$event_dispatchers[$model_name]->notify($event_name, $args);
+    }
+
+    //! Filter through an event listener
+    static private function filter_event($model_name, $event_name, & $value, $args)
+    {   if (!isset(self::$event_dispatchers[$model_name]))
+            return false;
+        return self::$event_dispatchers[$model_name]->filter($event_name, $value, $args);
+    }
+
 	//! Declare 1-to-many relationship
 	static public function one_to_many($many_model_name, $one_rel_name, $many_rel_name)
 	{	$model_name = get_called_class();
@@ -157,7 +211,16 @@ class DB_Record
 
 		// Initialize model
 		$model = & self::init_model($model_name);
-		
+
+        // Event notification
+        self::filter_event(
+            $model_name,
+            'op.pre.open',
+            $primary_keys,
+            array('model' => $model_name));
+        if ($primary_keys === false)
+            return false;
+            
 		// Check parameters
 		$pk_fields = $model->pk_fields(false);
 
@@ -178,9 +241,16 @@ class DB_Record
 		}
 
 		// Check return value
-		if (count($res = call_user_func_array(array($q, 'execute'), $select_args)) !== 1)
+		if (count($records = call_user_func_array(array($q, 'execute'), $select_args)) !== 1)
 			return false;
-		return $res[0];
+
+        // Event notification
+        self::notify_event(
+            $model_name,
+            'op.post.open',
+            array('records' => $records, 'model' => $model_name));
+        
+		return $records[0];
 	}
 	
 	//! Open all records of this table
@@ -208,8 +278,16 @@ class DB_Record
 		$model = & self::init_model($model_name);
 		
 		// Execute query and check return value
-		return self::open_query($model_name)
+		$records = self::open_query($model_name)
 			->execute();
+
+        // Event notification
+        self::notify_event(
+            $model_name,
+            'op.post.open',
+            array('records' => $records, 'model' => $model_name));
+
+        return $records;
 	}
 	
 	//! Count records of model
@@ -244,6 +322,15 @@ class DB_Record
 
 	    // Initialize model
 		$model = & self::init_model($model_name);
+
+		// Event notification
+        self::filter_event(
+            $model_name,
+            'op.pre.create',
+            $args,
+            array('model' => $model_name));
+        if ($args === false)
+            return false;
 
 		// Prepare values
 		$insert_args = array();
@@ -286,13 +373,24 @@ class DB_Record
 			foreach($values as $field_name => $value)
 				$sql_fields[$model->field_info($field_name, 'sqlfield')] = $value;			
 
-			return new $model_name($model, $sql_fields);
+			$new_object = new $model_name($model, $sql_fields);
 		}
-		
-		// Open data based on primary key.
-		foreach($model->pk_fields() as $pk_name)
-			$pk_values[$pk_name] = $values[$pk_name];
-		return DB_Record::open($pk_values, $model_name);
+		else
+		{
+		    // Open data based on primary key.
+		    foreach($model->pk_fields() as $pk_name)
+			    $pk_values[$pk_name] = $values[$pk_name];
+			    
+            $new_object = DB_Record::open($pk_values, $model_name);
+        }
+
+        // Event notification
+        self::notify_event(
+            $model_name,
+            'op.post.create',
+            array('record' => $new_object, 'model' => $model_name));
+
+        return $new_object;
 	}
 	
 	//! Data values of this instance
@@ -340,7 +438,17 @@ class DB_Record
 	{	
 		if(count($this->dirty_fields) === 0)
 			return false;	// No changes
-			
+
+		// Event notification
+		$cancel = false;
+        self::filter_event(
+            $this->model()->name(),
+            'op.pre.save',
+            $cancel,
+            array('model' => $this->model()->name(), 'record' => $this, 'old_values' => $this->dirty_fields));
+        if ($cancel)
+            return false;            
+
 		// Create update query
 		$update_args = array();
 		$q = self::raw_query($this->model->name())
@@ -367,14 +475,17 @@ class DB_Record
 		// Execute query
 		$res = call_user_func_array(array($q, 'execute'), $update_args);
 		if ((!$res) || ($res->affected_rows !== 1))
-		{   var_dump($q->sql());
-		    var_dump($update_args);
             return false;
-        }
 
         // Clear dirty fields
         $this->dirty_fields = array();
-        
+
+        // Event notification
+        self::notify_event(
+            $this->model()->name(),
+            'op.post.save',
+            array('record' => $this, 'model' => $this->model()->name()));
+            
 		return true;
 	}
 	
@@ -387,6 +498,17 @@ class DB_Record
 	 */
 	public function delete()
 	{	
+        // Event notification
+		$cancel = false;
+        self::filter_event(
+            $this->model()->name(),
+            'op.pre.delete',
+            $cancel,
+            array('model' => $this->model()->name(), 'record' => $this)
+        );
+        if ($cancel)
+            return false;
+            
 		// Create delete query
 		$delete_args = array();
 		$q = self::raw_query($this->model->name())
@@ -403,6 +525,13 @@ class DB_Record
 		$res = call_user_func_array(array($q, 'execute'), $delete_args);
 		if ((!$res) || ($res->affected_rows !== 1))
 		    return false;
+
+        // Post-Event notification
+        self::notify_event(
+            $this->model()->name(),
+            'op.post.delete',
+            array('record' => $this, 'model' => $this->model()->name()));
+
 		return true;
 	}
 
@@ -546,7 +675,8 @@ class DB_Record
 	
 	//! Serialization implementation
 	public function __sleep()
-	{	return array('fields_data', 'dirty_fields');
+	{
+	    return array('fields_data', 'dirty_fields');
 	}
 	
 	//! Unserilization implementation
