@@ -65,11 +65,11 @@ class Comm_HTTP_Param
 	
 	//! Check if a parameter is set
 	/**
-		@param $param_type The type of this parameter. Accepted values are 'get', 'post' or 'both'.
-		@return - @b true If this parameter is set
-			- @b false If the parameter is not set
-			.
-	*/
+     * @param $param_type The type of this parameter. Accepted values are 'get', 'post' or 'both'.
+     * @return - @b true If this parameter is set
+     *  - @b false If the parameter is not set
+     *  .
+	 */
 	function is_set($name, $param_type = 'both')
 	{
 		if ($param_type == 'post')
@@ -84,11 +84,11 @@ class Comm_HTTP_Param
 	
 		//! Check if a parameter is set and is numeric type
 	/**
-		@param $param_type The type of this parameter. Accepted values are 'get', 'post' or 'both'.
-		@return - @b true If this parameter is set and is numeric
-			- @b false If the parameter is not set or it is not numeric
-			.
-	*/
+     * @param $param_type The type of this parameter. Accepted values are 'get', 'post' or 'both'.
+     * @return - @b true If this parameter is set and is numeric
+     *  - @b false If the parameter is not set or it is not numeric
+     * .
+	 */
 	function is_numeric($name, $param_type = 'both')
 	{
 		if ($param_type == 'post')

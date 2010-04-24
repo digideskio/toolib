@@ -111,7 +111,6 @@ class DB_Record
 	 *  - @b op.pre.save: Filter before execution of save().
 	 *  - @b op.post.save: Notify after executeion of save().
 	 * .
-	 */
 	 * @return EventDispatcher for this model
 	 */
     static public function events($model_name = NULL)

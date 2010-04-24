@@ -1,7 +1,7 @@
 <?php
 
 //! Date textual formater class
-class DateFormat
+class Output_DateFormat
 {
     //! The date object that will be formated
     private $date_obj;
@@ -51,7 +51,7 @@ class DateFormat
     /**
      * This smart format will omit details that are the same with
      * presence. E.g. if you are showing a date in the same year,
-     * the year will be ommited, the same will happn for month and day.
+     * the year will be ommited, the same will happen for month and day.
      */
     function smart_details($ndate)
     {	$currentTime = time();
