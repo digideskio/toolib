@@ -10,10 +10,6 @@ function text_sample($text, $length)
 	return substr($text, 0, $length - 3) . '...';
 }
 
-//! Redirect browser to a new url
-function redirect($path, $auto_exit = true)
-{   header('Location: '. $path);  if ($auto_exit) exit;  }
-
 /* Backport functions */
 
 if (!function_exists('get_called_class'))
