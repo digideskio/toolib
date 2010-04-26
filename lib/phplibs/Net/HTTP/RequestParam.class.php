@@ -1,6 +1,6 @@
 <?php
 
-class Comm_HTTP_Param
+class Net_HTTP_RequestParam
 {
 	//! Assure that a parameter is given through 'get', 'post' or 'both'.
 	/**
@@ -82,7 +82,7 @@ class Comm_HTTP_Param
 		return isset($array[$name]);
 	}
 	
-		//! Check if a parameter is set and is numeric type
+    //! Check if a parameter is set and is numeric type
 	/**
      * @param $param_type The type of this parameter. Accepted values are 'get', 'post' or 'both'.
      * @return - @b true If this parameter is set and is numeric

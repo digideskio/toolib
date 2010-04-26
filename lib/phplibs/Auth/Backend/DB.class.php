@@ -50,6 +50,7 @@ class Auth_Backend_DB implements Auth_Backend
         $this->model_query = call_user_func(array($options['model_user'], 'open_query'))
             ->where($options['field_username'] . ' = ?');
 
+        // Append where conditions
         foreach($this->options['where_conditions'] as $condition)
             $this->model_query->where($condition);
     }
@@ -58,6 +59,7 @@ class Auth_Backend_DB implements Auth_Backend
     {
         // Get user
         $records = $this->model_query->execute($username);
+        //var_dump($records);
         if (count($records) !== 1)
             return false;
 
@@ -73,9 +75,21 @@ class Auth_Backend_DB implements Auth_Backend
         return new Auth_Identity_DB($records[0]->{$this->options['field_username']}, $this, $records[0]);
     }
 
+    //! Reset the password of an identity
+    /**
+     * @param $id The username of the identity.
+     * @param $new_password The new effective password of identity after reset.
+     * @return - @b true if the password was reset.
+     *  - @b false on any error.
+     */
     public function reset_password($id, $new_password)
-    {   if (!($user = call_user_func(array($this->options['model_user'], 'open'), $id)))
+    {   $records = call_user_func(array($this->options['model_user'], 'open_query'))
+            ->where($this->options['field_username'] . ' = ?')
+            ->execute($id);
+            
+        if ((!$records) || (count($records) !== 1))
             return false;
+        $user = $records[0];
 
         // Hash-salt function
         if ($this->options['hash_function'] !== NULL)

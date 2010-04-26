@@ -12,6 +12,16 @@ class User_plain extends DB_Record
     );
 }
 
+class User_id extends DB_Record
+{
+    static public $table = 'users_id';
+    static public $fields = array(
+        'id' => array('pk' => true, 'ai' => true),
+        'username',
+        'password',
+        'enabled'
+    );
+}
 class User_md5 extends DB_Record
 {
     static public $table = 'users_md5';
@@ -96,6 +106,17 @@ class Auth_SampleSchema
         ');
 
         DB_Conn::query('
+        CREATE TABLE `users_id` (
+            id INT auto_increment NOT NULL,
+            username varchar(15),
+            password varchar(255),
+            enabled TINYINT DEFAULT 1,
+            PRIMARY KEY(id),
+            UNIQUE KEY(username)
+        );
+        ');
+
+        DB_Conn::query('
         CREATE TABLE `users_md5` (
             username varchar(15),
             password CHAR(32),
@@ -116,6 +137,11 @@ class Auth_SampleSchema
         foreach(self::$test_users as $record)
         {   list($username, $password, $enabled) = $record;
             self::insert_user('users_plain', $username, $password, $enabled);
+        }
+
+        foreach(self::$test_users as $record)
+        {   list($username, $password, $enabled) = $record;
+            self::insert_user('users_id', $username, $password, $enabled);
         }
 
         foreach(self::$test_users as $record)

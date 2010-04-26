@@ -44,6 +44,27 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($res->get_record(), User_plain::open('user1'));
     }
 
+    public function testPlainIdReUse()
+    {
+        $auth = new Auth_Backend_DB(array(
+            'model_user' => 'User_id',
+            'field_username' => 'username',
+            'field_password' => 'password'
+            ));
+
+        $res = $auth->authenticate('user1', 'false password');
+        $this->assertFalse($res);
+
+        $res = $auth->authenticate('unknown', 'false password');
+        $this->assertFalse($res);
+        //exit;
+        
+        $res = $auth->authenticate('user1', 'password1');
+        $this->assertType('Auth_Identity_DB', $res);
+        $this->assertEquals($res->id(), 'user1');
+        $this->assertEquals($res->get_record(), User_id::open(1));
+    }
+    
     public function testMd5User()
     {
         $auth = new Auth_Backend_DB(array(
@@ -103,6 +124,27 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->get_record(), User_plain::open($username));
     }
+
+    /**
+     * @dataProvider dataUsers
+     */
+    public function testPlainIdForce($username, $password, $enabled)
+    {   static $auth = NULL;
+        static $count = 0;
+        $count +=  1;
+        if (!$auth)
+            $auth = new Auth_Backend_DB(array(
+                'model_user' => 'User_id',
+                'field_username' => 'username',
+                'field_password' => 'password'
+                ));
+
+        $res = $auth->authenticate($username, $password);
+        $this->assertType('Auth_Identity_DB', $res);
+        $this->assertEquals($res->id(), $username);
+        $this->assertEquals($res->get_record(), User_id::open($count));
+    }
+
 
     /**
      * @dataProvider dataUsers
@@ -215,6 +257,34 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
         Auth_SampleSchema::destroy();
         Auth_SampleSchema::build();
     }
+
+    public function testResetPlainIdPwd()
+    {
+        $auth = new Auth_Backend_DB(array(
+            'model_user' => 'User_id',
+            'field_username' => 'username',
+            'field_password' => 'password'
+            ));
+
+        $identity = $auth->authenticate('user1', 'password1');
+        $this->assertType('Auth_Identity_DB', $identity);
+        $this->assertTrue($identity->reset_password('passwordnew'));
+
+        // Check same password
+        $this->assertFalse($auth->authenticate('user1', 'password1'));
+        $res = $auth->authenticate('user1', 'password1');
+
+        // Check with new password
+        $res = $auth->authenticate('user1', 'passwordnew');
+        $this->assertType('Auth_Identity_DB', $res);
+        $this->assertEquals($res->id(), 'user1');
+        $this->assertEquals($res->get_record(), User_id::open(1));
+
+        // Rebuild
+        Auth_SampleSchema::destroy();
+        Auth_SampleSchema::build();
+    }
+
 
     public function testResetMd5Pwd()
     {
