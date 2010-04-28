@@ -21,36 +21,41 @@ class Auth_Storage_Cache implements Auth_Storage
      *  All the parameters of cookie will be used except of value which will
      *  be changed to the appropriate one.
      */
-    public function __construct(Cache $cache, Comm_HTTP_Cookie $cookie)
+    public function __construct(Cache $cache, Net_HTTP_Cookie $cookie)
     {
         $this->cache = $cache;
         $this->cookie = $cookie;
 
         // Check if there is already a cookie
-        $received_cookie = Comm_HTTP_Cookie::open($cookie->get_name());
+        $received_cookie = Net_HTTP_Cookie::open($cookie->get_name());
         if ($received_cookie)
             $this->session_id = $received_cookie->get_value();
     }    
     
-    public function set_identity(Auth_Identity $identity)
+    public function set_identity(Auth_Identity $identity, $ttl = null)
     {   // Clear identity
-        clear_identity();
+        $this->clear_identity();
 
         // Create a new sessionid
-        // Uniqid() without $entropy = true is just an alias for mircoseconds
+        // Uniqid() without $entropy = true is just an alias for mircoseconds.
+        // rand() is an direct call to system's libc rand implementation preseeded.
         // mt_rand() is a better random generator that will be prefixed to uniqid
         // sha1() just hides clues about returned values of mt_rand() and uniquid()
         // however it does not protect you if mt_rand() and uniqid() are time dependant.
-        $this->session_id = sha1(uniqid((string)mt_rand(), true));
-        var_dump($this->session_id);
-        var_dump(uniqid((string)mt_rand(), true));
-
-        // Save in cache
-        $this->cache->set($this->session_id, $identity);
+        $this->session_id = hash('sha512', sha1(uniqid((string)mt_rand(), true)) .  sha1(rand()));
 
         // Send cookie
+        if ($ttl)
+            $this->cookie->set_expiration_time(time() + $ttl);
         $this->cookie->set_value($this->session_id);
         $this->cookie->send();
+
+        // Save in cache
+        $this->cache->set(
+            $this->session_id,
+            $identity, 
+            ($this->cookie->is_session_cookie()?0:$this->cookie->get_expiration_time() - time())
+        );
     }
 
     public function get_identity()
@@ -58,7 +63,7 @@ class Auth_Storage_Cache implements Auth_Storage
         if ($this->session_id === null)
             return false;
 
-        $identity = $this->cache->fetch($this->session_id, $succ)
+        $identity = $this->cache->get($this->session_id, $succ);
         if (!$succ)
         {   clear_identity();
             return false;

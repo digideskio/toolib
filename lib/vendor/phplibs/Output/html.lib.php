@@ -4,7 +4,7 @@
 function tag()
 {	$args = func_get_args();
 	return call_user_func_array(
-		array(new ReflectionClass('HTMLTag'), 'newInstance'),
+		array(new ReflectionClass('Output_HTMLTag'), 'newInstance'),
 		$args
 	);
 }

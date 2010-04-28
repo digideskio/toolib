@@ -50,6 +50,6 @@ class Stupid_Condition_Authentication extends Stupid_Condition
 		}
 	}
 }
-AuthenticationCondition::register();
+Stupid_Condition_Authentication::register();
 
 ?>

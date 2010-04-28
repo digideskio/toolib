@@ -7,7 +7,9 @@ interface Auth_Storage
     //! Set the current session identity
     /**
      * @param $identity The identity object to save
-     * @param $ttl The maximum time before expiration
+     * @param $ttl - Time in seconds that this identity will be online.
+     *  - @b null if you dont want to declare it explicitly for this identity.
+     *  .
      */
     public function set_identity(Auth_Identity $identity, $ttl = null);
 

@@ -13,7 +13,7 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
  * rules that must be checked.
  * 
  * @par Acceptable condition options
- * - @b path_type [Default = request_uri]: request_uri, path_info
+ * - @b path_type [Default = path_info]: request_uri, path_info
  * - @b delimiter [Default=/] : The delimiter that will be used to tokenize
  *      selected path in chunks.
  * - @b path: A regular expresion to check if path is equal to this.
@@ -61,6 +61,7 @@ class Stupid_Condition_UrlPath extends Stupid_Condition
 				$subject_path = $_SERVER['PATH_INFO'];
 			break;
 		}
+
 		// Check if there is a path constrain
 		if (isset($options['path']))
 		{	if (preg_match($options['path'], $subject_path, $matches) != 1)

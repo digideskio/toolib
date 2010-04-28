@@ -38,6 +38,12 @@ class ClassLoader
         spl_autoload_register(array($this, 'load_class'));
     }
 
+    //! Unregister this object from autoloader stack
+    public function unregister()
+    {
+        spl_autoload_unregister(array($this, 'load_class'));
+    }
+    
     //! Set the file extension of files
     /**
      * @param The extension of file with the leading dot.\n

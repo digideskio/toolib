@@ -76,7 +76,7 @@ require_once(dirname(__FILE__) . '/../functions.lib.php');
     // will render the HTML page "magically"
     @endcode
 */
-class HTMLDoc
+class Output_HTMLDoc
 {
     //! Javascript references
     private $js_refs = array();

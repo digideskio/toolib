@@ -56,7 +56,7 @@ require_once(dirname(__FILE__) . '/../functions.lib.php');
  * @author sque
  *
  */
-class HTMLTag
+class Output_HTMLTag
 {
 	//! Set the default render mode for all HTMLTag
 	/**
@@ -379,7 +379,7 @@ class HTMLTag
 	
 	//! Append to default parent
 	public function append_to_default_parent()
-	{	if (($parent = HTMLTag::get_current_parent()) != NULL)
+	{	if (($parent = self::get_current_parent()) != NULL)
 		{
 			$parent->append($this);
 			return true;
