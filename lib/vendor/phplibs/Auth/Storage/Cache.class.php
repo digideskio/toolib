@@ -65,7 +65,7 @@ class Auth_Storage_Cache implements Auth_Storage
 
         $identity = $this->cache->get($this->session_id, $succ);
         if (!$succ)
-        {   clear_identity();
+        {   $this->clear_identity();
             return false;
         }
 

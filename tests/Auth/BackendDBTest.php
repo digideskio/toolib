@@ -11,18 +11,24 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
     }
 
     public static function tearDownAfterClass()
-    {    Auth_SampleSchema::destroy();
+    {    
+        Auth_SampleSchema::destroy();
     }
 
     public function setUp()
-    {    Auth_SampleSchema::connect();    }
+    {    
+        Auth_SampleSchema::connect();
+    }
     
     public function tearDown()
-    {   DB_Conn::disconnect();    }
-
+    {   
+        DB_Conn::disconnect();
+    }
 
     public function dataUsers()
-    {   return AutH_SampleSchema::$test_users ;   }
+    {
+        return AutH_SampleSchema::$test_users ;
+    }
     
     public function testPlainReUse()
     {
