@@ -9,8 +9,7 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
  * This evaluator implements the <b> type = "auth"</b> 
  *
  * @par Acceptable condition options
- * - @b op [Default = equal]: ingroup, isanon, isuser
- * - @b group: The corresponding group for operands that need to define a group.
+ * - @b op [Default = isuser]: isanon, isuser
  * - @b user: The corresponding user for operands that need to define a user.
  * .
  * 
@@ -31,22 +30,17 @@ class Stupid_Condition_Authentication extends Stupid_Condition
 	{
 		// Default condition values
 		$defcond = array(
-			'op' => 'ingroup', 'isanon', 'isuser',
-			'group' => '',
+			'op' => 'isuser',
 			'user' => ''
 		);
 		$options = array_merge($defcond, $this->options);
 
 		// Per operand
 		switch($options['op']){
-		case 'ingroup':
-			if (($gp = Group::open($options['group'])) === false)
-				return false;
-			return $gp->has_current_user();
 		case 'isanon';
-			return WAAS::current_user_is_anon();
+			return ! Auth_Realm::has_identity();
 		case 'isuser':
-			return ((!WAAS::current_user_is_anon()) && (Waas::current_user()->username == $options['user']));
+			return ((Auth_Realm::has_identity()) && (Auth_Realm::get_identity() == $options['user']));
 		}
 	}
 }

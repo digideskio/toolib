@@ -14,7 +14,7 @@ require_once(dirname(__FILE__) . '/../functions.lib.php');
     $mypage->add_ref_css('/themes/fantastic.css');
     
     // Add data to body
-    $mypage->append_data('Hello World');
+    $mypage->get_body()->append_text('Hello World');
     
     // Render and display page
     echo $mypage->render();
@@ -29,7 +29,7 @@ require_once(dirname(__FILE__) . '/../functions.lib.php');
     $mypage = new HTMLDoc();
     
     // Auto append data to html content
-    ob_start(array($mypage, 'append_data'));
+    ob_start(array($mypage->get_body(), 'append_text'));
 
     // Everything echoed here will be appended to html
     echo 'Hello world';
@@ -52,7 +52,7 @@ require_once(dirname(__FILE__) . '/../functions.lib.php');
     $mypage->add_ref_css('/themes/fantastic.css');
     
     // Auto append data to html content
-    ob_start(array($mypage, 'append_data'));
+    ob_start(array($mypage->get_body(), 'append_text'));
 
     // Create a guard object that on destruction it will render the mypage
     class auto_render_html
@@ -88,13 +88,23 @@ class Output_HTMLDoc
 	private $extra_meta = array();
 	
     //! Contents of body
-    private $body_data = '';
+    private $body;
 
     //! Character set of body content
     public $char_set = 'utf-8';
     
     //! Title of html page
     public $title = '';
+
+    public function __construct()
+    {
+        $this->body = new Output_HTMLTag('body');
+    }
+
+    public function get_body()
+    {
+        return $this->body;
+    }
     
     //! Add a external reference entry
     /** 
@@ -170,7 +180,7 @@ class Output_HTMLDoc
 
     //! Render html code and return a string with the whole page
     public function render()
-    {   $is_xhtml = (HTMLTag::$default_render_mode == 'xhtml');
+    {   $is_xhtml = (Output_HTMLTag::$default_render_mode == 'xhtml');
     	
     	// DocType
     	if ($is_xhtml)
@@ -206,11 +216,7 @@ class Output_HTMLDoc
         // Title
         $r .= tag('title', $this->title);
         $r .= '</head>';
-        $r .= tag('body', 
-        		tag('div id="wrapper" html_escape_off',
-        			$this->body_data
-        		)
-        	);
+        $r .= (string)$this->body;
         $r .= '</html>';
         return $r;
     }

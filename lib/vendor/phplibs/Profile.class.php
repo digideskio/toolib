@@ -10,7 +10,7 @@
  * @author sque
  *
  */
-class Tools_Profile
+class Profile
 {
 	//! Prohibit the creation of Profile objects
 	final private function __construct(){}
@@ -39,14 +39,14 @@ class Tools_Profile
 	* @code
 	* // Example of adding checkpoints in a function
 	* function my_slow_function($big_number)
-	* {	profile::checkpoint('my_slow_function start', $big_number);
+	* {	Profile::checkpoint('my_slow_function start', $big_number);
 	*
 	* 		for($i = 0; $i < $big_number;$i++)
-	* 		{	profile::checkpoint('my_slow_function iter', $i)
+	* 		{	Profile::checkpoint('my_slow_function iter', $i)
 	* 			$d = ($i * $i) + ($d/$i);
 	* 		}
 	*
-	* 		profile::checkpoint('my_slow_function end', array($big_number, $d));
+	* 		Profile::checkpoint('my_slow_function end', array($big_number, $d));
 	* 		return $d;
 	* }
 	* @endcode
@@ -77,9 +77,9 @@ class Tools_Profile
 	* @code
 	* for($i = 0;$i < 5;$i++)
 	* {
-	* 		profile::checkpoint('loop-start', $a);
+	* 		Profile::checkpoint('loop-start', $a);
 	* 		sleep(1.31);
-	* 		profile::checkpoint('loop-end');
+	* 		Profile::checkpoint('loop-end');
 	* }
 	* @endcode
 	*
@@ -147,9 +147,10 @@ class Tools_Profile
 	* <b> Simple usage example </b>
 	* @code
 	* function myadd($a, $b)
-	* {	profile::checkpoint('func_add', array($a, $b));
+	* {	
+	*       Profile::checkpoint('func_add', array($a, $b));
 	* 		$ret = $a + $b;
-	*		profile::checkpoint('func_end', $ret);
+	*		Profile::checkpoint('func_end', $ret);
 	* }
 	*
 	* echo myadd(1,2);

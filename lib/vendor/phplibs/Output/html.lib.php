@@ -13,6 +13,7 @@ function tag()
 function etag()
 {	$args = func_get_args();
 	$tag = call_user_func_array('tag', $args);
+    ob_clean();
 	if (!$tag->append_to_default_parent())
 		echo $tag;
 	return $tag;

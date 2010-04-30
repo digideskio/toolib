@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__FILE__) . '/../html.lib.php';
 
 //! Create an interactive grid of data
 /** 

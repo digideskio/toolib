@@ -208,6 +208,24 @@ class Output_HTMLTag
 		$this->attributes[$attr_name] = $attr_value;
 		return $this;
 	}
+
+	//! Get an attribute
+	public function get_attr($attr_name)
+	{
+	    if(!isset($this->attributes[$attr_name]))
+	        return null;
+        return $this->attributes[$attr_name];
+	}
+
+	//! Check if it has an attribute with a specific name and value
+	public function has_attr($attr_name, $attr_value = null)
+    {
+	    if(!isset($this->attributes[$attr_name]))
+	        return false;
+        if (($attr_value === null) || ($this->attributes[$attr_name] == $attr_value))
+            return true;
+        return false;
+    }
 	
 	//! Check if it has a class
 	public function has_class($class_name)
@@ -241,6 +259,12 @@ class Output_HTMLTag
 			foreach(func_get_args() as $arg)
 				$this->childs[] = $arg;
 		return $this;
+	}
+
+	//! Append a text child
+	public function append_text($text)
+	{
+	    $this->childs[] = (string) $text;
 	}
 	
 	//! Prepend a child
@@ -277,6 +301,25 @@ class Output_HTMLTag
 				$elements = array_merge($elements, $child->getElementsByTagName($tag));
 			}
 		return $elements;
+	}
+
+	//! Find the first descendant with a specific id
+	/**
+	 * @param $id The id that descendant must have
+	 * @return The element with that id or @b null if not found.
+	 */
+	public function getElementById($id)
+	{	$elements = array();
+	
+		foreach($this->childs as $child)
+			if (is_object($child))
+			{	if ($child->has_attr('id', $id))
+			        return $child;
+
+                if ($res = $child->getElementById($id))
+                    return $res;                
+			}
+		return null;
 	}
 	
 	//! Render this tag and children
@@ -351,7 +394,7 @@ class Output_HTMLTag
 	
 	//
 	public function push_parent($append_to_current = false)
-	{	if ($append_to_current)
+	{   if ($append_to_current)
 			$this->append_to_default_parent(); 
 		array_push(self::$tracked_parents, $this);
 		return $this;
