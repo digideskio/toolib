@@ -1,30 +1,29 @@
 <?php
 /**
- * Configure your site.
+ * Change settings or expand with custom ones.
  */
-require_once('lib/config.lib.php');
-
 // Database host name
-Config::add('db_host', 'localhost');
+Config::add('db.host', 'localhost');
 
 // Database connection username
-Config::add('db_user', 'user');
+Config::add('db.user', 'root');
 
 // Database connection password
-Config::add('db_pass', 'pass');
+Config::add('db.pass', 'root');
 
 // Database schema
-Config::add('db_schema', 'test');
+Config::add('db.schema', 'test');
 
 // The title of this site
-Config::add('site_title', 'My New Site');
+Config::add('site.title', 'Kick Ass Site');
 
-// Path of this site as it is exposed on webserver
-Config::add('site_root', '/');
-
-// Enabling this will force browser to avoid caching css (usefull on development)
-Config::add('css_anticache', true);
+// The time zone to be used on this site
+Config::add('site.timezone', 'UTC');
 
 // You can enable this by specifying your google analytics ID
-Config::add('google_analytics', false);
+Config::add('site.ga', false);
+
+// Enabling this will force browser to avoid caching on static content
+// (usefull for development only)
+Config::add('static.anticache', true);
 ?>

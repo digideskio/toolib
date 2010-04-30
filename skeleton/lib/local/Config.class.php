@@ -1,4 +1,6 @@
 <?php
+
+//! Global space to hold configuration information
 class Config
 {
 	protected static $options = array();
@@ -16,7 +18,6 @@ class Config
 			return NULL;
 		return self::$options[$name];
 	}
-	
 
 	//! Add a new option. Option must not exists
 	public static function add($name, $value)
@@ -27,6 +28,8 @@ class Config
 	
 	//! Change an option. It will be created if needed
 	public static function set($name, $value)
-	{	return self::$options[$name] = $value;	}
+	{	
+	    return self::$options[$name] = $value;
+    }
 };
 ?>

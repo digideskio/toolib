@@ -1,6 +1,4 @@
 <?php
-require_once('layout.inc.php');
-require_once('lib/phplibs/form.lib.php');
 
 // Clean up url from +login and +logout chunks
 function clean_up_url()
@@ -19,7 +17,7 @@ Stupid::chain_reaction();
 // Login form
 if (WAAS::current_user_is_anon())
 {   $layout->s('main')->s('login')->get_from_ob();
-	class LoginForm extends Form
+	class LoginForm extends Output_HTML_Form
 	{
 		public function __construct()
 		{	global $GS_site_title;
@@ -33,6 +31,7 @@ if (WAAS::current_user_is_anon())
 				)
 			);
 		}
+
 		public function on_post()
 		{
 			$user = $this->get_field_value('login-user');
