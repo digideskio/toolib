@@ -37,7 +37,7 @@ require_once dirname(__FILE__) . '/../html.lib.php';
     class NewUserForm extends Output_HTML_Form
     {
         public function __construct()
-        {    Form::__construct(
+        {    Output_HTML_Form::__construct(
                 array(
                     'username' => array('display' => 'Username'),
                     'password1' => array('display' => 'Password', 'type' => 'password'),
@@ -207,12 +207,12 @@ class Output_HTML_Form
 	        	value is the html attribute value.
         	.
         - css [Default = array()] An array with extra classes
-        - renderonconstruct [Default = true] The form is render immediatly at the constructor of the Form. If
+        - renderonconstruct [Default = false] The form is render immediatly at the constructor of the Form. If
         	you set it false you can render the form using render() function of the created object at any place in your page.
         .\n\n
         @p Example:
         @code        
-        Form::__construct(
+        Output_HTML_Form::__construct(
             array(... fields ...),
             array('title' => 'My Duper Form', 'buttons' => array('ok' => array('display' => 'Ok'))
         );
@@ -223,7 +223,7 @@ class Output_HTML_Form
         class MyForm extends Form
 	    {
 	        public __construct()
-	        {   Form::__construct(
+	        {   Output_HTML_Form::__construct(
             	array(... fields ...),
             	array('title' => 'My Duper Form', 'renderonconstruct' = false, 'buttons' => array('ok' => array('display' => 'Ok'))
 	        }
@@ -262,7 +262,7 @@ class Output_HTML_Form
 	    	$this->fields = $fields;
 	    if ($options !== NULL)
 	        $this->options = $options;
-        $this->form_id = 'form_gen_' . (Form::$last_autoid ++);
+        $this->form_id = 'form_gen_' . (self::$last_autoid ++);
         $this->enctype = 'application/x-www-form-urlencoded';
         
         // Initialize default values for options
@@ -270,7 +270,7 @@ class Output_HTML_Form
         	'display' => '',
         	'css' => array('ui-form'),
         	'hideform' => false,
-        	'renderonconstruct' => true,
+        	'renderonconstruct' => false,
         	'buttons' => array('submit' => array())
         );
         $this->options = array_merge($default_options, $this->options);
@@ -329,7 +329,7 @@ class Output_HTML_Form
         
         // Render the form
         if ($this->options['renderonconstruct'])
-	        $this->render();
+	        echo $this->render();
     }
     
     //! Process the posted data
@@ -524,7 +524,7 @@ class Output_HTML_Form
         	// Line type
             if ($field['type'] == 'line')
             {  	etag('hr');
-            	HTMLTag::pop_parent(); 	
+            	Output_HTMLTag::pop_parent(); 	
             	continue;
             }
 
@@ -586,7 +586,7 @@ class Output_HTML_Form
             	etag('span class="ui-form-error"', $field['error']);
             else if (isset($field['hint']))
             	etag('span class="ui-form-hint"', $field['hint']);
-            HTMLTag::pop_parent();
+            Output_HTMLTag::pop_parent();
         }
         
         // Render buttons
@@ -609,8 +609,8 @@ class Output_HTML_Form
 
 			etag('input', $but_parm['htmlattribs']);
         }
-        HTMLTag::pop_parent(2);
-		echo $div->render();
+        Output_HTMLTag::pop_parent(2);
+		return $div;
     }
     
     //! Don't display the form

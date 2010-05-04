@@ -351,7 +351,8 @@ class Output_HTML_Grid
         if (($this->options['pagecontrolpos'] == 'bottom') || ($this->options['pagecontrolpos'] == 'both'))
         	HTMLTag::get_current_parent()->append($this->render_page_controls());
 
-		echo HTMLTag::pop_parent();	// DIV
+		HTMLTag::pop_parent();	// DIV
+		return $div;
 	}
 }
 

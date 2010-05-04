@@ -1,9 +1,47 @@
 body{
     font: 12pt Arial;
     margin: 10px 50px;
-
+    color: #344534;
 }
 
+a{
+    text-decoration: none;
+    color: #345034;
+    font-weight: bold;
+}
+a:hover{
+    color: #45ae69;
+}
+
+/* ui-form */
+div.ui-form{
+    width: 200px;
+    padding: 30px;
+    border: 1px solid #45ae69;
+}
+
+div.ui-form .title{
+    font-size: 120%;
+    margin: 10px 0px;
+    display: block;
+    font-weight: bold;
+}
+div.ui-form dt{
+    margin-bottom: 10px;
+}
+
+div.ui-form label{
+    color: black;
+    font-size: 95%;
+}
+
+div.ui-form .buttons{
+    text-align: right;
+}
+
+div.ui-form .buttons input{
+    margin-left: 10px;
+}
 /* Title */
 h1{
     color: #45ae69;
@@ -17,6 +55,7 @@ ul.menu{
     list-style-type: none;
     display: block;
     padding: 0px;
+    height: 40px;
 }
 
 ul.menu li{
@@ -28,6 +67,8 @@ ul.menu li a{
     padding: 10px;
     margin-right:10px;
     background-color: #de6565;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
     color: white;
     font-weight: bold;
     text-decoration: none;
@@ -35,7 +76,12 @@ ul.menu li a{
 
 ul.menu li:hover a{
     text-shadow: 0px 0px 5px #ffdede;
-
+}
+ul.menu li.selected a{
+    background-color: #ff4550;
+    text-shadow: 0px 0px 1px #983434;
+    -moz-box-shadow: 1px 1px 3px #ff4550;
+    -webkit-box-shadow: 1px 1px 3px #ff4550;
 }
 
 /* Container */

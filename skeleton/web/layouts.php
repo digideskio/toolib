@@ -12,15 +12,16 @@ etag('div id="header"',
     tag('div id="menu"')
 );
 $def_content = etag('div id="content"');
-etag('div id="footer"', tag('a', 'PHPlibs'), ' skeleton');
+etag('div id="sidebar"');
+etag('div id="footer"', tag('a', 'PHPlibs', array('href' => 'http://phplibs.kmfa.net')), ' skeleton');
 $dl->set_default_container($def_content);
-
 
 // Menu for default layout
 $dl->menu = new SmartMenu();
 $dl->events()->connect('pre-flush', 
     create_function('$event', '$layout = $event->arguments["layout"];
     $layout->get_document()->get_body()->getElementById("menu")->append($layout->menu->render());'));
+$dl->menu->add_link('Home', '/', 'equal');
 $dl->menu->add_link('Section 1', '/section1');
 $dl->menu->add_link('Section 2', '/section2');
 $dl->deactivate();

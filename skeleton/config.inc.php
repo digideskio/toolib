@@ -22,8 +22,4 @@ Config::add('site.timezone', 'UTC');
 
 // You can enable this by specifying your google analytics ID
 Config::add('site.ga', false);
-
-// Enabling this will force browser to avoid caching on static content
-// (usefull for development only)
-Config::add('static.anticache', true);
 ?>

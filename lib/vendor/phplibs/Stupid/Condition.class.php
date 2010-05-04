@@ -59,8 +59,11 @@ abstract class Stupid_Condition
 		return $this->evaluate_impl($previous_backrefs);
 	}
 	
-	//! @b ABSTRACT Returns the unique type of evaluator
-	abstract public static function type();
+	//! Returns the unique type of evaluator
+	public static function type()
+	{   
+	    throw new RuntimeException("Not Implemeneted type()");
+    }
 	
 	//! @b ABSTRACT To be implemented by evaluator
 	abstract protected function evaluate_impl($previous_arguments);

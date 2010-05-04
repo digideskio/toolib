@@ -45,13 +45,7 @@ function show_source_slice($file, $line)
 function show_backtrace_interface($exception = null)
 {
     if ($exception)
-    {
-        etag('div class="exception"', 'Exception ', 
-            tag('span class="type"', get_class($exception)),
-            tag('span class="message"', $exception->getMessage())
-        );
         $db = $exception->getTrace();
-    }
     else
     {
         $db = debug_backtrace();
@@ -83,8 +77,7 @@ function manager_error($code, $message, $file, $line, $context)
         Layout::activated()->deactivate();
     Layout::open('debug')->activate();
     Layout::open('debug')->get_document()->title = 'Error: ' . $message;
-    
-    error_log('blou');
+
     etag('div class="error"', "Error", 
         tag('span class="code"', (string)$code),
         tag('span class="message"', $message)
@@ -101,6 +94,11 @@ function manage_exception($exception)
     Layout::open('debug')->activate();
     Layout::open('debug')->get_document()->title = get_class($exception) . ': ' . $exception->getMessage();
 
+    etag('div class="exception"', 'Exception ', 
+        tag('span class="type"', get_class($exception)),
+        tag('span class="message"', $exception->getMessage())
+    );
+        
     show_backtrace_interface($exception);
     exit;
 }

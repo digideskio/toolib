@@ -16,6 +16,7 @@ class Auth_Storage_Session implements Auth_Storage
     
     public function set_identity(Auth_Identity $identity, $ttl = null)
     {
+        session_regenerate_id();
         $_SESSION[$this->session_index] = $identity;
     }
 
@@ -23,7 +24,7 @@ class Auth_Storage_Session implements Auth_Storage
     {
         if (!isset($_SESSION[$this->session_index]))
             return false;
-        if (!$_SESSION[$this->session_index])
+        if ($_SESSION[$this->session_index] === null)
             return false;
         return $_SESSION[$this->session_index];
     }

@@ -31,6 +31,15 @@ DB_Conn::query("SET time_zone='+0:00';");
 // PHP TimeZone
 date_default_timezone_set(Config::get('site.timezone'));
 
+// PHP Session
+session_start();
+if (!isset($_SESSION['initialized']))
+{   
+    // Prevent session fixation with invalid ids
+    $_SESSION['initialized'] = true;
+    session_regenerate_id();
+}
+
 // Setup authentication
 $auth = new Auth_Backend_DB(array(
     'model_user' => 'User',

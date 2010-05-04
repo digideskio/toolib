@@ -4,7 +4,7 @@
 Layout::open('default')->activate();
 Layout::open('default')->get_document()->title = Config::get('site.title') . ' Section 1';
 
-echo 'You can edit section1 in file ' . __FILE__;
+echo 'You can edit section1 in file ';
+etag('strong', __FILE__);
 echo '<br><pre>';
-echo test;
 ?>
