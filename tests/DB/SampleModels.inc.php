@@ -46,7 +46,7 @@ class User extends DB_Record
         'username' => array('pk' => true),
         'password',
         'enabled'
-    );
+        );
 }
 
 class Group extends DB_Record
@@ -56,7 +56,7 @@ class Group extends DB_Record
     static public $fields = array(
         'groupname' => array('pk' => true),
         'enabled'
-    );
+        );
 }
 
 class Group_Members extends DB_Record

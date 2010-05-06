@@ -14,13 +14,13 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
     {   array_push(self::$events, $e);   }
 
     public static function setUpBeforeClass()
-    {   
+    {
         SampleSchema::build();
 
         // Connect listener
         DB_Conn::events()->connect(
-            NULL,
-            array('Conn_ConnectedTest', 'push_event')
+        NULL,
+        array('Conn_ConnectedTest', 'push_event')
         );
     }
 
@@ -31,88 +31,88 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {   SampleSchema::connect();
 
-        // Clean up events
-        while(self::pop_event());
+    // Clean up events
+    while(self::pop_event());
     }
     public function tearDown()
     {
         $this->assertEquals(count(self::$events), 0);
         DB_Conn::disconnect();
     }
-    
+
     public function check_last_event($type, $name, $check_last)
     {   $e = self::pop_event();
-        $this->assertType('Event', $e);
-        $this->assertEquals($e->type, $type);
-        $this->assertEquals($e->name, $name);
-        if ($check_last)
-            $this->assertEquals(0, count(self::$events));
-        return $e;
+    $this->assertType('Event', $e);
+    $this->assertEquals($e->type, $type);
+    $this->assertEquals($e->name, $name);
+    if ($check_last)
+    $this->assertEquals(0, count(self::$events));
+    return $e;
     }
 
     public function check_first_event($type, $name, $check_last)
     {   $e = array_shift(self::$events);
-        $this->assertType('Event', $e);
-        $this->assertEquals($e->type, $type);
-        $this->assertEquals($e->name, $name);
-        if ($check_last)
-            $this->assertEquals(0, count(self::$events));
-        return $e;
+    $this->assertType('Event', $e);
+    $this->assertEquals($e->type, $type);
+    $this->assertEquals($e->name, $name);
+    if ($check_last)
+    $this->assertEquals(0, count(self::$events));
+    return $e;
     }
-    
+
     public function testQuery()
     {   $mres = DB_Conn::query('SELECT * FROM forums');
-        $this->assertType('mysqli_result', $mres);
+    $this->assertType('mysqli_result', $mres);
 
-        $res = array();
-        while($row = $mres->fetch_array())
-            $res[] = $row;
+    $res = array();
+    while($row = $mres->fetch_array())
+    $res[] = $row;
 
-        $this->assertEquals(count($res), 3);
-        $this->assertEquals(count($res[0]), 4);
-        $this->assertEquals($res[0][1], 'The first');
-        $this->assertEquals($res[0]['title'], 'The first');
+    $this->assertEquals(count($res), 3);
+    $this->assertEquals(count($res[0]), 4);
+    $this->assertEquals($res[0][1], 'The first');
+    $this->assertEquals($res[0]['title'], 'The first');
 
-        $this->check_last_event('notify', 'query', true);
+    $this->check_last_event('notify', 'query', true);
     }
 
     public function testQueryFetchAll()
     {   $res = DB_Conn::query_fetch_all('SELECT * FROM forums');
-        $this->assertType('array', $res);
+    $this->assertType('array', $res);
 
-        $this->assertEquals(count($res), 3);
-        $this->assertEquals(count($res[0]), 4);
-        $this->assertEquals($res[0][1], 'The first');
-        $this->assertEquals($res[0]['title'], 'The first');
+    $this->assertEquals(count($res), 3);
+    $this->assertEquals(count($res[0]), 4);
+    $this->assertEquals($res[0][1], 'The first');
+    $this->assertEquals($res[0]['title'], 'The first');
 
-        $this->check_last_event('notify', 'query', true);
+    $this->check_last_event('notify', 'query', true);
     }
 
     public function testQueryWrong()
     {   $res = @DB_Conn::query('SELECT * FROM forums_notexisting');
-        $this->assertFalse($res);
-        
-        $res = @DB_Conn::query('-k- ');
-        $this->assertFalse($res);
+    $this->assertFalse($res);
 
-        $res = @DB_Conn::query_fetch_all('SELECT * FROM forums_notexisting');
-        $this->assertFalse($res);
+    $res = @DB_Conn::query('-k- ');
+    $this->assertFalse($res);
 
-        $res = @DB_Conn::query_fetch_all('-k- ');
-        $this->assertFalse($res);
+    $res = @DB_Conn::query_fetch_all('SELECT * FROM forums_notexisting');
+    $this->assertFalse($res);
 
-        // Last 4 events must be errors
-        $this->check_last_event('notify', 'error', false);
-        $this->check_last_event('notify', 'error', false);
-        $this->check_last_event('notify', 'error', false);
-        $this->check_last_event('notify', 'error', true);
+    $res = @DB_Conn::query_fetch_all('-k- ');
+    $this->assertFalse($res);
+
+    // Last 4 events must be errors
+    $this->check_last_event('notify', 'error', false);
+    $this->check_last_event('notify', 'error', false);
+    $this->check_last_event('notify', 'error', false);
+    $this->check_last_event('notify', 'error', true);
     }
 
     public function testPrepareDelayed()
-    {   
+    {
         // Check has key
         $this->assertFalse(DB_Conn::is_key_used('mynick'));
-        
+
         // False preparation
         $res = DB_Conn::prepare('mynick', 'SELECT * FROM forums');
         $this->assertTrue($res);
@@ -128,7 +128,7 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
 
         // Check has key
         $this->assertTrue(DB_Conn::is_key_used('mynick'));
-        
+
         // Execute unprepared statement
         $res = DB_Conn::execute('mynick');
         $this->assertType('mysqli_stmt', $res);
@@ -138,9 +138,9 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
         // Check has key
         $this->assertTrue(DB_Conn::is_key_used('mynick'));
     }
-        
+
     public function testPrepareDelayedWrong()
-    {   
+    {
         // Check has key
         $this->assertFalse(DB_Conn::is_key_used('mynick'));
 
@@ -167,7 +167,7 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
 
         // Check has key
         $this->assertFalse(DB_Conn::is_key_used('mynick'));
-        
+
         // Execute false unprepared statement
         $res = @DB_Conn::execute('mynick');
         $this->assertFalse($res);
@@ -185,7 +185,7 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
 
         // Check has key
         $this->assertFalse(DB_Conn::is_key_used('mynick'));
-        
+
         // Prepare a stement
         $res = DB_Conn::prepare('mynick', 'SELECT * FROM forums');
         $this->assertTrue($res);
@@ -193,7 +193,7 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
 
         // Check has key
         $this->assertTrue(DB_Conn::is_key_used('mynick'));
-        
+
         // Execute and fetch the same prepared statement
         $res = DB_Conn::execute_fetch_all('mynick');
         $this->assertType('array', $res);
@@ -216,7 +216,7 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
 
         // Check has key
         $this->assertFalse(DB_Conn::is_key_used('mynick'));
-        
+
         // False preparation
         $res = @DB_Conn::prepare('mynick', 'SELECT * FROM forums_notexisting');
         $this->assertFalse($res);
@@ -225,7 +225,7 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
 
         // Check has key
         $this->assertFalse(DB_Conn::is_key_used('mynick'));
-        
+
         // Retry same nick with correct format
         $res = DB_Conn::prepare('mynick', 'SELECT * FROM forums');
         $this->assertTrue($res);
@@ -234,7 +234,7 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
 
         // Check has key
         $this->assertTrue(DB_Conn::is_key_used('mynick'));
-        
+
         // Execute prepared statement
         $res = DB_Conn::execute('mynick');
         $this->assertType('mysqli_stmt', $res);
@@ -242,7 +242,7 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
 
         // Check has key
         $this->assertTrue(DB_Conn::is_key_used('mynick'));
-        
+
         // Execute and fetch the same prepared statement
         $res = DB_Conn::execute_fetch_all('mynick');
         $this->assertType('array', $res);
@@ -264,7 +264,7 @@ class Conn_ConnectedTest extends PHPUnit_Framework_TestCase
         $res = @DB_Conn::release('mynick');
         $this->assertFalse($res);
         $this->check_last_event('notify', 'error', true);
-        
+
         // False preparation
         $res = DB_Conn::prepare('mynick', 'SELECT * FROM forums_notexisting');
         $this->assertTrue($res);

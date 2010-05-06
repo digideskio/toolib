@@ -5,7 +5,7 @@ require_once __DIR__ .  '/../path.inc.php';
 class Net_CookieTest extends PHPUnit_Framework_TestCase
 {
     public function testConstructor()
-    {   
+    {
         $cookie = new Net_HTTP_Cookie('testname1', 'testvalue');
         $this->assertEquals($cookie->get_name(), 'testname1');
         $this->assertEquals($cookie->get_value(), 'testvalue');
@@ -38,7 +38,7 @@ class Net_CookieTest extends PHPUnit_Framework_TestCase
     }
 
     public function testSetters()
-    {   
+    {
         $cookie = new Net_HTTP_Cookie('testname1', 'testvalue');
         $this->assertEquals($cookie->get_name(), 'testname1');
         $this->assertEquals($cookie->get_value(), 'testvalue');
@@ -64,7 +64,7 @@ class Net_CookieTest extends PHPUnit_Framework_TestCase
         $cookie->set_expiration_time(time()+112);
         $this->assertEquals($cookie->get_expiration_time(), time()+112);
         $this->assertFalse($cookie->is_session_cookie());
-        
+
         $cookie->set_secure(true);
         $this->assertTrue($cookie->is_secure());
 

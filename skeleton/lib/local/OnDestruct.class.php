@@ -10,7 +10,7 @@ class OnDestruct
     public function __destruct()
     {
         foreach($this->handlers as $handle)
-            call_user_func($handle);
+        call_user_func($handle);
     }
 
     //! Register a new handler
@@ -23,7 +23,7 @@ class OnDestruct
     public function unregister_handler($callable)
     {
         if (($key = array_search($callable, $this->handlers, true)) !== false)
-            unset($this->handlers[$key]);
+        unset($this->handlers[$key]);
     }
 }
 

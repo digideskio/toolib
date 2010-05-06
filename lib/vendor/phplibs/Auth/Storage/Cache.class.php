@@ -16,11 +16,11 @@ class Auth_Storage_Cache implements Auth_Storage
 
     //! Cache storage constructor
     /**
-     * @param $cache The cache engine that will be used.
-     * @param $cookie Cookie to be used for saving identity.
-     *  All the parameters of cookie will be used except of value which will
-     *  be changed to the appropriate one.
-     */
+    * @param $cache The cache engine that will be used.
+    * @param $cookie Cookie to be used for saving identity.
+    *  All the parameters of cookie will be used except of value which will
+    *  be changed to the appropriate one.
+    */
     public function __construct(Cache $cache, Net_HTTP_Cookie $cookie)
     {
         $this->cache = $cache;
@@ -29,9 +29,9 @@ class Auth_Storage_Cache implements Auth_Storage
         // Check if there is already a cookie
         $received_cookie = Net_HTTP_Cookie::open($cookie->get_name());
         if ($received_cookie)
-            $this->session_id = $received_cookie->get_value();
-    }    
-    
+        $this->session_id = $received_cookie->get_value();
+    }
+
     public function set_identity(Auth_Identity $identity, $ttl = null)
     {   // Clear identity
         $this->clear_identity();
@@ -46,27 +46,27 @@ class Auth_Storage_Cache implements Auth_Storage
 
         // Send cookie
         if ($ttl)
-            $this->cookie->set_expiration_time(time() + $ttl);
+        $this->cookie->set_expiration_time(time() + $ttl);
         $this->cookie->set_value($this->session_id);
         $this->cookie->send();
 
         // Save in cache
         $this->cache->set(
-            $this->session_id,
-            $identity, 
-            ($this->cookie->is_session_cookie()?0:$this->cookie->get_expiration_time() - time())
+        $this->session_id,
+        $identity,
+        ($this->cookie->is_session_cookie()?0:$this->cookie->get_expiration_time() - time())
         );
     }
 
     public function get_identity()
-    {   
+    {
         if ($this->session_id === null)
-            return false;
+        return false;
 
         $identity = $this->cache->get($this->session_id, $succ);
         if (!$succ)
         {   $this->clear_identity();
-            return false;
+        return false;
         }
 
         return $identity;
@@ -75,7 +75,7 @@ class Auth_Storage_Cache implements Auth_Storage
     public function clear_identity()
     {   // Remove data from cache
         if ($this->session_id)
-            $this->cache->delete($this->session_id);
+        $this->cache->delete($this->session_id);
 
         // Reset session_id
         $this->session_id = null;

@@ -4,13 +4,13 @@ require_once dirname(__FILE__) . '/lib/tools.lib.php';
 /**
  * Here you can write code that will be executed at the begining of each page instance
  */
- 
+
 // Autoloader for local and phplibs classes
 $phplibs_loader = new ClassLoader(
-    array(
-        dirname(__FILE__) . '/lib/vendor/phplibs',
-        dirname(__FILE__) . '/lib/local'
-    ));
+array(
+dirname(__FILE__) . '/lib/vendor/phplibs',
+dirname(__FILE__) . '/lib/local'
+));
 $phplibs_loader->set_file_extension('.class.php');
 $phplibs_loader->register();
 
@@ -34,7 +34,7 @@ date_default_timezone_set(Config::get('site.timezone'));
 // PHP Session
 session_start();
 if (!isset($_SESSION['initialized']))
-{   
+{
     // Prevent session fixation with invalid ids
     $_SESSION['initialized'] = true;
     session_regenerate_id();

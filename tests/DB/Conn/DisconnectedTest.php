@@ -39,7 +39,7 @@ class Conn_DisconnectedTest extends PHPUnit_Framework_TestCase
     {
         $this->assertFalse(DB_Conn::is_connected());
     }
-    
+
     public function testPrepare()
     {
         $this->setExpectedException('NotConnectedException');

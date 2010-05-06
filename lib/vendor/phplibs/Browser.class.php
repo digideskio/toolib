@@ -2,17 +2,17 @@
 
 //! Browser helper class
 class Browser {
-    /** 
-        Figure out what browser is used, its version and the platform it is
-        running on.
+    /**
+     Figure out what browser is used, its version and the platform it is
+     running on.
 
-        The following code was ported in part from JQuery v1.3.1
-    */
+     The following code was ported in part from JQuery v1.3.1
+     */
     public static function detect($userAgent = NULL) {
         if ($userAgent === NULL)
-            $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
+        $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
         else
-            $userAgent =strtolower($userAgent);
+        $userAgent =strtolower($userAgent);
 
         // Identify the browser. Check Opera and Safari first in case of spoof. Let Google Chrome be identified as Safari.
         if (preg_match('/opera/', $userAgent)) {
@@ -42,24 +42,24 @@ class Browser {
 
         // What version?
         switch ($name){
-        case 'firefox':
-            if (preg_match('/firefox\/([\d.]+)/', $userAgent, $matches)){
-                $version = $matches[1];
-            }
-            break;
-        case 'safari':
-            if (preg_match('/version\/([\d.]+)/', $userAgent, $matches)){
-                $version = $matches[1];
-            }
-            break;
-        default:
-            if (preg_match('/.+(?:rv|it|ra|ie)[\/: ]([\d.]+)/', $userAgent, $matches)) {
-                $version = $matches[1];
-            }
+            case 'firefox':
+                if (preg_match('/firefox\/([\d.]+)/', $userAgent, $matches)){
+                    $version = $matches[1];
+                }
+                break;
+            case 'safari':
+                if (preg_match('/version\/([\d.]+)/', $userAgent, $matches)){
+                    $version = $matches[1];
+                }
+                break;
+            default:
+                if (preg_match('/.+(?:rv|it|ra|ie)[\/: ]([\d.]+)/', $userAgent, $matches)) {
+                    $version = $matches[1];
+                }
         };
-        
+
         if (!isset($version))
-            $version = 'unknown';
+        $version = 'unknown';
 
         // Running on what platform?
         if (preg_match('/linux/', $userAgent)) {

@@ -26,14 +26,14 @@ class Net_HTTP_Cookie
 
     //! Construct a cookie
     /**
-     * @param $name The name of the cookie.
-     * @param $value The value of the cookie
-     * @param $domain The effective domain of the cookie.
-     * @param $path The effective path of the cookie.
-     * @param $expiration_time The unix time stamp when cookie expires or 0 for session cookie.
-     * @param $httponly Set the "httponly" flag of the cookie.
-     * @param $secure Set the "secure" flag of the cookie.
-     */
+    * @param $name The name of the cookie.
+    * @param $value The value of the cookie
+    * @param $domain The effective domain of the cookie.
+    * @param $path The effective path of the cookie.
+    * @param $expiration_time The unix time stamp when cookie expires or 0 for session cookie.
+    * @param $httponly Set the "httponly" flag of the cookie.
+    * @param $secure Set the "secure" flag of the cookie.
+    */
     public function __construct($name, $value, $expiration_time = 0, $path = '/', $domain = '', $secure = false, $httponly = false)
     {
         $this->name = $name;
@@ -53,27 +53,27 @@ class Net_HTTP_Cookie
 
     //! Get the value of the cookie
     public function get_value()
-    {   
+    {
         return $this->value;
     }
 
     //! Get the effective domain of the cookie
     public function get_domain()
-    {   
+    {
         return $this->domain;
     }
 
     //! Get the effective path of the cookie
     public function get_path()
-    {   
+    {
         return $this->path;
     }
 
     //! Get the time this cookie expires
     /**
-     * @return Unix timestamp of expiration time or 0 if
-     *      it is session cookie.
-     */
+    * @return Unix timestamp of expiration time or 0 if
+    *      it is session cookie.
+    */
     public function get_expiration_time()
     {
         return $this->expiration_time;
@@ -81,10 +81,10 @@ class Net_HTTP_Cookie
 
     //! Check if cookie is session cookie based on expiration time
     public function is_session_cookie()
-    {   
+    {
         return ($this->expiration_time == 0);
-    }    
-    
+    }
+
     //! Check "httponly" flag of the cookie
     public function is_httponly()
     {
@@ -99,17 +99,17 @@ class Net_HTTP_Cookie
 
     //! Set the name of the cookie
     /**
-     * @param $name The new name.
-     */
+    * @param $name The new name.
+    */
     public function set_name($name)
     {
         $this->name = $name;
     }
-    
+
     //! Set the value of the cookie
     /**
-     * @param $value The new value.
-     */
+    * @param $value The new value.
+    */
     public function set_value($value)
     {
         $this->value = $value;
@@ -117,8 +117,8 @@ class Net_HTTP_Cookie
 
     //! Set the effective domain of the cookie
     /**
-     * @param $value The new effective domain.
-     */
+    * @param $value The new effective domain.
+    */
     public function set_domain($domain)
     {
         $this->domain = $domain;
@@ -126,8 +126,8 @@ class Net_HTTP_Cookie
 
     //! Set the effective path of the cookie
     /**
-     * @param $value The new effective path.
-     */
+    * @param $value The new effective path.
+    */
     public function set_path($path)
     {
         $this->path = $path;
@@ -135,17 +135,17 @@ class Net_HTTP_Cookie
 
     //! Set the "secure" flag of the cookie
     /**
-     * @param $enabled @b boolean The new state of "secure" flag.
-     */
+    * @param $enabled @b boolean The new state of "secure" flag.
+    */
     public function set_secure($enabled)
     {
         return $this->secure = $enabled;
     }
-    
+
     //! Set the "httponly" flag of the cookie
     /**
-     * @param $enabled @b boolean The new state of "httponly" flag.
-     */
+    * @param $enabled @b boolean The new state of "httponly" flag.
+    */
     public function set_httponly($enabled)
     {
         return $this->httponly = $enabled;
@@ -153,10 +153,10 @@ class Net_HTTP_Cookie
 
     //! Set the expiration time of the cookie.
     /**
-     * @param $time - The unix time stamp of the expiration date.
-     *      - @b 0 if the cookie is a session cookie.
-     *  .
-     */
+    * @param $time - The unix time stamp of the expiration date.
+    *      - @b 0 if the cookie is a session cookie.
+    *  .
+    */
     public function set_expiration_time($time)
     {
         return $this->expiration_time = $time;
@@ -166,7 +166,7 @@ class Net_HTTP_Cookie
     public function open($name)
     {
         if (!isset($_COOKIE[$name]))
-            return false;
+        return false;
 
         $cookie = new Net_HTTP_Cookie($name, $_COOKIE[$name]);
         return $cookie;
@@ -176,12 +176,12 @@ class Net_HTTP_Cookie
     public function send()
     {
         setcookie($this->name,
-            $this->value,
-            ($this->is_session_cookie()?0:$this->expiration_time),
-            $this->path,
-            $this->domain,
-            $this->secure,
-            $this->httponly
+        $this->value,
+        ($this->is_session_cookie()?0:$this->expiration_time),
+        $this->path,
+        $this->domain,
+        $this->secure,
+        $this->httponly
         );
     }
 }

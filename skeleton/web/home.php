@@ -4,6 +4,6 @@ Layout::open('default')->activate();
 
 echo 'This is the home page!';
 etag('br');
-echo 'You can change it by editing '; 
+echo 'You can change it by editing ';
 etag('strong',  __FILE__);
 ?>

@@ -12,11 +12,11 @@ class Layout
 
     //! Event dispatcher
     private $events;
-    
+
     //! Private constructor of new layout
     /**
-     * To create a new layout use factory function create()
-     */
+    * To create a new layout use factory function create()
+    */
     final private function __construct()
     {
         $this->document = new Output_HTMLDoc();
@@ -24,7 +24,7 @@ class Layout
         $this->events = new EventDispatcher(array(
             'pre-flush',
             'post-flush'
-        ));
+            ));
     }
 
     //! Get the event dispatcher for this layout
@@ -32,7 +32,7 @@ class Layout
     {
         return $this->events;
     }
-    
+
     //! Get Output_HTMLDoc of this layout
     public function get_document()
     {
@@ -41,12 +41,12 @@ class Layout
 
     //! Active layout listener
     static private $active = null;
-    
+
     //! Register this layout as the active one
     public function activate()
     {
         if (self::$active !== null)
-            self::$active->deactivate();
+        self::$active->deactivate();
 
         // Set output buffer
         self::$active = $this;
@@ -54,7 +54,7 @@ class Layout
         self::$active->default_container->push_parent();
         // Register autorender on destruct
         if (!isset($GLOBALS['auto_render']))
-            $GLOBALS['auto_render'] = new OnDestruct();
+        $GLOBALS['auto_render'] = new OnDestruct();
 
         $GLOBALS['auto_render']->register_handler(array($this, 'deactivate_flush'));
 
@@ -69,28 +69,28 @@ class Layout
 
     //! Deactivate layout and flush layout on output
     public function deactivate_flush()
-    {   
+    {
         if (self::$active === $this)
-        {   
+        {
             $this->events()->notify('pre-flush', array('layout' => $this));
-            
+
             // Unregister output gatherers
             Output_HTMLTag::pop_parent();
             ob_end_clean();
 
             //$this->events()->notify('post-flush', array('layout' => $this));
-            
+
             echo $this->document->render();
 
             self::$active = null;
         }
     }
-    
+
     //! Unregister this layout from active one
     public function deactivate()
     {
         if (self::$active === $this)
-        {   
+        {
             // Unregister output gatherers
             Output_HTMLTag::pop_parent();
             ob_end_clean();
@@ -106,14 +106,14 @@ class Layout
         if (self::$active === $this)
         {
             $this->deactivate();
-   
+             
             $this->default_container = $container;
             $this->activate();
         }
         else
-            $this->default_container = $container;
+        $this->default_container = $container;
     }
-    
+
     //! Internal holder of instances
     static private $instances;
 
@@ -121,7 +121,7 @@ class Layout
     static public function create($name)
     {
         if (isset(self::$instances[$name]))
-            return self::$instances[$name];
+        return self::$instances[$name];
 
         return self::$instances[$name] = new Layout();
     }
@@ -130,7 +130,7 @@ class Layout
     static public function open($name)
     {
         if (isset(self::$instances[$name]))
-            return self::$instances[$name];
+        return self::$instances[$name];
 
         return null;
     }

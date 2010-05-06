@@ -7,12 +7,12 @@ class Auth_Storage_Instance implements Auth_Storage
 {
     //! The session identity
     private $online_identity;
-    
+
     public function __construct()
     {
         $this->online_identity = false;
     }
-        
+
     public function set_identity(Auth_Identity $identity, $ttl = null)
     {
         $this->online_identity = $identity;
@@ -22,7 +22,7 @@ class Auth_Storage_Instance implements Auth_Storage
     {
         return $this->online_identity;
     }
-    
+
     public function clear_identity()
     {
         $this->online_identity = false;

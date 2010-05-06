@@ -8,7 +8,7 @@ class User extends DB_Record
         'user' => array('pk' => true),
         'password',
         'is_enabled'
-    );
+        );
 }
 
 ?>
