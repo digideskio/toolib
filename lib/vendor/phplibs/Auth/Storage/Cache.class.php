@@ -49,7 +49,7 @@ class Auth_Storage_Cache implements Auth_Storage
         // Check if there is already a cookie
         $received_cookie = Net_HTTP_Cookie::open($cookie->get_name());
         if ($received_cookie)
-        $this->session_id = $received_cookie->get_value();
+            $this->session_id = $received_cookie->get_value();
     }
 
     public function set_identity(Auth_Identity $identity, $ttl = null)
@@ -66,15 +66,15 @@ class Auth_Storage_Cache implements Auth_Storage
 
         // Send cookie
         if ($ttl)
-        $this->cookie->set_expiration_time(time() + $ttl);
+            $this->cookie->set_expiration_time(time() + $ttl);
         $this->cookie->set_value($this->session_id);
         $this->cookie->send();
 
         // Save in cache
         $this->cache->set(
-        $this->session_id,
-        $identity,
-        ($this->cookie->is_session_cookie()?0:$this->cookie->get_expiration_time() - time())
+            $this->session_id,
+            $identity,
+            ($this->cookie->is_session_cookie()?0:$this->cookie->get_expiration_time() - time())
         );
     }
 
@@ -85,8 +85,9 @@ class Auth_Storage_Cache implements Auth_Storage
 
         $identity = $this->cache->get($this->session_id, $succ);
         if (!$succ)
-        {   $this->clear_identity();
-        return false;
+        {   
+            $this->clear_identity();
+            return false;
         }
 
         return $identity;
@@ -95,7 +96,7 @@ class Auth_Storage_Cache implements Auth_Storage
     public function clear_identity()
     {   // Remove data from cache
         if ($this->session_id)
-        $this->cache->delete($this->session_id);
+            $this->cache->delete($this->session_id);
 
         // Reset session_id
         $this->session_id = null;

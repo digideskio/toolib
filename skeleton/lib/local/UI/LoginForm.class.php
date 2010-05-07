@@ -44,9 +44,13 @@ class UI_LoginForm extends Output_HTML_Form
         $user = $this->get_field_value('login-user');
         $pass = $this->get_field_value('login-pass');
         if (Auth_Realm::authenticate($user, $pass))
-        Net_HTTP_Response::redirect($this->redirect_url);
+        {
+            Net_HTTP_Response::redirect($this->redirect_url);
+        }
         else
-        $this->invalidate_field('login-pass', 'The username or password you entered is incorrect.');
+        {
+            $this->invalidate_field('login-pass', 'The username or password you entered is incorrect.');
+        }
     }
 };
 

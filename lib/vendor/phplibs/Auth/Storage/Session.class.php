@@ -43,9 +43,9 @@ class Auth_Storage_Session implements Auth_Storage
     public function get_identity()
     {
         if (!isset($_SESSION[$this->session_index]))
-        return false;
+            return false;
         if ($_SESSION[$this->session_index] === null)
-        return false;
+            return false;
         return $_SESSION[$this->session_index];
     }
 

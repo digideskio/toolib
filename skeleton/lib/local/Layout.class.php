@@ -67,15 +67,16 @@ class Layout
     public function activate()
     {
         if (self::$active !== null)
-        self::$active->deactivate();
+            self::$active->deactivate();
 
         // Set output buffer
         self::$active = $this;
         ob_start(array(self::$active->default_container, 'append_text'));
         self::$active->default_container->push_parent();
+        
         // Register autorender on destruct
         if (!isset($GLOBALS['auto_render']))
-        $GLOBALS['auto_render'] = new OnDestruct();
+            $GLOBALS['auto_render'] = new OnDestruct();
 
         $GLOBALS['auto_render']->register_handler(array($this, 'deactivate_flush'));
 
@@ -142,7 +143,7 @@ class Layout
     static public function create($name)
     {
         if (isset(self::$instances[$name]))
-        return self::$instances[$name];
+            return self::$instances[$name];
 
         return self::$instances[$name] = new Layout();
     }
@@ -151,7 +152,7 @@ class Layout
     static public function open($name)
     {
         if (isset(self::$instances[$name]))
-        return self::$instances[$name];
+            return self::$instances[$name];
 
         return null;
     }

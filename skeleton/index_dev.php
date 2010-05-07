@@ -36,7 +36,7 @@ function show_source_slice($file, $line)
     if  (! ($fh = fopen($file, "r")))
     return;
     while (!feof($fh))
-    $lines[] = fgets($fh);
+        $lines[] = fgets($fh);
 
     fclose($fh);
 
@@ -55,7 +55,7 @@ function show_source_slice($file, $line)
 
     $li = etag('li html_escape_off', $fline);
     if (($i + 1) == $line)
-    $li->add_class('info');
+        $li->add_class('info');
     }
     Output_HTMLTag::pop_parent();
     return $code;

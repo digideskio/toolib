@@ -30,19 +30,15 @@ require_once dirname(__FILE__) . '/web/layouts.php';
  * then you should it here.
  */
 
-// Check for direct script call and redirect
-if (!isset($_SERVER['PATH_INFO']))
-Net_HTTP_Response::redirect($_SERVER['SCRIPT_NAME'] . '/');
-
 // Special handling for special urls
 Stupid::add_rule(create_function('', 'require(\'web/login.php\');'),
-array('type' => 'url_path', 'chunk[-1]' => '/\+login/')
+    array('type' => 'url_path', 'chunk[-1]' => '/\+login/')
 );
 Stupid::add_rule(create_function('', 'require(\'web/login.php\');'),
-array('type' => 'url_path', 'chunk[-1]' => '/\+logout/')
+    array('type' => 'url_path', 'chunk[-1]' => '/\+logout/')
 );
 Stupid::add_rule(create_function('', 'require(\'web/home.php\');'),
-array('type' => 'url_path', 'path' => '/^\/$/')
+    array('type' => 'url_path', 'path' => '/^\/?$/')
 );
 
 // Include all sub directories under /web
@@ -57,8 +53,8 @@ function include_sub($sub)
 }
 
 Stupid::add_rule('include_sub',
-array('type' => 'url_path', 'chunk[1]' => '/^([\w]+)$/'),
-array('type' => 'func', 'func' => 'is_valid_sub')
+    array('type' => 'url_path', 'chunk[1]' => '/^([\w]+)$/'),
+    array('type' => 'func', 'func' => 'is_valid_sub')
 );
 
 Stupid::set_default_action(create_function('', 'require(dirname(__FILE__) . "/web/not_found.php");'));
