@@ -39,6 +39,12 @@ class Config
         return self::$options[$name];
     }
 
+    //! Get all options of configuration
+    public static function get_all()
+    {
+        return self::$options;
+    }
+    
     //! Add a new option. Option must not exists
     public static function add($name, $value)
     {	if (self::exists($name))

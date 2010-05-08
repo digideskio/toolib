@@ -34,7 +34,7 @@ $dl->deactivate();
 function show_source_slice($file, $line)
 {
     if  (! ($fh = fopen($file, "r")))
-    return;
+        return;
     while (!feof($fh))
         $lines[] = fgets($fh);
 
@@ -42,20 +42,21 @@ function show_source_slice($file, $line)
 
     $start_line = $line - 4;
     if ($start_line < 0)
-    $start_line = 0;
+        $start_line = 0;
     $end_line = $line + 6;
     if ($end_line > count($lines))
-    $end_line = count($lines);
+        $end_line = count($lines);
 
     $code = tag('ul class="code"')->push_parent();
     for($i = $start_line; $i < $end_line; $i++)
-    {   $fline = esc_html($lines[$i]);
-    $fline = str_replace(' ', '&nbsp;', $fline);
-    $fline = str_replace("\t", '&nbsp;&nbsp;&nbsp;&nbsp;', $fline);
-
-    $li = etag('li html_escape_off', $fline);
-    if (($i + 1) == $line)
-        $li->add_class('info');
+    {   
+        $fline = esc_html($lines[$i]);
+        $fline = str_replace(' ', '&nbsp;', $fline);
+        $fline = str_replace("\t", '&nbsp;&nbsp;&nbsp;&nbsp;', $fline);
+    
+        $li = etag('li html_escape_off', $fline);
+        if (($i + 1) == $line)
+            $li->add_class('info');
     }
     Output_HTMLTag::pop_parent();
     return $code;
@@ -74,18 +75,19 @@ function show_backtrace_interface($exception = null)
 
     etag('ul class="backtrace"')->push_parent();
     foreach($db as $entry)
-    {   etag('li')->push_parent();
+    {   
+        etag('li')->push_parent();
 
-    etag('span class="function', $entry['function']);
-    if (isset($entry['file']))
-    {
-        etag('span class="file"', $entry['file']);
-        etag('span class="line"', (string)$entry['line']);
-
-        // Code snapshot
-        etag('div class="source"', show_source_slice($entry['file'], $entry['line']));
-    }
-    Output_HTMLTag::pop_parent();
+        etag('span class="function', $entry['function']);
+        if (isset($entry['file']))
+        {
+            etag('span class="file"', $entry['file']);
+            etag('span class="line"', (string)$entry['line']);
+    
+            // Code snapshot
+            etag('div class="source"', show_source_slice($entry['file'], $entry['line']));
+        }
+        Output_HTMLTag::pop_parent();
     }
     Output_HTMLTag::pop_parent();
 }
@@ -94,13 +96,13 @@ function show_backtrace_interface($exception = null)
 function manager_error($code, $message, $file, $line, $context)
 {
     if (Layout::activated())
-    Layout::activated()->deactivate();
+        Layout::activated()->deactivate();
     Layout::open('debug')->activate();
     Layout::open('debug')->get_document()->title = 'Error: ' . $message;
 
     etag('div class="error"', "Error",
-    tag('span class="code"', (string)$code),
-    tag('span class="message"', $message)
+        tag('span class="code"', (string)$code),
+        tag('span class="message"', $message)
     );
     show_backtrace_interface();
     exit;
@@ -110,13 +112,13 @@ function manager_error($code, $message, $file, $line, $context)
 function manage_exception($exception)
 {
     if (Layout::activated())
-    Layout::activated()->deactivate();
+        Layout::activated()->deactivate();
     Layout::open('debug')->activate();
     Layout::open('debug')->get_document()->title = get_class($exception) . ': ' . $exception->getMessage();
 
     etag('div class="exception"', 'Exception ',
-    tag('span class="type"', get_class($exception)),
-    tag('span class="message"', $exception->getMessage())
+        tag('span class="type"', get_class($exception)),
+        tag('span class="message"', $exception->getMessage())
     );
 
     show_backtrace_interface($exception);

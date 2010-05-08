@@ -14,9 +14,12 @@ a:hover {
 	color: #45ae69;
 }
 
+.error {
+	color: red;
+}
+
 /* ui-form */
 div.ui-form {
-	width: 200px;
 	padding: 30px;
 	border: 1px solid #45ae69;
 }
@@ -34,8 +37,17 @@ div.ui-form dt {
 
 div.ui-form label {
 	color: black;
+	display: block;
 	font-size: 95%;
 }
+
+div.ui-form dt input {
+	width: 95%;
+}
+
+div.ui-form dt input[type=checkbox]{
+	float: left;
+} 
 
 div.ui-form .buttons {
 	text-align: right;
@@ -49,6 +61,25 @@ div.ui-form .ui-form-error {
 	color: red;
 	font-style: italic;
 	font-weight: bold;
+}
+
+/* ui-form ui-login */
+div.ui-form.ui-login{
+	width: 200px;
+}
+
+/* ui-form ui-installation */
+div.ui-form.ui-installation{
+	width: 500px;
+}
+
+/* code */
+.code {
+	background-color: #121212;
+	color: green;
+	font-weight: bold;
+	padding: 15px;
+	font-size: 90%;
 }
 
 /* Title */
