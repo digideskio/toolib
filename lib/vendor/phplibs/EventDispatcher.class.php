@@ -1,5 +1,5 @@
 <?php
-/**
+/*
  *  This file is part of PHPLibs <http://phplibs.kmfa.net/>.
  *  
  *  Copyright (c) 2010 < squarious at gmail dot com > .
@@ -20,7 +20,7 @@
  */
 
 
-//! The event object transmitted by dispatcher
+//! The event object transmitted by EventDispatcher
 class Event
 {
     //! The name of the event
@@ -62,29 +62,29 @@ class Event
  @code
  class Cat
  {
- public $events;
+ 	public $events;
 
- public function __construct()
- {
- $this->events = new EventDispatcher(array('hungry', 'bored'));
- }
+     public function __construct()
+     {
+     	$this->events = new EventDispatcher(array('hungry', 'bored'));
+     }
 
- public function random_mood()
- {
- if (my_random())
- $this->events->notify('hungry', $this);
- else
- $this->events->notify('bored', $this);
- }
+     public function random_mood()
+     {
+     	if (my_random())
+     		$this->events->notify('hungry', $this);
+     	else
+     		$this->events->notify('bored', $this);
+     }
  }
 
  class PetHolder
  {
- public function feed_pet($pet)
- {}
+ 	public function feed_pet($pet)
+ 	{}
 
- public function entertain_pet($pet)
- {}
+ 	public function entertain_pet($pet)
+ 	{}
  }
 
  $TheirCat = new Cat();

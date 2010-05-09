@@ -1,5 +1,5 @@
 <?php
-/**
+/*
  *  This file is part of PHPLibs <http://phplibs.kmfa.net/>.
  *  
  *  Copyright (c) 2010 < squarious at gmail dot com > .
@@ -22,21 +22,23 @@
 
 //! Create a new tag
 function tag()
-{	$args = func_get_args();
-return call_user_func_array(
-array(new ReflectionClass('Output_HTMLTag'), 'newInstance'),
-$args
-);
+{	
+    $args = func_get_args();
+    return call_user_func_array(
+        array(new ReflectionClass('Output_HTMLTag'), 'newInstance'),
+        $args
+    );
 }
 
 //! Create a tag and echo it
 function etag()
-{	$args = func_get_args();
-$tag = call_user_func_array('tag', $args);
-ob_clean();
-if (!$tag->append_to_default_parent())
-echo $tag;
-return $tag;
+{	
+    $args = func_get_args();
+    $tag = call_user_func_array('tag', $args);
+    ob_clean();
+    if (!$tag->append_to_default_parent())
+        echo $tag;
+    return $tag;
 }
 
 //! Human readable dump of a tag tree
@@ -45,10 +47,11 @@ function dump_tag($tag, $prepend = "")
     echo $prepend . $tag->tag . "\n";
 
     foreach ($tag->childs as $child)
-    {	if (is_object($child))
-    dump_tag($child, $prepend . "  ");
-    else
-    echo $prepend . "  " . '"' . $child . "\"\n";
+    {	
+        if (is_object($child))
+            dump_tag($child, $prepend . "  ");
+        else
+            echo $prepend . "  " . '"' . $child . "\"\n";
     }
 }
 
@@ -60,13 +63,14 @@ function dump_tag($tag, $prepend = "")
  * @param $size The size in bytes
  */
 function html_human_fsize($size, $postfix = 'ytes')
-{	if ($size < 1024)
-return $size . ' b' . $postfix;
-else if ($size < 1048576)
-return ceil($size/1024) . ' KB' . $postfix;
-else if ($size < 1073741824)
-return ceil($size/1048576) . ' MB' . $postfix;
-return ceil($size/1073741824) . ' GB' . $postfix;
+{	
+    if ($size < 1024)
+        return $size . ' b' . $postfix;
+    else if ($size < 1048576)
+        return ceil($size/1024) . ' KB' . $postfix;
+    else if ($size < 1073741824)
+        return ceil($size/1048576) . ' MB' . $postfix;
+    return ceil($size/1073741824) . ' GB' . $postfix;
 }
 
 //! Escape all html control characters from a text and return the result
@@ -104,7 +108,7 @@ function html_ga_code($site_id, $return_code = false)
     $code .= 'pageTracker._trackPageview();';
     $code .= '} catch(err) {}</script>';
     if ($return_code)
-    return $code;
+        return $code;
 
     echo $code;
     return true;

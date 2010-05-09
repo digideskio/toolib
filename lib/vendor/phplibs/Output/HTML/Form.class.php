@@ -1,5 +1,5 @@
 <?php
-/**
+/*
  *  This file is part of PHPLibs <http://phplibs.kmfa.net/>.
  *  
  *  Copyright (c) 2010 < squarious at gmail dot com > .
@@ -26,133 +26,131 @@ require_once dirname(__FILE__) . '/../html.lib.php';
 /**
  * @todo Clean-up \@p from this documentation (@p is not the same as \@par!)
  * @todo Clean-up todos lol
- Form provides a fast way to create input forms with server-side validation. It
- supports multiple types of input and an abstract way to create your own custom
- types. At the same time it provides form validation from mandatory fields to
- regular expressions checks for text boxes. If form is properly validated,
- developper can add custom code for finally processing data using special functions
- in the derived class.
-
- @par Special Functions
- Special functions are function that can be declared in the derived class, and get
- executed in special cases. There is no explicit dependency on these functions and
- Form will work too without declaring any of them, however you should probably define
- at least one to add some "real" functionality on the Form.
- \n\n
- - @b on_post():\n
- Called when form received data from the user. It does not guarantee that the form
- is properly validated.
- - @b on_valid($values):\n
- It is called when form received data from user and all the fields are valid. This
- function is called after on_post(). Form passes as an argument the values of all
- fields in the form of associative array.
- - @b on_nopost():\n
- Called when the form was requested using GET and no data where posted from the user.
- (When user see the form for the first time)
- .
-
- @par Example
- To create a form object you must create a derived class that will initialize Form
- and populate any special function that it needs.
- @code
- class NewUserForm extends Output_HTML_Form
- {
- public function __construct()
- {    Output_HTML_Form::__construct(
- array(
- 'username' => array('display' => 'Username'),
- 'password1' => array('display' => 'Password', 'type' => 'password'),
- 'password2' => array('display' => 'Retype password', 'type' =>'password')
- ),
- array('title' => 'New user', 'buttons' => array('create' => array()))
- );
- }
-
- public function on_valid()
- {
- // Add your code here
- }
- }
-
- // Display form
- $nufrm = new NewUserForm();
- @endcode
-
- @par Flow Chart
- Form using the same object, it displays the form, accepts user input, validates
- data and executes user defined code for form events. I will try to visualize
- the order of events and data processing.\n\n
- @b Life-Cycle: The form's life-cycle limits in the constructor and only there.
- @code
-
- $nufrm = new NewUserForm();    // < Here, any input data is processed, is validated,
- ///  user events are executed and finally the form is rendered.
- @endcode
- \n
- A detailed flow chart is followed, displaying what happens inside the constructor of Form.
- @verbatim
- ( Output_HTML_Form Constructor Start )
- |
- V
- / \
- /       \         +------------------+
- / User Post \ ----->| Call on_nopost() |
- \   Data    /  NO   +------------------+
- \       /                  V
- \ /                     |
- |                      |
- V                      |
- +---------------------+          |
- |  Process User Data  |          |
- | (validate regexp,   |          |
- |  validate mandatory |          |
- |  data, save values) |          |
- +---------------------+          |
- |                      |
- V                      |
- +---------------------+          |
- |    Call on_post()   |          |
- | (Here user can do   |          |
- |  extra validations  |          |
- |  and invalidate any |          |
- |  fields)            |          |
- +---------------------+          |
- |                      |
- V                      |
- / \                     |
- /       \                  V
- /  Is Form  \ -------------->+
- \   VALID?  /  NO            |
- \       /                  |
- \ /                     |
- |                      |
- V                      |
- +---------------------+          |
- |   Call on_valid()   |          |
- +---------------------+          |
- |                      V
- +<---------------------+
- |
- V
- / \
- /       \
- /  Is Form  \ -------->+
- \  Visible? /  NO      |
- \       /            |
- \ /               |
- |                |
- V                |
- +-------------------+    |
- |  Render Form      |    |
- +-------------------+    |
- |                V
- +<---------------+
- V
- ( Output_HTML_Form Constructor End )
- @endverbatim
- @todo
- - Add support for multiple buttons
- .
+ *   Form provides a fast way to create input forms with server-side validation. It
+ *   supports multiple types of input and an abstract way to create your own custom
+ *   types. At the same time it provides form validation from mandatory fields to
+ *   regular expressions checks for text boxes. If form is properly validated,
+ *   developper can add custom code for finally processing data using special functions
+ *   in the derived class.
+ *   
+ *   @par Special Functions
+ *   Special functions are function that can be declared in the derived class, and get
+ *   executed in special cases. There is no explicit dependency on these functions and
+ *   Form will work too without declaring any of them, however you should probably define
+ *   at least one to add some "real" functionality on the Form.
+ *   \n\n
+ *   - @b on_post():\n
+ *       Called when form received data from the user. It does not guarantee that the form
+ *       is properly validated.
+ *   - @b on_valid($values):\n
+ *       It is called when form received data from user and all the fields are valid. This
+ *       function is called after on_post(). Form passes as an argument the values of all
+ *       fields in the form of associative array.
+ *   - @b on_nopost():\n
+ *       Called when the form was requested using GET and no data where posted from the user.
+ *       (When user see the form for the first time)
+ *   .
+ *
+ *   @par Example
+ *   To create a form object you must create a derived class that will initialize Form
+ *   and populate any special function that it needs.
+ *   @code
+ *   class NewUserForm extends Output_HTML_Form
+ *   {
+ *       public function __construct()
+ *       {    Output_HTML_Form::__construct(
+ *               array(
+ *                   'username' => array('display' => 'Username'),
+ *                   'password1' => array('display' => 'Password', 'type' => 'password'),
+ *                   'password2' => array('display' => 'Retype password', 'type' =>'password')
+ *               ),
+ *               array('title' => 'New user', 'buttons' => array('create' => array()))
+ *            );
+ *       }
+ *       
+ *       public function on_valid()
+ *       {
+ *           // Add your code here
+ *       }
+ *   }
+ *   
+ *   // Display form
+ *   $nufrm = new NewUserForm();
+ *   @endcode
+ *   
+ *   @par Flow Chart
+ *   Form using the same object, it displays the form, accepts user input, validates
+ *   data and executes user defined code for form events. I will try to visualize
+ *   the order of events and data processing.\n\n    
+ *   @b Life-Cycle: The form's life-cycle limits in the constructor and only there.
+ *   @code
+ *   
+ *   $nufrm = new NewUserForm();    // < Here, any input data is processed, is validated,
+ *                                  ///  user events are executed and finally the form is rendered.
+ *   @endcode
+ *   \n
+ *   A detailed flow chart is followed, displaying what happens inside the constructor of Form.
+ *   @verbatim
+ *  ( Output_HTML_Form Constructor Start )
+ *           |
+ *           V
+ *          / \
+ *       /       \         +------------------+
+ *     / User Post \ ----->| Call on_nopost() |
+ *     \   Data    /  NO   +------------------+
+ *       \       /                  V
+ *          \ /                     |
+ *           |                      |
+ *           V                      |
+ * +---------------------+          |
+ * |  Process User Data  |          |
+ * | (validate regexp,   |          |
+ * |  validate mandatory |          |
+ * |  data, save values) |          |
+ * +---------------------+          |
+ *           |                      |
+ *           V                      |
+ * +---------------------+          |
+ * |    Call on_post()   |          |
+ * | (Here user can do   |          |
+ * |  extra validations  |          |
+ * |  and invalidate any |          |
+ * |  fields)            |          |
+ * +---------------------+          |
+ *           |                      |
+ *           V                      |
+ *          / \                     |
+ *       /       \                  V
+ *     /  Is Form  \ -------------->+
+ *     \   VALID?  /  NO            |
+ *       \       /                  |
+ *          \ /                     |
+ *           |                      |
+ *           V                      |
+ * +---------------------+          |
+ * |   Call on_valid()   |          |
+ * +---------------------+          |
+ *           |                      V
+ *           +<---------------------+
+ *           |                      
+ *           V                      
+ *          / \                     
+ *       /       \                  
+ *     /  Is Form  \ -------->+
+ *     \  Visible? /  NO      |
+ *       \       /            |
+ *          \ /               |
+ *           |                |
+ *           V                |
+ *   +-------------------+    |
+ *   |  Render Form      |    |
+ *   +-------------------+    |
+ *           |                V
+ *           +<---------------+
+ *           V
+ * ( Output_HTML_Form Constructor End )
+ *   @endverbatim
+ *   .
  */
 class Output_HTML_Form
 {

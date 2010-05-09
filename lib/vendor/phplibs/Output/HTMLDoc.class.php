@@ -1,5 +1,5 @@
 <?php
-/**
+/*
  *  This file is part of PHPLibs <http://phplibs.kmfa.net/>.
  *  
  *  Copyright (c) 2010 < squarious at gmail dot com > .
@@ -77,11 +77,12 @@ require_once(dirname(__FILE__) . '/../functions.lib.php');
 
  // Create a guard object that on destruction it will render the mypage
  class auto_render_html
- {   public function __destruct()
- {   global $mypage;
- ob_end_clean();
- echo $mypage->render();
- }
+ {   
+ 	public function __destruct()
+ 	{   global $mypage;
+ 		ob_end_clean();
+ 		echo $mypage->render();
+ 	}
  }
  $auto_render = new auto_render_html();
  @endcode

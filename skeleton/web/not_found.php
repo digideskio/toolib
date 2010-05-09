@@ -1,5 +1,5 @@
 <?php
-/**
+/*
  *  This file is part of PHPLibs <http://phplibs.kmfa.net/>.
  *  
  *  Copyright (c) 2010 < squarious at gmail dot com > .
