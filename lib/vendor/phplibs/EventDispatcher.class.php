@@ -108,235 +108,235 @@ class EventDispatcher
 
     //! An array with global listeners
     private $global_listeners = array();
-
+    
     //! Create an EventDispatcher object and declare the events.
     /**
-    * @param $event_names An array with all events that will be declared
-    */
+     * @param $event_names An array with all events that will be declared
+     */
     public function __construct($event_names = array())
     {   foreach($event_names as $e)
-    self::declare_event($e);
+            self::declare_event($e);
     }
-
+    
     //! Declare an event on this dispatcher
     /**
-    * @param $event_name The name of the event to declare
-    * @return @b true if it was declared otherwise @b false
-    */
+     * @param $event_name The name of the event to declare
+     * @return @b true if it was declared otherwise @b false
+     */
     public function declare_event($event_name)
     {   // Must be a valid value
         if (empty($event_name))
-        return false;
-
+            return false;
+            
         // Must not exist
         if ($this->has_event($event_name))
-        return false;
+             return false;
 
         // Create listeners pool for this event
         $this->event_listeners[$event_name] = array();
         return true;
     }
-
+    
     //! Check if an event is already declared
     /**
-    * @param $event_name The name of the event
-    * @return @b true if exists otherwise @b false
-    */
+     * @param $event_name The name of the event
+     * @return @b true if exists otherwise @b false
+     */
     public function has_event($event_name)
     {   return array_key_exists($event_name, $this->event_listeners);    }
 
     //! Get all events
     /**
-    * @return An array with all events declared at this dispatcher.
-    */
+     * @return An array with all events declared at this dispatcher.
+     */
     public function get_events()
     {   return array_keys($this->event_listeners);   }
 
     //! Check if event has a specific listener
     /**
-    * @param $event_name The name of the event or @b NULL for global listeners.
-    * @param $callable The callable of the listener.
-    * @return @b true if it has listener otherwise @b false
-    */
+     * @param $event_name The name of the event or @b NULL for global listeners.
+     * @param $callable The callable of the listener.
+     * @return @b true if it has listener otherwise @b false
+     */
     public function has_listener($event_name, $callable)
     {   // Check global listeners
         if ($event_name === NULL)
-        return (array_search($callable, $this->global_listeners, true) !== false);
+            return (array_search($callable, $this->global_listeners, true) !== false);
 
         // Must exist
         if (! $this->has_event($event_name))
-        return false;
+             return false;
 
         return (array_search($callable, $this->event_listeners[$event_name], true) !== false);
     }
-
+    
     //! Get all listeners of an event
     /**
-    * @param $event_name The name of the event or @b NULL for global listeners.
-    * @return @b Array with callbacks or @b NULL if event is unknown.
-    */
+     * @param $event_name The name of the event or @b NULL for global listeners.
+     * @return @b Array with callbacks or @b NULL if event is unknown.
+     */
     public function get_listeners($event_name)
     {   // Check for global listeners
         if ($event_name === NULL)
-        return $this->global_listeners;
+            return $this->global_listeners;
 
         // Event must not exist
         if (! $this->has_event($event_name))
-        return NULL;
+             return NULL;
         return $this->event_listeners[$event_name];
     }
-
+    
     //! Connect on event
-    /**
-    * @param $event_name The name of the event or @b NULL for @i any event.
-    * @param $callable The callable object to be called when the event is raised.
-    * @return @b true if it was connected succesfully or @b false on any error.
-    */
+    /** 
+     * @param $event_name The name of the event or @b NULL for @i any event.
+     * @param $callable The callable object to be called when the event is raised.
+     * @return @b true if it was connected succesfully or @b false on any error.
+     */
     public function connect($event_name, $callable)
     {   // Check if it wants to connect to global listeners
         if ($event_name === NULL)
         {   if (array_search($callable, $this->global_listeners, true) === false)
-        {   $this->global_listeners[] = $callable;
-        return true;
+            {   $this->global_listeners[] = $callable;
+                return true;
+            }
+            return false;
         }
-        return false;
-        }
-
+        
         // Check that the event exists
         if (! $this->has_event($event_name))
-        return false;
-
+            return false;
+            
         // Check if this callable has been registered again
         if (array_search($callable, $this->event_listeners[$event_name], true) !== false)
-        return false;
+            return false;
 
         $this->event_listeners[$event_name][] = $callable;
         return true;
     }
 
     //! Disconnect from event
-    /**
-    * @param $event_name The name of the event or @b NULL for @i any event.
-    * @param $callable The callable object that was passed on connection.
-    * @return @b true if it was disconnected succesfully or @b false on any error.
-    */
+    /** 
+     * @param $event_name The name of the event or @b NULL for @i any event.
+     * @param $callable The callable object that was passed on connection.
+     * @return @b true if it was disconnected succesfully or @b false on any error.
+     */
     public function disconnect($event_name, $callable)
-    {
+    {   
         // Check if it wants to disconnect from global listeners
         if ($event_name === NULL)
         {   $cb_key = array_search($callable, $this->global_listeners, true);
 
-        if ($cb_key !== false)
-        {   unset($this->global_listeners[$cb_key]);
-        $this->global_listeners = array_values($this->global_listeners);
-        return true;
-        }
-        return false;
-        }
+            if ($cb_key !== false)
+            {   unset($this->global_listeners[$cb_key]);
+                $this->global_listeners = array_values($this->global_listeners);
+                return true;
+            }
+            return false;
+        } 
 
         // Check if it is a known event
         if (! $this->has_event($event_name))
-        return false;
-
+            return false;
+            
         // Check if this listener exists
         if (($cb_key = array_search($callable, $this->event_listeners[$event_name], true)) === false)
-        return false;
-
+            return false;
+        
         // Remove listener
         unset($this->event_listeners[$event_name][$cb_key]);
         $this->event_listeners[$event_name] = array_values($this->event_listeners[$event_name]);
         return true;
     }
-
+        
     //! Notify all listeners for this event
-    /**
-    * @param $event_name The name of the event that notification belongs to.
-    * @param $arguments Array with user defined arguments for the listeners.
-    * @return @b Event object with the details of the event.
-    * @throws InvalidArgumentException if the $event_name is not valid
-    */
+    /** 
+     * @param $event_name The name of the event that notification belongs to.
+     * @param $arguments Array with user defined arguments for the listeners.
+     * @return @b Event object with the details of the event.
+     * @throws InvalidArgumentException if the $event_name is not valid
+     */
     public function notify($event_name, $arguments = array())
     {   if (! $this->has_event($event_name))
-    throw new InvalidArgumentException("Cannot notify unknown ${event_name}");
+            throw new InvalidArgumentException("Cannot notify unknown ${event_name}");
 
-    // Create event object
-    $e = new Event($event_name, 'notify', $arguments);
+        // Create event object
+        $e = new Event($event_name, 'notify', $arguments);
+        
+        // Call event listeners
+        foreach($this->event_listeners[$event_name] as $callback)
+        {   call_user_func($callback, $e);
+            $e->processed = true;   // Mark it as processed
+        }
+        
+        // Call global listeners
+        foreach($this->global_listeners as $callback)
+        {   call_user_func($callback, $e);
+            $e->processed = true;   // Mark it as processed
+        }
 
-    // Call event listeners
-    foreach($this->event_listeners[$event_name] as $callback)
-    {   call_user_func($callback, $e);
-    $e->processed = true;   // Mark it as processed
+        return $e;
     }
 
-    // Call global listeners
-    foreach($this->global_listeners as $callback)
-    {   call_user_func($callback, $e);
-    $e->processed = true;   // Mark it as processed
-    }
+    //! Notify all listeners for this event until one returns non null value
+    /** 
+     * @param $event_name The name of the event that notification belongs to.
+     * @param $arguments Array with user defined arguments for the listeners.
+     * @return @b Event object with the details of the event.
+     * @throws InvalidArgumentException if the $event_name is not valid
+     */
+    public function notify_until($event_name, $arguments = array())
+    {   if (! $this->has_event($event_name))
+            throw new InvalidArgumentException("Cannot notify_until unknown ${event_name}");
 
-    return $e;
-}
+        // Create event object
+        $e = new Event($event_name, 'notify_until', $arguments);
+        
+        // Call event listeners
+        foreach($this->event_listeners[$event_name] as $callback)
+        	if (call_user_func($callback, $e) !== NULL)
+            {	$e->processed = true;   // Mark it as processed
+				return $e;
+			}
+        
+        // Call global listeners
+        foreach($this->global_listeners as $callback)
+			if (call_user_func($callback, $e) !== NULL)
+            {	$e->processed = true;   // Mark it as processed
+				return $e;
+			}
 
-//! Notify all listeners for this event until one returns non null value
-/**
- * @param $event_name The name of the event that notification belongs to.
- * @param $arguments Array with user defined arguments for the listeners.
- * @return @b Event object with the details of the event.
- * @throws InvalidArgumentException if the $event_name is not valid
- */
-public function notify_until($event_name, $arguments = array())
-{   if (! $this->has_event($event_name))
-throw new InvalidArgumentException("Cannot notify_until unknown ${event_name}");
-
-// Create event object
-$e = new Event($event_name, 'notify_until', $arguments);
-
-// Call event listeners
-foreach($this->event_listeners[$event_name] as $callback)
-if (call_user_func($callback, $e) !== NULL)
-{	$e->processed = true;   // Mark it as processed
-return $e;
-}
-
-// Call global listeners
-foreach($this->global_listeners as $callback)
-if (call_user_func($callback, $e) !== NULL)
-{	$e->processed = true;   // Mark it as processed
-return $e;
-}
-
-return $e;
+        return $e;
     }
 
     //! Filter value through listeners
-    /**
-    * @param $event_name The name of the event that notification belongs to.
-    * @param $value The value that must be filtered by listeners.
-    * @param $arguments Array with user defined arguments for the listeners.
-    * @return @b Event object with the details of the event.
-    * @throws InvalidArgumentException if the $event_name is not valid
-    */
+    /** 
+     * @param $event_name The name of the event that notification belongs to.
+     * @param $value The value that must be filtered by listeners.
+     * @param $arguments Array with user defined arguments for the listeners.
+     * @return @b Event object with the details of the event.
+     * @throws InvalidArgumentException if the $event_name is not valid
+     */
     public function filter($event_name, & $value, $arguments = array())
     {   if (! $this->has_event($event_name))
-    throw new InvalidArgumentException("Cannot filter unknown ${event_name}");
+            throw new InvalidArgumentException("Cannot filter unknown ${event_name}");
 
-    // Create event object
-    $e = new Event($event_name, 'filter', $arguments);
-    $e->filtered_value = & $value;
+        // Create event object
+        $e = new Event($event_name, 'filter', $arguments);
+		$e->filtered_value = & $value;
+        
+        // Call event listeners
+        foreach($this->event_listeners[$event_name] as $callback)
+        {   call_user_func($callback, $e);
+            $e->processed = true;   // Mark it as processed
+        }
+        
+        // Call global listeners
+        foreach($this->global_listeners as $callback)
+        {   call_user_func($callback, $e);
+            $e->processed = true;   // Mark it as processed
+        }
 
-    // Call event listeners
-    foreach($this->event_listeners[$event_name] as $callback)
-    {   call_user_func($callback, $e);
-    $e->processed = true;   // Mark it as processed
-    }
-
-    // Call global listeners
-    foreach($this->global_listeners as $callback)
-    {   call_user_func($callback, $e);
-    $e->processed = true;   // Mark it as processed
-    }
-
-    return $e;
+        return $e;
     }
 }
 

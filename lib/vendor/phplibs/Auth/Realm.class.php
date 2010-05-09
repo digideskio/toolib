@@ -39,8 +39,8 @@ class Auth_Realm
 
     //! Set the authentication backend of the realm
     /**
-    * @param $backend Any valid Auth_Backend implementation.
-    */
+     * @param $backend Any valid Auth_Backend implementation.
+     */
     static public function set_backend(Auth_Backend $backend)
     {   self::$backend = $backend;  }
 
@@ -50,8 +50,8 @@ class Auth_Realm
 
     //! Set the current session storage engine.
     /**
-    * @param $storage Any valid Auth_Storage implementation.
-    */
+     * @param $storage Any valid Auth_Storage implementation.
+     */
     static public function set_storage(Auth_Storage $storage)
     {   self::$storage = $storage;  }
 
@@ -61,40 +61,40 @@ class Auth_Realm
 
     //! Get the EventDispatcher of Auth_Realm
     /**
-    * Events are announced through an EventDispatcher object. The following
-    * events are valid:
-    *  - @b auth.successful: A successful authentication took place.
-    *  - @b auth.error: An identity authentatication failed.
-    *  - @b ident.clear: The current authenticated identity was cleared.
-    * .
-    */
+	 * Events are announced through an EventDispatcher object. The following
+	 * events are valid:
+	 *  - @b auth.successful: A successful authentication took place.
+	 *  - @b auth.error: An identity authentatication failed.
+	 *  - @b ident.clear: The current authenticated identity was cleared.
+	 * .
+     */
     static public function events()
     {   if (self::$event_dispatcher === null)
-    self::$event_dispatcher = new EventDispatcher(array(
+            self::$event_dispatcher = new EventDispatcher(array(
                 'auth.successful',
                 'auth.error',
                 'ident.clear'
-                ));
-                return self::$event_dispatcher;
+            ));
+        return self::$event_dispatcher;
     }
 
     //! Check if it has an authenticated identity
     /**
-    * @return - @b true if there is an authenticated identity on this realm.
-    *  - @b false if the current user is anonymous.
-    */
+     * @return - @b true if there is an authenticated identity on this realm.
+     *  - @b false if the current user is anonymous.
+     */
     static public function has_identity()
-    {
+    {   
         return (self::$storage->get_identity() != false);
     }
 
     //! Get current authenticated identity
     /**
-    * @return - @b Auth_Identity object of the authenticated identity.
-    *  - @b false If there is no authenticated identity.
-    */
+     * @return - @b Auth_Identity object of the authenticated identity.
+     *  - @b false If there is no authenticated identity.
+     */
     static public function get_identity()
-    {
+    {   
         return self::$storage->get_identity();
     }
 
@@ -103,39 +103,39 @@ class Auth_Realm
     {
         $identity = self::has_identity();
         if (!$identity)
-        return false;
+            return false;
 
         self::events()->notify('ident.clear', array('identity' => $identity));
-
+        
         return self::$storage->clear_identity();
     }
 
     //! Authenticate a (new) identity on this realm
     /**
-    * @param $username The username of the identity
-    * @param $password The password of identity
-    * @param $ttl - An explicit declaration of expiration time for this authentication.
-    *  - @b null if you want to follow the Auth_Storage default policy.
-    */
+     * @param $username The username of the identity
+     * @param $password The password of identity
+     * @param $ttl - An explicit declaration of expiration time for this authentication.
+     *  - @b null if you want to follow the Auth_Storage default policy.
+     */
     static public function authenticate($username, $password, $ttl = null)
     {
         if (!self::$backend)
-        return false;
+            return false;
 
         // Clear previous one
         if (self::has_identity())
-        self::clear_identity();
+            self::clear_identity();
 
         $id = self::$backend->authenticate($username, $password);
         if (!$id)
         {   self::events()->notify('auth.error', array('username' => $username, 'password' => $password));
-        return false;
+            return false;
         }
         self::events()->notify('auth.successful', array('username' => $username, 'password' => $password));
 
         // Save session
         self::$storage->set_identity($id, $ttl);
-        return $id;
+        return $id;        
     }
 }
 

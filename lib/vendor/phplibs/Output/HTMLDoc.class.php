@@ -127,72 +127,72 @@ class Output_HTMLDoc
     {
         return $this->body;
     }
-
+    
     //! Add a external reference entry
-    /**
-    * @param $href The position of this external reference
-    * @param $type Specifies the MIME type of the linked document
-    * @param $rel Specifies the relationship between the current document and the linked document
-    * @param $extra_html_attribs An array with extra attributes that you want to set at this link element.\n
-    *		Attributes are given as an associative array where key is the attribute name and value is the
-    *		attribute value.\n
-    */
+    /** 
+     * @param $href The position of this external reference
+     * @param $type Specifies the MIME type of the linked document
+     * @param $rel Specifies the relationship between the current document and the linked document
+     * @param $extra_html_attribs An array with extra attributes that you want to set at this link element.\n
+     *		Attributes are given as an associative array where key is the attribute name and value is the 
+     *		attribute value.\n
+     */
     public function add_link_ref($href, $type, $rel, $extra_html_attribs = array())
     {	$link_el = $extra_html_attribs;
-    $link_el['href'] = $href;
-    $link_el['type'] = $type;
-    $link_el['rel'] = $rel;
-    $this->link_refs[] = $link_el;
-    return true;
-    }
-
+    	$link_el['href'] = $href;
+    	$link_el['type'] = $type;
+    	$link_el['rel'] = $rel;
+    	$this->link_refs[] = $link_el;
+    	return true;
+    }	
+    
     //! Add a new meta data entry
-    /**
-    *	@param $content The value of meta element's content attribute
-    * 	@param $extra_html_attribs An array with extra attributes that you want to set at this meta element.\n
-    *		Attributes are given as an associative array where key is the attribute name and value is the
-    *  	attribute value.\n
-    *	Example:\n
-    *	@code
-    *		$myhtml->add_meta('text/html;charset=ISO-8859-1', array('http-equiv' => 'Content-Type'));
-    *	@endcode
-    */
+    /** 
+     *	@param $content The value of meta element's content attribute
+	 * 	@param $extra_html_attribs An array with extra attributes that you want to set at this meta element.\n
+     *		Attributes are given as an associative array where key is the attribute name and value is the 
+     *  	attribute value.\n
+     *	Example:\n
+     *	@code
+     *		$myhtml->add_meta('text/html;charset=ISO-8859-1', array('http-equiv' => 'Content-Type'));
+     *	@endcode
+     */
     public function add_meta($content, $extra_html_attribs = array())
     {
-        $meta_el = $extra_html_attribs;
-        $meta_el['content'] = $content;
-        $this->extra_meta[] = $meta_el;
+    	$meta_el = $extra_html_attribs;
+    	$meta_el['content'] = $content;
+    	$this->extra_meta[] = $meta_el;
     }
-
+    
     //! Add a favicon of this webpage
     public function add_favicon($icon, $type = NULL)
     {	if ($type === NULL)
-    {	$ext = pathinfo($icon, PATHINFO_EXTENSION);
-
-    if ($ext == 'gif')
-    $type = 'image/gif';
-    else if ($ext == 'png')
-    $type = 'image/png';
-    else if ($ext == 'ico')
-    $type = 'image/vnd.microsoft.icon';
-    else
-    return false;
+    	{	$ext = pathinfo($icon, PATHINFO_EXTENSION);
+    	
+    		if ($ext == 'gif')
+    			$type = 'image/gif';
+    		else if ($ext == 'png')
+    			$type = 'image/png';
+    		else if ($ext == 'ico')
+    			$type = 'image/vnd.microsoft.icon';
+    		else
+    			return false;
+    	}
+    	
+    	return $this->add_link_ref($icon, $type, 'icon');
     }
-
-    return $this->add_link_ref($icon, $type, 'icon');
-    }
-
-    //! Add a javascript reference
-    public function add_ref_js($script)
-    {
-        //$this->js_refs[] = sprintf('<script src="%s" type="text/javascript"></script>', $script);
-        $this->js_refs[] = $script;
-    }
-
-    //! Add a style sheet reference
-    public function add_ref_css($script)
-    {	return $this->add_link_ref($script, "text/css", "stylesheet");
-    }
+    
+	//! Add a javascript reference
+	public function add_ref_js($script)
+	{
+	    //$this->js_refs[] = sprintf('<script src="%s" type="text/javascript"></script>', $script);	    
+	    $this->js_refs[] = $script;
+	}
+	
+	//! Add a style sheet reference
+	public function add_ref_css($script)
+	{	return $this->add_link_ref($script, "text/css", "stylesheet");
+	}
 
     //! Append data in the body content
     public function append_data($str)
@@ -203,44 +203,44 @@ class Output_HTMLDoc
     //! Render html code and return a string with the whole page
     public function render()
     {   $is_xhtml = (Output_HTMLTag::$default_render_mode == 'xhtml');
-
-    // DocType
-    if ($is_xhtml)
-    $r = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"' .
+    	
+    	// DocType
+    	if ($is_xhtml)
+	        $r = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"' .
     	    	' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' .
         		'<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" >';
-    else
-    $r = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><html>';
-
-    // HEAD
-    $r .= '<head>';
-    //$r .= tag('head',
-    // Character set
-    if ($is_xhtml)
-    $r .= tag('meta', array('http-equiv' => 'Content-type',
+	    else
+	        $r = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><html>';
+        
+        // HEAD
+        $r .= '<head>';
+        //$r .= tag('head',
+	        // Character set
+	    if ($is_xhtml)
+	    	$r .= tag('meta', array('http-equiv' => 'Content-type',
 	    	    'content' => 'application/xhtml+xml;charset=' . $this->char_set));
-    else
-    $r .= tag('meta', array('http-equiv' => 'Content-type',
+	    else
+	    	$r .= tag('meta', array('http-equiv' => 'Content-type',
 	    	    'content' => 'text/html;charset=' . $this->char_set));
 
-    // Extra meta data
-    foreach($this->extra_meta as $meta_attrs)
-    $r .= tag('meta', $meta_attrs);
-
-    // Link external references
-    foreach ($this->link_refs as $link_attrs)
-    $r .= tag ('link', $link_attrs);
-
-    // Javascript exteeernal references
-    foreach ($this->js_refs as $js_ref)
-    $r .= tag('script type="text/javascript"',  array('src' => $js_ref));
-
-    // Title
-    $r .= tag('title', $this->title);
-    $r .= '</head>';
-    $r .= (string)$this->body;
-    $r .= '</html>';
-    return $r;
+		// Extra meta data
+		foreach($this->extra_meta as $meta_attrs)
+			$r .= tag('meta', $meta_attrs);
+		
+		// Link external references
+        foreach ($this->link_refs as $link_attrs)
+        	$r .= tag ('link', $link_attrs);
+        
+        // Javascript exteeernal references
+        foreach ($this->js_refs as $js_ref)
+			$r .= tag('script type="text/javascript"',  array('src' => $js_ref));            
+  
+        // Title
+        $r .= tag('title', $this->title);
+        $r .= '</head>';
+        $r .= (string)$this->body;
+        $r .= '</html>';
+        return $r;
     }
 };
 

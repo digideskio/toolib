@@ -36,11 +36,11 @@ class Auth_Storage_Cache implements Auth_Storage
 
     //! Cache storage constructor
     /**
-    * @param $cache The cache engine that will be used.
-    * @param $cookie Cookie to be used for saving identity.
-    *  All the parameters of cookie will be used except of value which will
-    *  be changed to the appropriate one.
-    */
+     * @param $cache The cache engine that will be used.
+     * @param $cookie Cookie to be used for saving identity.
+     *  All the parameters of cookie will be used except of value which will
+     *  be changed to the appropriate one.
+     */
     public function __construct(Cache $cache, Net_HTTP_Cookie $cookie)
     {
         $this->cache = $cache;

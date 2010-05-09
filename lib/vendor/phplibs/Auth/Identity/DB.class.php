@@ -45,19 +45,19 @@ class Auth_Identity_DB implements Auth_Identity
 
     //! Reset password of this identity
     /**
-    * @param $password The new password to be set for this identity
-    * @return - @b true If the password was changed succesfully.
-    *  - @b false on any kind of error.
-    */
+     * @param $password The new password to be set for this identity
+     * @return - @b true If the password was changed succesfully.
+     *  - @b false on any kind of error.
+     */
     public function reset_password($password)
-    {
+    {   
         return $this->authority->reset_password($this->id(), $password);
     }
-
+    
     //! Get the database record of this user
     public function get_record()
     {
         return $this->record;
     }
-
+    
 }

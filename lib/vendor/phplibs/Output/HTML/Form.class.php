@@ -293,7 +293,7 @@ class Output_HTML_Form
         	'buttons' => array('submit' => array())
         );
         $this->options = array_merge($default_options, $this->options);
-
+            
         // Initialize default values for fields
         $default_field_values = array(
         	'type' => 'text',
@@ -302,117 +302,117 @@ class Output_HTML_Form
         	'mustselect' => true,
         );
         foreach($this->fields as $field_key => $field)
-        $this->fields[$field_key] = array_merge($default_field_values, $field);
-
+        	$this->fields[$field_key] = array_merge($default_field_values, $field);
+        
         // Extra custom options
         foreach($this->fields as & $field)
         {    // Usepost
             if (!isset($field['usepost']))
-            $field['usepost'] = ($field['type'] == 'password')?false:true;
+                $field['usepost'] = ($field['type'] == 'password')?false:true;
             // Rows and Cols for textarea
             if (($field['type'] == 'textarea') && (!isset($field['htmlattribs']['rows'])))
-            $field['htmlattribs']['rows'] = 8;
+            	$field['htmlattribs']['rows'] = 8;
             if (($field['type'] == 'textarea') && (!isset($field['htmlattribs']['cols'])))
-            $field['htmlattribs']['cols'] = 70;
-
+            	$field['htmlattribs']['cols'] = 70;
+            	
             // Check for file field
             if ($field['type'] == 'file')
-            $this->enctype = 'multipart/form-data';
+            	$this->enctype = 'multipart/form-data';
         }
         unset($field);
-
+        
         // Initialize default values for buttons
         foreach($this->options['buttons'] as $but_id => & $button)
         {
-            // Type
-            if (!isset($button['type']))
-            $button['type'] = 'submit';
+        	// Type
+        	if (!isset($button['type']))
+        		$button['type'] = 'submit';
 
-            // Display
-            if (!isset($button['display']))
-            $button['display'] = $but_id;
+			// Display
+        	if (!isset($button['display']))
+        		$button['display'] = $but_id;
 
-            // Onclick event
-            if (!isset($button['onclick']))
-            $button['onclick'] = '';
-
-            // Onclick event
-            if (!isset($button['htmlattribs']))
-            $button['htmlattribs'] = array();
-
+			// Onclick event
+        	if (!isset($button['onclick']))
+        		$button['onclick'] = '';
+        	
+        	// Onclick event
+        	if (!isset($button['htmlattribs']))
+        		$button['htmlattribs'] = array();
+        	
         }
         unset($button);
-
+        
         // Process post
         $this->process_post();
-
+        
         // Render the form
         if ($this->options['renderonconstruct'])
-        echo $this->render();
+	        echo $this->render();
     }
-
+    
     //! Process the posted data
     private function process_post()
     {   // Check if the form is posted
         if ((!isset($_POST['submited_form_id'])) ||
-        ($_POST['submited_form_id'] != $this->form_id))
+            ($_POST['submited_form_id'] != $this->form_id))
         {
             // Call user function when there is no post
             if (method_exists($this, 'on_nopost'))
-            $this->on_nopost();
+                $this->on_nopost();
             return false;
         }
 
         // Store values and check if they are valid
         foreach($this->fields as $k => & $field)
-        {
-            // Files
-            if ($field['type'] == 'file')
-            {
-                if ($_FILES[$k]['error'] > 0)
-                {
-                    $field['valid'] = false;
+        {   
+			// Files
+			if ($field['type'] == 'file')
+			{
+				if ($_FILES[$k]['error'] > 0)
+				{
+					$field['valid'] = false;
                     if (isset($field['onerror']))
-                    $field['error'] = $field['onerror'];
-                    continue;
-                }
-                // Get file data
-                $fdata = file_get_contents($_FILES[$k]['tmp_name'], FILE_BINARY);
-
-                $field['value'] = array(
+                        $field['error'] = $field['onerror'];
+					continue;
+				}
+				// Get file data
+				$fdata = file_get_contents($_FILES[$k]['tmp_name'], FILE_BINARY);
+				
+				$field['value'] = array(
 					'orig_name' => $_FILES[$k]['name'],
 					'size' => $_FILES[$k]['size'],
 					'data' => $fdata
-                );
-            }
-            // Checkboxes
-            else if ($field['type'] == 'checkbox')
-            {	$field['value'] = (isset($_POST[$k]) && ($_POST[$k] == 'on'));	}
-
-            // Store values for classic elements
-            else if (isset($_POST[$k]))
-            $field['value'] = $_POST[$k];
-
+				);
+			}
+			// Checkboxes
+			else if ($field['type'] == 'checkbox')
+			{	$field['value'] = (isset($_POST[$k]) && ($_POST[$k] == 'on'));	}
+			
+			// Store values for classic elements
+			else if (isset($_POST[$k]))
+                $field['value'] = $_POST[$k];
+			
             // Regcheck
             $field['valid'] = true;
             if (isset($field['regcheck']))
             {
                 if (preg_match($field['regcheck'], $field['value']) == 0)
                 {   $field['valid'] = false;
-                if (isset($field['onerror']))
-                $field['error'] = $field['onerror'];
+                    if (isset($field['onerror']))
+                        $field['error'] = $field['onerror'];
                 }
             }
-
+            
             // Mustselect check
             if (($field['valid']) &&
-            (($field['type'] == 'dropbox') || ($field['type'] == 'radio'))
-            && ($field['mustselect']))
+                (($field['type'] == 'dropbox') || ($field['type'] == 'radio'))
+                && ($field['mustselect']))
             {
                 if (empty($field['value']))
                 {   $field['valid'] = false;
-                if (isset($field['onerror']))
-                $field['error'] = $field['onerror'];
+                    if (isset($field['onerror']))
+                        $field['error'] = $field['onerror'];
                 }
             }
         }
@@ -420,49 +420,49 @@ class Output_HTML_Form
 
         // Call user function for post processing
         if (method_exists($this, 'on_post'))
-        $this->on_post();
-
+            $this->on_post();
+            
         // Call on_valid if form is valid
         if ($this->is_valid() && method_exists($this, 'on_valid'))
-        $this->on_valid($this->field_values());
+            $this->on_valid($this->field_values());
     }
 
     //! Get the user given value of a field
-    /**
-    If a this is the first time viewing the firm, the
-    function will return the predefined value of this field. (if any)
+    /** 
+        If a this is the first time viewing the firm, the
+        function will return the predefined value of this field. (if any)
     */
     public function get_field_value($fname)
     {
         if (isset($this->fields[$fname]) && (isset($this->fields[$fname]['value'])) )
-        return $this->fields[$fname]['value'];
+            return $this->fields[$fname]['value'];
     }
-
+    
     //! Get a reference to the field
     public function & get_field($fname)
     {	return $this->fields[$fname];	}
-
+    
     //! Get all the values of fields
     /**
-    @return An associative array with all values of form fields.
+    	@return An associative array with all values of form fields.
     */
     public function field_values()
     {	$values = array();
-    foreach($this->fields as $fname => $field)
-    $values[$fname] = $field['value'];
-    return $values;
+		foreach($this->fields as $fname => $field)
+			$values[$fname] = $field['value'];
+		return $values;
     }
-
+    
     //! Check if a field is valid
     public function is_field_valid($fname)
     {
         if (isset($this->fields[$fname]) &&
-        isset($this->fields[$fname]['valid']))
-        return $this->fields[$fname]['valid'];
+            isset($this->fields[$fname]['valid']))
+                return $this->fields[$fname]['valid'];
 
         return false;
     }
-
+    
     //! Invalidate a field and set an error message
     public function invalidate_field($fname, $error_msg)
     {
@@ -472,171 +472,171 @@ class Output_HTML_Form
             $this->fields[$fname]['error'] = $error_msg;
         }
     }
-
+    
     //! Check if form is valid
-    /**
-    It will check if all fields are valid, and if they are,
-    it will return true.
+    /** 
+        It will check if all fields are valid, and if they are,
+        it will return true.
     */
     public function is_valid()
     {   foreach($this->fields as $k => $field)
-    if(!$this->is_field_valid($k))
-    return false;
-    return true;
+            if(!$this->is_field_valid($k))
+                return false;
+        return true;
     }
-
+    
     //! Set the error message of a field
-    /**
-    This does not invalidates fields, it just changes
-    the error message.
+    /** 
+        This does not invalidates fields, it just changes
+        the error message.
     */
     protected function set_field_error($fname, $error)
     {
         if(!isset($this->fields[$fname]))
-        return false;
+            return false;
         $this->fields[$fname]['error'] = $error;
     }
-
+    
     //! Get a refernece to the internal field object
-    /**
-    The reference returned will be an array
-    with the parameters of the fields, for
-    the parameterse of the field you can see
-    __construct().
-    */
+    /** 
+       The reference returned will be an array
+       with the parameters of the fields, for 
+       the parameterse of the field you can see
+       __construct().
+   */
     public function field($fname)
     {   if(!isset($this->fields[$fname]))
-    return false;
-    return $this->fields[$fname];
+            return false;
+        return $this->fields[$fname];
     }
-
+    
     //! Change the display text of a field
-    /**
-    Display text is the text on the left of the field
-    that describes it.
+    /** 
+        Display text is the text on the left of the field
+        that describes it.
     */
     public function set_field_display($fname, $display)
     {   if(!isset($this->fields[$fname]))
-    return false;
-    $this->fields[$fname]['display'] = $display;
+            return false;
+        $this->fields[$fname]['display'] = $display;
     }
-
+    
     //! Render the form
     public function render()
     {   // Check if it should be hidden
-        if ($this->options['hideform'])
-        return false;
-        	
-        $div = tag('div');
-        foreach($this->options['css'] as $cls)
-        $div->add_class($cls);
-        	
-        $form = tag('form action="" method="post"', array('enctype' => $this->enctype))->appendTo($div)->push_parent();
+    	if ($this->options['hideform'])
+    		return false;
+   
+    	$div = tag('div');
+    	foreach($this->options['css'] as $cls)
+    		$div->add_class($cls); 
+    	
+    	$form = tag('form action="" method="post"', array('enctype' => $this->enctype))->appendTo($div)->push_parent();
         etag('input type="hidden" name="submited_form_id"' , array('value' => $this->form_id));
 
         if (isset($this->options['title']))
-        etag('span class="title"',  $this->options['title']);
-
+        	etag('span class="title"',  $this->options['title']);
+            
         // Render all fields
         foreach($this->fields as $id => $field)
         {	etag('dt')->push_parent();
-        // Line type
-        if ($field['type'] == 'line')
-        {  	etag('hr');
-        Output_HTMLTag::pop_parent();
-        continue;
-        }
+        	// Line type
+            if ($field['type'] == 'line')
+            {  	etag('hr');
+            	Output_HTMLTag::pop_parent(); 	
+            	continue;
+            }
 
-        if (isset($field['display']))
-        etag('label', $field['display']);
+            if (isset($field['display']))
+            	etag('label', $field['display']);
+            
 
-
-        // Show input pertype
-        switch($field['type'])
-        {
+            // Show input pertype
+            switch($field['type'])
+            {
             case 'text':
             case 'password':
                 $attrs = array_merge($field['htmlattribs'], array('name' => $id, 'type' => $field['type']));
-                if (($field['usepost']) && isset($field['value']))
-                $attrs['value'] = $field['value'];
-                etag('input', $attrs);
+                if (($field['usepost']) && isset($field['value'])) 
+                	$attrs['value'] = $field['value'];
+                etag('input', $attrs);                
                 break;
             case 'textarea':
-                etag('textarea', $field['htmlattribs'],
-                array('name'=>$id),
-                (($field['usepost']) && isset($field['value']))?$field['value']:''
-                );
+            	etag('textarea', $field['htmlattribs'],
+            		array('name'=>$id),
+            		(($field['usepost']) && isset($field['value']))?$field['value']:''
+            	);
                 break;
             case 'radio':
                 foreach($field['optionlist'] as $opt_key => $opt_text)
                 {
-                    etag('input type="radio"', $field['htmlattribs'],
-                    array('name'=>$id, 'value'=>$opt_key),
-                    (($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))?array('checked'=>'checked'):array(),
-                    $opt_text
-                    );
+                	etag('input type="radio"', $field['htmlattribs'],
+                		array('name'=>$id, 'value'=>$opt_key),
+                		(($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))?array('checked'=>'checked'):array(),
+                		$opt_text
+                	);
                 }
                 break;
             case 'dropbox':
-                $select = etag('select', array('name' => $id), $field['htmlattribs']);
+            	$select = etag('select', array('name' => $id), $field['htmlattribs']);
                 foreach($field['optionlist'] as $opt_key => $opt_text)
                 {	tag('option',
-                array('value'=>$opt_key),
-                (($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))?array('selected'=>'selected'):array(),
-                $opt_text
-                )->appendTo($select);
+                		array('value'=>$opt_key),
+                		(($field['usepost']) && isset($field['value']) && ($opt_key == $field['value']))?array('selected'=>'selected'):array(),
+                		$opt_text
+                	)->appendTo($select);
                 }
                 break;
             case 'checkbox':
-                etag('input type="checkbox"', array('name'=>$id),
-                $field['htmlattribs'],
-                (($field['usepost']) && isset($field['value']) && ($field['value']))?array('checked'=>'checked'):array()
-                );
+            	etag('input type="checkbox"', array('name'=>$id),
+            		$field['htmlattribs'],
+            		(($field['usepost']) && isset($field['value']) && ($field['value']))?array('checked'=>'checked'):array()
+            	);
                 break;
             case 'file':
-                etag('input type="file"', array('name' => $id), $field['htmlattribs']);
+            	etag('input type="file"', array('name' => $id), $field['htmlattribs']);
                 break;
             case 'custom':
-                etag('span html_escape_off', $field['value']);
+            	etag('span html_escape_off', $field['value']);
                 break;
+            }
+            
+            if (isset($field['error']))
+            	etag('span class="ui-form-error"', $field['error']);
+            else if (isset($field['hint']))
+            	etag('span class="ui-form-hint"', $field['hint']);
+            Output_HTMLTag::pop_parent();
         }
-
-        if (isset($field['error']))
-        etag('span class="ui-form-error"', $field['error']);
-        else if (isset($field['hint']))
-        etag('span class="ui-form-hint"', $field['hint']);
-        Output_HTMLTag::pop_parent();
-        }
-
+        
         // Render buttons
         etag('div class="buttons"')->push_parent();
         foreach($this->options['buttons'] as $but_id => $but_parm)
         {	$but_parm['htmlattribs']['name'] = $but_id;
-        $but_parm['htmlattribs']['value'] = $but_parm['display'];
+        	$but_parm['htmlattribs']['value'] = $but_parm['display'];
+        	        	
+        	// Type
+			if ($but_parm['type'] == 'submit')
+				$but_parm['htmlattribs']['type'] = 'submit';
+			else if ($but_parm['type'] == 'reset')
+				$but_parm['htmlattribs']['type'] = 'reset';
+			else
+				$but_parm['htmlattribs']['type'] = 'button';
+			
+			// Onclick
+			if ($but_parm['onclick'] != '')
+				$but_parm['htmlattribs']['onclick'] = $but_parm['onclick'];
 
-        // Type
-        if ($but_parm['type'] == 'submit')
-        $but_parm['htmlattribs']['type'] = 'submit';
-        else if ($but_parm['type'] == 'reset')
-        $but_parm['htmlattribs']['type'] = 'reset';
-        else
-        $but_parm['htmlattribs']['type'] = 'button';
-        	
-        // Onclick
-        if ($but_parm['onclick'] != '')
-        $but_parm['htmlattribs']['onclick'] = $but_parm['onclick'];
-
-        etag('input', $but_parm['htmlattribs']);
+			etag('input', $but_parm['htmlattribs']);
         }
         Output_HTMLTag::pop_parent(2);
-        return $div;
+		return $div;
     }
-
+    
     //! Don't display the form
     /**
-    Makes the form hidden and will not render. You can use
-    this function from any special function to prevent
-    form rendering.
+        Makes the form hidden and will not render. You can use
+        this function from any special function to prevent
+        form rendering.
     */
     public function hide()
     {
