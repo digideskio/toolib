@@ -22,6 +22,7 @@
 
 require_once( dirname(__FILE__) . '/../Identity.class.php');
 
+//! Implementation of Auth_Identity for Auth_Backend_DB .
 class Auth_Identity_DB implements Auth_Identity
 {
     private $record;
