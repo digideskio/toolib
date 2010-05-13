@@ -21,9 +21,9 @@
 
 
 require_once 'PHPUnit/Framework.php';
-require_once __DIR__ .  '/../../path.inc.php';
-require_once __DIR__ .  '/../SampleSchema.class.php';
-require_once __DIR__ .  '/../SampleModels.inc.php';
+require_once dirname(__FILE__) .  '/../../path.inc.php';
+require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
+require_once dirname(__FILE__) .  '/../SampleModels.inc.php';
 
 class Record_CRUDTest extends PHPUnit_Framework_TestCase
 {
@@ -90,11 +90,8 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($m);
 
         // Open record with two-field primary key
-        $m = Group_members::open(array(
-            'username' => 'user1',
-            'groupname' => 'group1'
-            ));
-            $this->assertType('Group_Members', $m);
+        $m = Group_members::open(array('username' => 'user1', 'groupname' => 'group1'));
+	$this->assertType('Group_Members', $m);
     }
 
     public function testOpenAll()
@@ -229,10 +226,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($u);
 
         // Delete multi pk record
-        $gm = Group_members::open(array(
-            'username' => 'user1',
-            'groupname' => 'group1'
-            ));
+        $gm = Group_members::open(array('username' => 'user1', 'groupname' => 'group1'));
             $this->assertType('Group_Members', $gm);
             $this->assertTrue($gm->delete());
 
@@ -241,10 +235,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 
             // Re-open must fail
             // Delete multi pk record
-            $gm = Group_members::open(array(
-            'username' => 'user1',
-            'groupname' => 'group1'
-            ));
+            $gm = Group_members::open(array('username' => 'user1', 'groupname' => 'group1'));
             $this->assertFalse($gm);
 
             // Recreate Database

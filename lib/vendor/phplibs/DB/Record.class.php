@@ -462,10 +462,10 @@ class DB_Record
 		// Event notification
 		$cancel = false;
         self::filter_event(
-            $this->model()->name(),
+            $this->model->name(),
             'op.pre.save',
             $cancel,
-            array('model' => $this->model()->name(), 'record' => $this, 'old_values' => $this->dirty_fields));
+            array('model' => $this->model->name(), 'record' => $this, 'old_values' => $this->dirty_fields));
         if ($cancel)
             return false;            
 
@@ -502,9 +502,9 @@ class DB_Record
 
         // Event notification
         self::notify_event(
-            $this->model()->name(),
+            $this->model->name(),
             'op.post.save',
-            array('record' => $this, 'model' => $this->model()->name()));
+            array('record' => $this, 'model' => $this->model->name()));
             
 		return true;
 	}
@@ -521,10 +521,10 @@ class DB_Record
         // Event notification
 		$cancel = false;
         self::filter_event(
-            $this->model()->name(),
+            $this->model->name(),
             'op.pre.delete',
             $cancel,
-            array('model' => $this->model()->name(), 'record' => $this)
+            array('model' => $this->model->name(), 'record' => $this)
         );
         if ($cancel)
             return false;
@@ -548,9 +548,9 @@ class DB_Record
 
         // Post-Event notification
         self::notify_event(
-            $this->model()->name(),
+            $this->model->name(),
             'op.post.delete',
-            array('record' => $this, 'model' => $this->model()->name()));
+            array('record' => $this, 'model' => $this->model->name()));
 
 		return true;
 	}

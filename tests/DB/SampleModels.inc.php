@@ -20,7 +20,7 @@
  */
 
 
-require_once __DIR__ .  '/../path.inc.php';
+require_once dirname(__FILE__) .  '/../path.inc.php';
 
 class Forum extends DB_Record
 {

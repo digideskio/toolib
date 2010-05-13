@@ -21,8 +21,8 @@
 
 
 require_once 'PHPUnit/Framework.php';
-require_once __DIR__ .  '/../../path.inc.php';
-require_once __DIR__ .  '/../SampleSchema.class.php';
+require_once dirname(__FILE__) .  '/../../path.inc.php';
+require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
 
 class Conn_TransferTest extends PHPUnit_Framework_TestCase
 {

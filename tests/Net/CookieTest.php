@@ -21,7 +21,7 @@
 
 
 require_once 'PHPUnit/Framework.php';
-require_once __DIR__ .  '/../path.inc.php';
+require_once dirname(__FILE__) .  '/../path.inc.php';
 
 class Net_CookieTest extends PHPUnit_Framework_TestCase
 {

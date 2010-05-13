@@ -21,9 +21,9 @@
 
 
 require_once 'PHPUnit/Framework.php';
-require_once __DIR__ .  '/../path.inc.php';
-require_once __DIR__ .  '/SampleSchema.class.php';
-require_once __DIR__ .  '/SampleModels.inc.php';
+require_once dirname(__FILE__) .  '/../path.inc.php';
+require_once dirname(__FILE__) .  '/SampleSchema.class.php';
+require_once dirname(__FILE__) .  '/SampleModels.inc.php';
 
 class ModelTest extends PHPUnit_Framework_TestCase
 {
@@ -144,7 +144,8 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($m->table(), $table);
 
         // Check class information
-        $this->assertEquals($model_name::$table, $table);
+        var_dump($model_name, $table);
+        $this->assertEquals(get_static_var($model_name, $table), $table);
     }
 
     //! Check model field information
