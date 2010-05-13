@@ -21,86 +21,53 @@
 
 
 require_once dirname(__FILE__) . '/../tools.lib.php';
+require_once dirname(__FILE__) . '/SmartMenuEntry.class.php';
 
-//! Demonstation of a smart menu
+//! Demo class of a smart menu
 class SmartMenu
 {
-    //! The css class of the menu
-    public $cssclass;
+    //! Internal first level menu entry
+    private $main_menu = array();
 
-    //! Entries stored in menu
-    public $entries = array();
+    //! Attributes to add on menu
+    private $menu_attribs = array();
 
-    //! construct a smart menu
-    public function __construct($cssclass = 'menu')
-    {
-        $this->cssclass = $cssclass;
-    }
-
-    //! Add a new entry in menu
+    //! Construct the smart menu
     /**
-    *
-    * @param $display The display of the menu button
-    * @param $link The link of the menu
-    * @param $select_mode
-    * - 'prefix' Check if current URI has prefix the link of entry
-    * - 'equal' Current uri must be exactly the same as the link
-    * - FALSE Dont check for uri
-    * @param $extra_attr
-    */
-    public function add_link($display, $link, $select_mode = 'prefix', $extra_attr = array())
+     * @param $attribs Custom attributes to add on menu UL element.
+     */
+    public function __construct($attribs = array())
     {
-        $this->entries[] = array(
-			'type' => 'link',
-			'display' => $display,
-			'link' => $link,
-			'select_mode' => $select_mode,
-			'extra_attr' => $extra_attr
-        );
+        $this->main_menu = new SmartMenuEntry();
+        $this->menu_attribs = $attribs;
     }
 
-    //! Add custom entry in menu
+    //! Create a new text entry in main menu
     /**
-    *
-    * @param $display The display of the mneu
-    * @param $extra_attr
-    */
-    public function add_entry($html, $extra_attr = array())
-    {
-        $this->entries[] = array(
-			'type' => 'custom',
-			'html' => $html,
-			'select_mode' => FALSE,
-			'extra_attr' => $extra_attr
-        );
+     * @param $display The text to be displayed.
+     * @param $id A unique id for this menu entry that can be used to reference it.
+     */
+    public function create_entry($display, $id = null)
+    {   
+        return $this->main_menu->create_entry($display, $id);
     }
 
-    //! Render menu in output
+    //! Create a new link entry in main menu
+    /**
+     * @param $display The text to be displayed on link.
+     * @param $link The actual link of entry.
+     * @param $id A unique id for this menu entry that can be used to reference it.
+     */    
+    public function create_link($display, $link, $id = null)
+    {   
+        return $this->main_menu->create_link($display, $link, $id);
+    }
+    
+    //! Render menu and return html tree.
     public function render()
-    {	$ul = tag('ul')->push_parent();
-    $ul->add_class($this->cssclass);
-    $REQUEST_URL = (isset($_SERVER['PATH_INFO'])?$_SERVER['PATH_INFO']:$_SERVER['REQUEST_URI']);
-
-    foreach($this->entries as $entry)
-    {
-        if ($entry['type'] == 'link')
-        {
-            $li = etag('li', tag('a', array('href' => url($entry['link'])), $entry['display']), $entry['extra_attr']);
-            if ($entry['select_mode'] !== FALSE)
-            {
-                if ($entry['select_mode'] === 'prefix')
-                {
-                    if( $entry['link'] === substr($REQUEST_URL, 0, strlen($entry['link'])))
-                    $li->add_class('selected');
-                }
-                else if ($entry['select_mode'] === 'equal')
-                if( $entry['link'] === $REQUEST_URL)
-                $li->add_class('selected');
-            }
-        }
-        else if ($entry['type'] == 'custom')
-        $li = etag('li html_escape_off', $entry['html'], $entry['extra_attr']);
-    }
-    return Output_HTMLTag::pop_parent();
+    {	
+        $ul = $this->main_menu->render_childs();
+        $ul->attributes = array_merge($ul->attributes, $this->menu_attribs);
+        return $ul;
     }
 }

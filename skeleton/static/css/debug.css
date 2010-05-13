@@ -109,3 +109,8 @@ ul.code li {
 ul.code li.info {
 	background-color: #652323;
 }
+
+/* ui-form ui-installation */
+div.ui-form.ui-installation{
+	width: 500px;
+}

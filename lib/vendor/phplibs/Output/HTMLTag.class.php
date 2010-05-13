@@ -359,13 +359,16 @@ class Output_HTMLTag
 			
 		$str = "<{$this->tag}" . self::render_tag_attributes($this->attributes);
 	
-		// Fast route for non closable HTML tags
-		if (($render_mode == 'html') && in_array($this->tag, self::$html_single_tags))
-			return $str . ' >';
+		// Fast route for always empty tags
+		if (in_array($this->tag, self::$html_single_tags))
+    		if ($render_mode === 'html')
+	    		return $str . ' >';
+	        else
+	            return $str . ' />';
 
 		// Fast route for XHTML tags with no childs
-		if (($render_mode == 'xhtml') && (count($this->childs) == 0))
-			return $str . ' />';
+		if (($render_mode === 'xhtml') && (count($this->childs) == 0))
+			return $str . ' ></' . $this->tag . '>';
 		$str .= '>';
 		
 		// Add childs

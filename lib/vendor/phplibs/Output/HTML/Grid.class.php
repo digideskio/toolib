@@ -101,7 +101,7 @@ class Output_HTML_Grid
 		    $this->options = $options;
 		$this->data = $data;
     
-        $this->grid_id = 'grid_gen_' . (Grid::$last_autoid ++);
+        $this->grid_id = 'grid_gen_' . (self::$last_autoid ++);
         
         // Initialize default values for options
         if (!isset($this->options['css']))
@@ -153,9 +153,6 @@ class Output_HTML_Grid
         
         // Process post
         $this->process_post();
-        
-        // Render the form
-        $this->render();
 	}
 	
 	//! Process the posted data
@@ -278,11 +275,11 @@ class Output_HTML_Grid
 		else
 			$span->add_class('ui-grid-inactive');		
 		
-		return HTMLTag::pop_parent(2);
+		return Output_HTMLTag::pop_parent(2);
     }
     
 	//! Render grid
-	private function render()
+	public function render()
 	{	$div = tag('div')->push_parent();
 		foreach($this->options['css'] as $cls)
             $div->add_class($cls);
@@ -294,7 +291,7 @@ class Output_HTML_Grid
         etag('input type="hidden" name="libgrid_backend_colid"');
         etag('input type="hidden" name="libgrid_backend_rowid"');
         etag('input type="hidden" name="libgrid_backend_startrow"');
-        HTMLTag::pop_parent();        
+        Output_HTMLTag::pop_parent();        
         
         
 		// Caption
@@ -303,14 +300,14 @@ class Output_HTML_Grid
 		
         // Page controls
         if (($this->options['pagecontrolpos'] == 'top') || ($this->options['pagecontrolpos'] == 'both'))
-	        HTMLTag::get_current_parent()->append($this->render_page_controls());
+	        Output_HTMLTag::get_current_parent()->append($this->render_page_controls());
 
         // Grid list
         etag('table class="ui-grid-list"')->push_parent();
         
         // Render column captions again
         if (($this->options['headerpos'] == 'top') || ($this->options['headerpos'] == 'both'))
-    		HTMLTag::get_current_parent()->append($this->render_column_captions());
+    		Output_HTMLTag::get_current_parent()->append($this->render_column_captions());
 			
 		// Render data
 		$count_rows = 0;
@@ -359,20 +356,20 @@ class Output_HTML_Grid
 					);
 				}
 			}
-			HTMLTag::pop_parent();	// TR
+			Output_HTMLTag::pop_parent();	// TR
 		}
 		
 		// Render column captions again
         if (($this->options['headerpos'] == 'bottom') || ($this->options['headerpos'] == 'both'))
 			$this->render_column_captions();
 
-		HTMLTag::pop_parent();	// TABLE
+		Output_HTMLTag::pop_parent();	// TABLE
 
         // Page controls
         if (($this->options['pagecontrolpos'] == 'bottom') || ($this->options['pagecontrolpos'] == 'both'))
-        	HTMLTag::get_current_parent()->append($this->render_page_controls());
+        	Output_HTMLTag::get_current_parent()->append($this->render_page_controls());
 
-		HTMLTag::pop_parent();	// DIV
+		Output_HTMLTag::pop_parent();	// DIV
 		return $div;
 	}
 }

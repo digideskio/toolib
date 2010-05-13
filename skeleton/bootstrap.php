@@ -64,9 +64,10 @@ if (!isset($_SESSION['initialized']))
 // Setup authentication
 $auth = new Auth_Backend_DB(array(
     'model_user' => 'User',
-    'field_username' => 'user',
+    'field_username' => 'username',
     'field_password' => 'password',
-    'hash_function' => 'md5'
+    'hash_function' => 'sha1',
+    'where_conditions' => array('enabled = 1')
 ));
 Auth_Realm::set_backend($auth);
 

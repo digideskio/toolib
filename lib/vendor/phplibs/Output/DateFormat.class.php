@@ -78,17 +78,17 @@ class Output_DateFormat
     * presence. E.g. if you are showing a date in the same year,
     * the year will be ommited, the same will happen for month and day.
     */
-    function smart_details($ndate)
+    function smart_details()
     {	
         $currentTime = time();
         $currentTimeDay = date('d m Y', $currentTime);
-        $ndateDay = date('d m Y', $this->date_obj);
+        $ndateDay = $this->date_obj->format('d m Y');
         if ($currentTimeDay == $ndateDay)
-            return 'Today '.date('h:i a', $this->date_obj);
-        if (date('Y', $currentTime) == date('Y', $this->date_obj))
-            return substr(date('F', $this->date_obj), 0, 3) . date(' d,  h:i a', $this->date_obj);
+            return 'Today '. $this->date_obj->format('h:i a');
+        if (date('Y', $currentTime) == $this->date_obj->format('Y'))
+            return substr($this->date_obj->format('F'), 0, 3) . $this->date_obj->format(' d,  h:i a');
 
-        return substr(date('F', $this->date_obj), 0, 3) . date(' d, Y', $this->date_obj);
+        return substr($this->date_obj->format('F'), 0, 3) . $this->date_obj->format(' d, Y');
     }
 }
 ?>

@@ -86,7 +86,7 @@ class DB_Record
 	{	if ($model_name === NULL)
 			$model_name = get_called_class();
 		
-		$model = & self::init_model($model_name);
+		$model = self::init_model($model_name);
 		
 		return new DB_ModelQuery($model);
 	}
@@ -102,7 +102,7 @@ class DB_Record
 	{	if ($model_name === NULL)
 			$model_name = get_called_class();
 		
-		$model = & self::init_model($model_name);
+		$model = self::init_model($model_name);
 		
 		$query = new DB_ModelQuery($model, self::$model_constr[$model_name]);
 		return $query->select($model->fields());
@@ -230,7 +230,7 @@ class DB_Record
 			$model_name = get_called_class();
 
 		// Initialize model
-		$model = & self::init_model($model_name);
+		$model = self::init_model($model_name);
 
         // Event notification
         self::filter_event(
@@ -295,7 +295,7 @@ class DB_Record
 			$model_name = get_called_class();
 
 		// Initialize model
-		$model = & self::init_model($model_name);
+		$model = self::init_model($model_name);
 		
 		// Execute query and check return value
 		$records = self::open_query($model_name)
@@ -316,7 +316,7 @@ class DB_Record
 			$model_name = get_called_class();
 
 		// Initialize model
-		$model = & self::init_model($model_name);
+		$model = self::init_model($model_name);
 		
 		// Execute query and check return value
 		$res = self::raw_query($model_name)
@@ -341,7 +341,7 @@ class DB_Record
 			$model_name = get_called_class();
 
 	    // Initialize model
-		$model = & self::init_model($model_name);
+		$model = self::init_model($model_name);
 
 		// Event notification
         self::filter_event(

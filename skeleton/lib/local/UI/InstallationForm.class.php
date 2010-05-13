@@ -23,10 +23,13 @@
 class UI_InstallationForm extends Output_HTML_Form
 {
     public $config_file;
+
+    public $db_build_file;
     
-    public function __construct($config_file, $relative_folder)
+    public function __construct($config_file, $db_build_file = null)
     {
         $this->config_file = $config_file;
+        $this->db_build_file = $db_build_file;
         
         parent::__construct(array(
             'db' => array('type' => 'custom', 'value' => '<h4>Database Options</h4>'),
@@ -40,6 +43,8 @@ class UI_InstallationForm extends Output_HTML_Form
 				'onerror' => 'This field is mandatory.'),
 			'db-pass2' => array('display' => '', 'type' => 'password', 'regcheck' => '/^.+$/',
 				'onerror' => 'This field is mandatory.'),
+			'db-build' => array('display' => 'Execute database creation script', 'type' => 'checkbox'),
+//            'other' => array('type' => 'custom', 'value' => '<h4>Other Options</h4>'),
         ),
         array('title' => '', 'css' => array('ui-form', 'ui-installation'),
 		    'buttons' => array(
@@ -80,6 +85,20 @@ class UI_InstallationForm extends Output_HTML_Form
                 addslashes($value));
         $data .= "\n?>";
         file_put_contents($this->config_file, $data);
+
+        // Reload configuration
+        require $this->config_file;
+        DB_Conn::connect(Config::get('db.host'), Config::get('db.user'), Config::get('db.pass'), Config::get('db.schema'));
+
+        if ($values['db-build'])
+        {
+            if (DB_Conn::get_link()->multi_query(file_get_contents($this->db_build_file)))
+                while (DB_Conn::get_link()->next_result());
+            
+            if (DB_Conn::get_link()->errno !== 0)
+                etag('strong class="error" nl_escape_on', 'Error executing SQL build script.\n' .
+                    DB_Conn::get_link()->error);
+        }
         
         // Show result
         $this->hide();
