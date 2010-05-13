@@ -115,7 +115,7 @@ RewriteBase $relative_folder
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ ./index.php/$1 [PT,L,QSA]"
+RewriteRule ^(.*)$ ./index.php/$1 [PT,L,QSA]
 EOF
             ));
     }
