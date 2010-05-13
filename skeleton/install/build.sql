@@ -8,5 +8,5 @@ create table `users` (
     primary key(`username`)
 ) DEFAULT CHARSET='UTF8';
 
-INSERT INTO `users` (`username`, `password`) values ('root', sha1('root'));
+INSERT INTO `users` (`username`, `password`, `enabled`) values ('root', sha1('root'), 1);
 

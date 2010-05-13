@@ -28,6 +28,7 @@ $fn_htaccess = dirname(__FILE__) . '/.htaccess';
 
 
 $dl = Layout::create('debug')->activate();
+$dl->get_document()->add_ref_css(surl('/static/css/debug.css'));
 $dl->get_document()->title = 'Installation';
 
 etag('h2', 'PHPLibs Skeleton');

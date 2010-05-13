@@ -5,7 +5,7 @@ body {
 }
 
 /* Execption / Error title */
-div.exception,div.error {
+div.exception, div.error {
 	font-size: 14pt;
 	font-weight: bold;
 }
@@ -113,4 +113,16 @@ ul.code li.info {
 /* ui-form ui-installation */
 div.ui-form.ui-installation{
 	width: 500px;
+}
+
+div.ui-form.ui-installation input[type=text], div.ui-form.ui-installation input[type=password]{
+	width: 99%;
+}
+
+div.ui-form.ui-installation label{
+	font-weight: bold;
+}
+
+div.ui-form.ui-installation dt{
+    margin-bottom: 15px;
 }
