@@ -1,16 +1,17 @@
 <?php
 // File generated with install.php
 
-Config::add('db.host', 'localhost');
+Config::set('db.host', 'localhost');
 
-Config::add('db.user', 'root');
+Config::set('db.user', 'root');
 
-Config::add('db.pass', 'root');
+Config::set('db.pass', 'root');
 
-Config::add('db.schema', 'test');
+Config::set('db.schema', 'test');
 
-Config::add('site.title', 'Kick Ass Site');
+Config::set('site.title', 'Kick Ass Site');
 
-Config::add('site.timezone', 'UTC');
+Config::set('site.timezone', 'UTC');
 
+Config::set('site.google_analytics', '');
 ?>

@@ -34,7 +34,19 @@ tag('div id="menu"')
 );
 $def_content = etag('div id="content"');
 etag('div id="sidebar"');
-etag('div id="footer"', tag('a', 'PHPlibs', array('href' => 'http://phplibs.kmfa.net')), ' skeleton');
+etag('div id="footer"', 
+    tag('a', 'PHPlibs', array('href' => 'http://phplibs.kmfa.net')),' skeleton');
+if (Config::get('site.google_analytics'))
+etag('script type="text/javascript" html_escape_off',
+" var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', '" . Config::get('site.google_analytics') ."']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();");
 $dl->set_default_container($def_content);
 
 // Menu for default layout

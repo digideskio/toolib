@@ -44,7 +44,9 @@ class UI_InstallationForm extends Output_HTML_Form
 			'db-pass2' => array('display' => '', 'type' => 'password', 'regcheck' => '/^.+$/',
 				'onerror' => 'This field is mandatory.'),
 			'db-build' => array('display' => 'Execute database creation script', 'type' => 'checkbox'),
-//            'other' => array('type' => 'custom', 'value' => '<h4>Other Options</h4>'),
+            'other' => array('type' => 'custom', 'value' => '<h4>Other Options</h4>'),
+			'site-ga' => array('display' => 'Google Analytics Web Property ID',
+			    'hint' => 'If you want to track this site with google analytics add your id here.'),
         ),
         array('title' => '', 'css' => array('ui-form', 'ui-installation'),
 		    'buttons' => array(
@@ -76,11 +78,12 @@ class UI_InstallationForm extends Output_HTML_Form
         Config::set('db.user', $values['db-user']);
         Config::set('db.pass', $values['db-pass']);
         Config::set('db.schema', $values['db-schema']);
+        Config::set('site.google_analytics', $values['site-ga']);
         
         $data = "<?php\n// File generated with install.php\n";
         	
         foreach(Config::get_all() as $name => $value)
-            $data .= sprintf("\nConfig::add('%s', '%s');\n",
+            $data .= sprintf("\nConfig::set('%s', '%s');\n",
                 addslashes($name),
                 addslashes($value));
         $data .= "\n?>";
