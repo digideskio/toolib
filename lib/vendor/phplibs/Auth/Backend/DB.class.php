@@ -67,7 +67,7 @@ class Auth_Backend_DB implements Auth_Backend
             $options);
         
         // Create model query
-        $this->model_query = call_user_func(array($options['model_user'], 'open_query'))
+        $this->model_query = DB_Record::open_query($this->options['model_user'], 'open_query')
             ->where($options['field_username'] . ' = ?');
 
         // Append where conditions
@@ -103,7 +103,7 @@ class Auth_Backend_DB implements Auth_Backend
      *  - @b false on any error.
      */
     public function reset_password($id, $new_password)
-    {   $records = call_user_func(array($this->options['model_user'], 'open_query'))
+    {   $records = DB_Record::open_query($this->options['model_user'], 'open_query')
             ->where($this->options['field_username'] . ' = ?')
             ->execute($id);
             
