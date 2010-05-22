@@ -6,9 +6,12 @@ class Authz_ACL
 
     private $rolelist;
     
-    public function __construct(Authz_RoleList $rolelist)
+    private $resourcelist;
+    
+    public function __construct(Authz_RoleList $rolelist, Authz_ResourceList $resourcelist)
     {
         $this->rolelist = $rolelist;
+        $this->resourcelist = $resourcelist;
     }
     
     public function allow($role, $action)

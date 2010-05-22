@@ -128,8 +128,9 @@ class Auth_Realm
 
         $id = self::$backend->authenticate($username, $password);
         if (!$id)
-        {   self::events()->notify('auth.error', array('username' => $username, 'password' => $password));
-            return false;
+        {   
+            self::events()->notify('auth.error', array('username' => $username, 'password' => $password));
+                return false;
         }
         self::events()->notify('auth.successful', array('username' => $username, 'password' => $password));
 

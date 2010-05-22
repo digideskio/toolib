@@ -6,12 +6,10 @@ class Authz_Resource
     
     private $parent = null;
     
-    private $acl = null
-    
     public function __construct($name, $parent = null)
     {
         $this->name = $name;
-        if (is_string($parent))
+        if (is_object($parent))
             $this->parent = $parent;
     }
     
@@ -25,20 +23,10 @@ class Authz_Resource
         return $this->parent;
     }
     
-    public function is_allowed($role, $action, $access)
+    public function has_parent()
     {
-    
-    }
-    
-    public function allow($role, $action, $access)
-    {
-    
-    }
-    
-    public function deny($role, $action, $access)
-    {
+        return $this->parent !== null;
     }
 }
-
 
 ?>
