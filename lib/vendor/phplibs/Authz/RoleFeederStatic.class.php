@@ -1,6 +1,6 @@
 <?php
 
-class Authz_RoleList
+class Authz_RoleFeederStatic implements Authz_RoleFeeder
 {
     private $roles = array();
     

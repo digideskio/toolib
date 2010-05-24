@@ -27,7 +27,7 @@ class Authz_AclTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $list = new Authz_RoleList();
+        $list = new Authz_RoleFeederStatic();
         $list->add_role(new Authz_Role('@game'));
         $list->add_role(new Authz_Role('@video'));
         $list->add_role(new Authz_Role('@user', array('@game', '@video')));
@@ -79,6 +79,67 @@ class Authz_AclTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($acl->is_allowed('@fs-admin', 'play'));
         $this->assertTrue($acl->is_allowed('@game', 'play'));
         $this->assertFalse($acl->is_allowed('@video', 'play'));
+    }
+    
+    public function testEmpty()
+    {
+        $list = new Authz_RoleFeederStatic();
+        $acl = new Authz_ACL($list);
+        $this->assertTrue($acl->is_empty());
+        
+        $acl->allow(null, 'read');
+        $this->assertFalse($acl->is_empty());
+        $acl->deny('@logger', 'read');
+        $this->assertFalse($acl->is_empty());
+        
+        $acl->deny('@user', 'write');
+        $this->assertFalse($acl->is_empty());
+        $acl->allow('@fs-admin', 'write');
+        $this->assertFalse($acl->is_empty());
+        
+        $acl->deny(null, 'play');
+        $this->assertFalse($acl->is_empty());
+        $acl->allow('@game', 'play');
+        $this->assertFalse($acl->is_empty());
+    }
+    
+    public function testGetAces()
+    {
+        $list = new Authz_RoleFeederStatic();
+        $acl = new Authz_ACL($list);
+        $this->assertEquals($acl->get_aces(), array());
+        
+        $acl->allow(null, 'read');
+        $this->assertType('array', $acl->get_aces());
+        $this->assertEquals(count($acl->get_aces()), 1);
+        $acl->deny('@logger', 'read');
+        $this->assertEquals(count($acl->get_aces()), 2);
+        
+        // Rewrite same rule
+        $acl->allow('@logger', 'read');
+        $this->assertEquals(count($acl->get_aces()), 2);
+        
+        $acl->deny('@user', 'write');
+        $this->assertEquals(count($acl->get_aces()), 3);
+        $acl->allow('@fs-admin', 'write');
+        $this->assertEquals(count($acl->get_aces()), 4);
+    }
+    
+    public function testRemoveAce()
+    {
+        $list = new Authz_RoleFeederStatic();
+        $acl = new Authz_ACL($list);
+        $this->assertEquals($acl->get_aces(), array());
+        
+        $acl->allow(null, 'read');
+        $acl->deny('@logger', 'read');
+        $acl->allow('@logger', 'read');
+        $acl->deny('@user', 'write');
+        $acl->allow('@fs-admin', 'write');
+        
+        $this->assertEquals(count($acl->get_aces()), 4);
+        $acl->remove_ace('@fs-admin', 'write');
+        $this->assertEquals(count($acl->get_aces()), 3);
     }
 }
 ?>

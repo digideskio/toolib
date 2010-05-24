@@ -6,12 +6,9 @@ class Authz_ACL
 
     private $rolelist;
     
-    private $resourcelist;
-    
-    public function __construct(Authz_RoleList $rolelist, Authz_ResourceList $resourcelist)
+    public function __construct(Authz_RoleFeeder $rolelist)
     {
         $this->rolelist = $rolelist;
-        $this->resourcelist = $resourcelist;
     }
     
     public function allow($role, $action)
@@ -26,15 +23,37 @@ class Authz_ACL
         $this->aces[$ace->get_dn_hash()] = $ace;
     }
     
+    //! Check if acl is empty
+    public function is_empty()
+    {
+        return empty($this->aces);
+    }
+    
+    //! Get all aces of this list
+    public function get_aces()
+    {
+        return $this->aces;
+    }
+    
+    //! Remove an ace
+    public function remove_ace($role, $action)
+    {
+        $ace = new Authz_ACE($role, $action, false);
+        if (!isset($this->aces[$ace->get_dn_hash()]))
+            return false;
+            
+        unset($this->aces[$ace->get_dn_hash()]);
+    }
+    
     //! Return an associative array with metric and allowed flag
     public function effective_permission($role, $action)
     {
         // Metric is used to calculate priority of flags
         // 0: Explicit local
         // 1: Explicit depth 1
+        // 2: Explicit depth 2
         // .
-        // .
-        // 9999: Implicit
+        // 9999: Implicit (null)
         // 10000: Undefined
         $response = array(
             'metric' => 10000,

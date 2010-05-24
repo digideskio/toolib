@@ -25,7 +25,11 @@ class Authz
     static public function is_allowed($resource, $role, $action)
     {
         
+    }
     
+    static public function allow($resource, $role, $action)
+    {
+        
     }
 }
 

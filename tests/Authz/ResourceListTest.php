@@ -25,9 +25,24 @@ require_once dirname(__FILE__) .  '/../path.inc.php';
 
 class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
 {
+    public function roleFeeder()
+    {
+        $roles = new Authz_RoleFeederStatic();
+        $roles->add_role(new Authz_Role('@game'));
+        $roles->add_role(new Authz_Role('@video'));
+        $roles->add_role(new Authz_Role('@user', array('@game', '@video')));
+        $roles->add_role(new Authz_Role('@web-user'));
+        $roles->add_role(new Authz_Role('@web-admin', '@web-user'));
+        $roles->add_role(new Authz_Role('@fs-admin'));
+        $roles->add_role(new Authz_Role('@logger'));
+        $roles->add_role(new Authz_Role('@admin', array('@user', '@web-admin', '@fs-admin')));
+        return $roles;
+    }
+    
     public function testGeneral()
     {
-        $list = new Authz_ResourceList();
+
+        $list = new Authz_ResourceList($this->roleFeeder());
         
         $this->assertFalse($list->has_resource('test'));
         $this->assertFalse($list->get_resource('test'));
@@ -35,13 +50,174 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
         $list->add_resource('directory');
         $this->assertTrue($list->has_resource('directory'));
         $this->assertType('Authz_Resource', $list->get_resource('directory'));
-/*
-        $file_resource = new Authz_Resource('file', 'directory');
-        $list->add_resource($file_resource);
+
+        $list->add_resource('file', 'directory');
         $this->assertTrue($list->has_resource('directory'));
-        $this->assertEquals($list->get_resource('directory'), $dir_resource);
+        $this->assertType('Authz_Resource', $list->get_resource('directory'));
         $this->assertTrue($list->has_resource('file'));
-        $this->assertEquals($list->get_resource('file'), $file_resource);*/
+        $this->assertType('Authz_Resource', $list->get_resource('file'));
+    }
+    
+    
+    public function testAcl()
+    {
+        $list = new Authz_ResourceList($this->roleFeeder());
+        $dir = $list->add_resource('directory');
+        $dir->get_acl()->allow(null, 'read');
+        $dir->get_acl()->deny(null, 'write');
+        $dir->get_acl()->deny(null, 'delete');
+        $dir->get_acl()->allow('@fs-admin', 'write');
+        
+        $file = $list->add_resource('file', 'directory');
+        $file->get_acl()->allow('@fs-admin', 'delete');
+        
+        $this->assertFalse($dir->is_allowed(null, 'unknown-action'));
+        $this->assertFalse($dir->is_allowed('unknown', 'unknown-action'));
+        $this->assertFalse($dir->is_allowed('@user', 'unknown-action'));
+        $this->assertTrue($dir->is_allowed('@user', 'read'));
+        $this->assertTrue($dir->is_allowed('@logger', 'read'));
+        $this->assertFalse($dir->is_allowed('@logger', 'write'));
+        $this->assertFalse($dir->is_allowed('@logger', 'delete'));
+        $this->assertFalse($dir->is_allowed('@fs-admin', 'delete'));
+        $this->assertFalse($dir->is_allowed('@admin', 'delete'));
+        $this->assertTrue($dir->is_allowed('@fs-admin', 'write'));
+        $this->assertTrue($dir->is_allowed('@admin', 'write'));
+        
+        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
+        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
+        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
+        $this->assertTrue($file->is_allowed('@user', 'read'));
+        $this->assertTrue($file->is_allowed('@logger', 'read'));
+        $this->assertFalse($file->is_allowed('@logger', 'write'));
+        $this->assertFalse($file->is_allowed('@logger', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
+        $this->assertTrue($file->is_allowed('@admin', 'write'));
+    }
+    
+    public function testInstanceAcl()
+    {
+        $list = new Authz_ResourceList($this->roleFeeder());
+        $dir = $list->add_resource('directory');
+        $dir->get_acl()->allow(null, 'read');
+        $dir->get_acl()->deny(null, 'write');
+        $dir->get_acl()->deny(null, 'delete');
+        $dir->get_acl()->allow('@fs-admin', 'write');
+        
+        $file = $list->add_resource('file', 'directory');
+        $file->get_acl()->allow('@fs-admin', 'delete');
+        
+        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
+        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
+        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
+        $this->assertTrue($file->is_allowed('@user', 'read'));
+        $this->assertTrue($file->is_allowed('@logger', 'read'));
+        $this->assertFalse($file->is_allowed('@logger', 'write'));
+        $this->assertFalse($file->is_allowed('@logger', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
+        $this->assertTrue($file->is_allowed('@admin', 'write'));
+        
+        $file = $list->get_resource('file', '/tmp/testfile');
+        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
+        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
+        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
+        $this->assertTrue($file->is_allowed('@user', 'read'));
+        $this->assertTrue($file->is_allowed('@logger', 'read'));
+        $this->assertFalse($file->is_allowed('@logger', 'write'));
+        $this->assertFalse($file->is_allowed('@logger', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
+        $this->assertTrue($file->is_allowed('@admin', 'write'));
+        
+        // Add a specific rule on instance
+        $file->get_acl()->allow(null, 'write');
+        $file->get_acl()->allow('@logger', 'delete');
+        
+        $file = $list->get_resource('file', '/tmp/testfile');
+        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
+        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
+        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
+        $this->assertTrue($file->is_allowed('@user', 'read'));
+        $this->assertTrue($file->is_allowed('@logger', 'read'));
+        $this->assertTrue($file->is_allowed('@logger', 'write'));
+        $this->assertTrue($file->is_allowed('@logger', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
+        $this->assertTrue($file->is_allowed('@admin', 'write'));
+        
+        // Retry on file class to check that it is left intact
+        $file = $list->get_resource('file');
+        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
+        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
+        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
+        $this->assertTrue($file->is_allowed('@user', 'read'));
+        $this->assertTrue($file->is_allowed('@logger', 'read'));
+        $this->assertFalse($file->is_allowed('@logger', 'write'));
+        $this->assertFalse($file->is_allowed('@logger', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@admin', 'delete'));
+        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
+        $this->assertTrue($file->is_allowed('@admin', 'write'));
+    }
+    
+    public function testRemoveResource()
+    {
+
+        $list = new Authz_ResourceList($this->roleFeeder());
+
+        // Add and readd a resource
+        $dir = $list->add_resource('directory');
+        $this->assertTrue($list->has_resource('directory'));
+        $this->assertFalse($list->has_resource('file'));
+        $this->assertTrue($list->remove_resource('directory'));
+        $this->assertFalse($list->has_resource('directory'));
+        $this->assertFalse($list->remove_resource('directory'));
+        $this->assertFalse($list->has_resource('directory'));
+        $dir = $list->add_resource('directory');
+        $file = $list->add_resource('file', 'directory');
+        $this->assertTrue($list->has_resource('directory'));
+        $this->assertTrue($list->has_resource('file'));
+        $this->assertTrue($list->remove_resource('file'));
+        $this->assertTrue($list->remove_resource('directory'));
+
+    }
+    
+    /**
+     * @expectedException RuntimeException
+     */
+    public function testRemoveResourceException()
+    {
+        $list = new Authz_ResourceList($this->roleFeeder());
+        $dir = $list->add_resource('directory');
+        $file = $list->add_resource('file', 'directory');
+        $list->remove_resource('directory');
+    }
+    
+    public function testGetResource()
+    {
+        $list = new Authz_ResourceList($this->roleFeeder());
+        $dir = $list->add_resource('directory');
+        $file = $list->add_resource('file', 'directory');
+     
+        $this->assertFalse($list->get_resource('unknown'));
+        $this->assertFalse($list->get_resource('unknown', 'unknown id'));
+        
+        // General inheritance
+        $this->assertEquals($list->get_resource('directory'), $dir);
+        $this->assertEquals($list->get_resource('file'), $file);
+        $this->assertEquals($list->get_resource('file')->get_parent(), $dir);
+        
+        // Instances
+        $this->assertType('Authz_Resource', $list->get_resource('directory', 'test'), $dir);
+        $this->assertEquals($list->get_resource('directory', 'test'), $list->get_resource('directory', 'test'));
+        $this->assertEquals($list->get_resource('directory', 'test')->get_parent(), $dir);
+        $this->assertEquals($list->get_resource('file', 'test')->get_parent(), $file);
+        $this->assertEquals($list->get_resource('file', 'test')->get_parent()->get_parent(), $dir);
     }
     
     /**
@@ -49,7 +225,7 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
      */
     public function testSameResourceException()
     {
-        $list = new Authz_ResourceList();
+        $list = new Authz_ResourceList($this->roleFeeder());
         $list->add_resource('dir');
         $list->add_resource('dir', 'file');
     }
@@ -59,7 +235,7 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
      */
     public function testBrokenDependencyException()
     {
-        $list = new Authz_ResourceList();
+        $list = new Authz_ResourceList($this->roleFeeder());
         $list->add_resource('dir', 'file');
     }
 }
