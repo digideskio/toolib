@@ -24,21 +24,21 @@ require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__) .  '/../path.inc.php';
 require_once dirname(__FILE__) . '/SampleSchema.class.php';
 
-class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
+class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 {
     public static function setUpBeforeClass()
     {
-        Auth_SampleSchema::build();
+        Authn_SampleSchema::build();
     }
 
     public static function tearDownAfterClass()
     {
-        Auth_SampleSchema::destroy();
+        Authn_SampleSchema::destroy();
     }
 
     public function setUp()
     {
-        Auth_SampleSchema::connect();
+        Authn_SampleSchema::connect();
     }
 
     public function tearDown()
@@ -48,12 +48,12 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
 
     public function dataUsers()
     {
-        return AutH_SampleSchema::$test_users ;
+        return Authn_SampleSchema::$test_users ;
     }
 
     public function testPlainReUse()
     {
-        $auth = new Auth_Backend_DB(array(
+        $auth = new Authn_Backend_DB(array(
             'model_user' => 'User_plain',
             'field_username' => 'username',
             'field_password' => 'password'
@@ -66,14 +66,14 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
             $this->assertFalse($res);
 
             $res = $auth->authenticate('user1', 'password1');
-            $this->assertType('Auth_Identity_DB', $res);
+            $this->assertType('Authn_Identity_DB', $res);
             $this->assertEquals($res->id(), 'user1');
             $this->assertEquals($res->get_record(), User_plain::open('user1'));
     }
 
     public function testPlainIdReUse()
     {
-        $auth = new Auth_Backend_DB(array(
+        $auth = new Authn_Backend_DB(array(
             'model_user' => 'User_id',
             'field_username' => 'username',
             'field_password' => 'password'
@@ -87,14 +87,14 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
             //exit;
 
             $res = $auth->authenticate('user1', 'password1');
-            $this->assertType('Auth_Identity_DB', $res);
+            $this->assertType('Authn_Identity_DB', $res);
             $this->assertEquals($res->id(), 'user1');
             $this->assertEquals($res->get_record(), User_id::open(1));
     }
 
     public function testMd5User()
     {
-        $auth = new Auth_Backend_DB(array(
+        $auth = new Authn_Backend_DB(array(
             'model_user' => 'User_md5',
             'field_username' => 'username',
             'field_password' => 'password',
@@ -108,14 +108,14 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
             $this->assertFalse($res);
 
             $res = $auth->authenticate('user1', 'password1');
-            $this->assertType('Auth_Identity_DB', $res);
+            $this->assertType('Authn_Identity_DB', $res);
             $this->assertEquals($res->id(), 'user1');
             $this->assertEquals($res->get_record(), User_md5::open('user1'));
     }
 
     public function testSha1User()
     {
-        $auth = new Auth_Backend_DB(array(
+        $auth = new Authn_Backend_DB(array(
             'model_user' => 'User_sha1',
             'field_username' => 'username',
             'field_password' => 'password',
@@ -129,7 +129,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
             $this->assertFalse($res);
 
             $res = $auth->authenticate('user1', 'password1');
-            $this->assertType('Auth_Identity_DB', $res);
+            $this->assertType('Authn_Identity_DB', $res);
             $this->assertEquals($res->id(), 'user1');
             $this->assertEquals($res->get_record(), User_sha1::open('user1'));
     }
@@ -140,14 +140,14 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testPlainForce($username, $password, $enabled)
     {   static $auth = NULL;
     if (!$auth)
-    $auth = new Auth_Backend_DB(array(
+    $auth = new Authn_Backend_DB(array(
                 'model_user' => 'User_plain',
                 'field_username' => 'username',
                 'field_password' => 'password'
                 ));
 
                 $res = $auth->authenticate($username, $password);
-                $this->assertType('Auth_Identity_DB', $res);
+                $this->assertType('Authn_Identity_DB', $res);
                 $this->assertEquals($res->id(), $username);
                 $this->assertEquals($res->get_record(), User_plain::open($username));
     }
@@ -160,14 +160,14 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
     static $count = 0;
     $count +=  1;
     if (!$auth)
-    $auth = new Auth_Backend_DB(array(
+    $auth = new Authn_Backend_DB(array(
                 'model_user' => 'User_id',
                 'field_username' => 'username',
                 'field_password' => 'password'
                 ));
 
                 $res = $auth->authenticate($username, $password);
-                $this->assertType('Auth_Identity_DB', $res);
+                $this->assertType('Authn_Identity_DB', $res);
                 $this->assertEquals($res->id(), $username);
                 $this->assertEquals($res->get_record(), User_id::open($count));
     }
@@ -179,7 +179,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testMd5Force($username, $password, $enabled)
     {   static $auth = NULL;
     if (!$auth)
-    $auth = new Auth_Backend_DB(array(
+    $auth = new Authn_Backend_DB(array(
                 'model_user' => 'User_md5',
                 'field_username' => 'username',
                 'field_password' => 'password',
@@ -187,7 +187,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
                 ));
 
                 $res = $auth->authenticate($username, $password);
-                $this->assertType('Auth_Identity_DB', $res);
+                $this->assertType('Authn_Identity_DB', $res);
                 $this->assertEquals($res->id(), $username);
                 $this->assertEquals($res->get_record(), User_md5::open($username));
     }
@@ -198,7 +198,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testSha1Force($username, $password, $enabled)
     {   static $auth = NULL;
     if (!$auth)
-    $auth = new Auth_Backend_DB(array(
+    $auth = new Authn_Backend_DB(array(
                 'model_user' => 'User_sha1',
                 'field_username' => 'username',
                 'field_password' => 'password',
@@ -206,7 +206,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
                 ));
 
                 $res = $auth->authenticate($username, $password);
-                $this->assertType('Auth_Identity_DB', $res);
+                $this->assertType('Authn_Identity_DB', $res);
                 $this->assertEquals($res->id(), $username);
                 $this->assertEquals($res->get_record(), User_sha1::open($username));
     }
@@ -217,7 +217,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testPlainEnabledForce($username, $password, $enabled)
     {   static $auth = NULL;
     if (!$auth)
-    $auth = new Auth_Backend_DB(array(
+    $auth = new Authn_Backend_DB(array(
                 'model_user' => 'User_plain',
                 'field_username' => 'username',
                 'field_password' => 'password',
@@ -229,7 +229,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
     {   $this->assertFalse($res);
     return;
     }
-    $this->assertType('Auth_Identity_DB', $res);
+    $this->assertType('Authn_Identity_DB', $res);
     $this->assertEquals($res->id(), $username);
     $this->assertEquals($res->get_record(), User_plain::open($username));
     }
@@ -240,7 +240,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testPlainEnabledMd5($username, $password, $enabled)
     {   static $auth = NULL;
     if (!$auth)
-    $auth = new Auth_Backend_DB(array(
+    $auth = new Authn_Backend_DB(array(
                 'model_user' => 'User_md5',
                 'field_username' => 'username',
                 'field_password' => 'password',
@@ -253,21 +253,21 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
     {   $this->assertFalse($res);
     return;
     }
-    $this->assertType('Auth_Identity_DB', $res);
+    $this->assertType('Authn_Identity_DB', $res);
     $this->assertEquals($res->id(), $username);
     $this->assertEquals($res->get_record(), User_md5::open($username));
     }
 
     public function testResetPlainPwd()
     {
-        $auth = new Auth_Backend_DB(array(
+        $auth = new Authn_Backend_DB(array(
             'model_user' => 'User_plain',
             'field_username' => 'username',
             'field_password' => 'password'
             ));
 
             $identity = $auth->authenticate('user1', 'password1');
-            $this->assertType('Auth_Identity_DB', $identity);
+            $this->assertType('Authn_Identity_DB', $identity);
             $this->assertTrue($identity->reset_password('passwordnew'));
 
             // Check same password
@@ -276,25 +276,25 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
 
             // Check with new password
             $res = $auth->authenticate('user1', 'passwordnew');
-            $this->assertType('Auth_Identity_DB', $res);
+            $this->assertType('Authn_Identity_DB', $res);
             $this->assertEquals($res->id(), 'user1');
             $this->assertEquals($res->get_record(), User_plain::open('user1'));
 
             // Rebuild
-            Auth_SampleSchema::destroy();
-            Auth_SampleSchema::build();
+            Authn_SampleSchema::destroy();
+            Authn_SampleSchema::build();
     }
 
     public function testResetPlainIdPwd()
     {
-        $auth = new Auth_Backend_DB(array(
+        $auth = new Authn_Backend_DB(array(
             'model_user' => 'User_id',
             'field_username' => 'username',
             'field_password' => 'password'
             ));
 
             $identity = $auth->authenticate('user1', 'password1');
-            $this->assertType('Auth_Identity_DB', $identity);
+            $this->assertType('Authn_Identity_DB', $identity);
             $this->assertTrue($identity->reset_password('passwordnew'));
 
             // Check same password
@@ -303,19 +303,19 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
 
             // Check with new password
             $res = $auth->authenticate('user1', 'passwordnew');
-            $this->assertType('Auth_Identity_DB', $res);
+            $this->assertType('Authn_Identity_DB', $res);
             $this->assertEquals($res->id(), 'user1');
             $this->assertEquals($res->get_record(), User_id::open(1));
 
             // Rebuild
-            Auth_SampleSchema::destroy();
-            Auth_SampleSchema::build();
+            Authn_SampleSchema::destroy();
+            Authn_SampleSchema::build();
     }
 
 
     public function testResetMd5Pwd()
     {
-        $auth = new Auth_Backend_DB(array(
+        $auth = new Authn_Backend_DB(array(
             'model_user' => 'User_md5',
             'field_username' => 'username',
             'field_password' => 'password',
@@ -323,7 +323,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('Auth_Identity_DB', $identity);
+        $this->assertType('Authn_Identity_DB', $identity);
         $this->assertTrue($identity->reset_password('passwordnew'));
 
         // Check same password
@@ -332,18 +332,18 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('Auth_Identity_DB', $res);
+        $this->assertType('Authn_Identity_DB', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_md5::open('user1'));
 
         // Rebuild
-        Auth_SampleSchema::destroy();
-        Auth_SampleSchema::build();
+        Authn_SampleSchema::destroy();
+        Authn_SampleSchema::build();
     }
 
     public function testResetSha1Pwd()
     {
-        $auth = new Auth_Backend_DB(array(
+        $auth = new Authn_Backend_DB(array(
             'model_user' => 'User_sha1',
             'field_username' => 'username',
             'field_password' => 'password',
@@ -351,7 +351,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('Auth_Identity_DB', $identity);
+        $this->assertType('Authn_Identity_DB', $identity);
         $this->assertTrue($identity->reset_password('passwordnew'));
 
         // Check same password
@@ -360,13 +360,13 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('Auth_Identity_DB', $res);
+        $this->assertType('Authn_Identity_DB', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_sha1::open('user1'));
 
         // Rebuild
-        Auth_SampleSchema::destroy();
-        Auth_SampleSchema::build();
+        Authn_SampleSchema::destroy();
+        Authn_SampleSchema::build();
     }
 
     /**
@@ -374,7 +374,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
      */
     public function testMissArgument1()
     {
-        $auth = new Auth_Backend_DB();
+        $auth = new Authn_Backend_DB();
     }
 
     /**
@@ -382,7 +382,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
      */
     public function testMissArgument2()
     {
-        $auth = new Auth_Backend_DB(array());
+        $auth = new Authn_Backend_DB(array());
     }
 
     /**
@@ -390,7 +390,7 @@ class Auth_BackendDBTest extends PHPUnit_Framework_TestCase
      */
     public function testMissArgument3()
     {
-        $auth = new Auth_Backend_DB(array('model_user' => 'User_plain'));
+        $auth = new Authn_Backend_DB(array('model_user' => 'User_plain'));
     }
 }
 ?>

@@ -2,7 +2,7 @@
 
 class Authz_ResourceClass extends Authz_Resource
 {
-    private $instances = array();
+    protected $instances = array();
 
     public function get_instance($id)
     {

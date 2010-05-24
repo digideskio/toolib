@@ -20,21 +20,25 @@
  */
 
 
-require_once(dirname(__FILE__) . '/../Storage.class.php');
+require_once(dirname(__FILE__) . '/../Session.class.php');
 
 //! Use native php sessions to track identity
-class Auth_Storage_Session implements Auth_Storage
+class Authn_Session_Native implements Authn_Session
 {
     //! The index to use in $_SESSION array for storing identity.
     private $session_index;
     
-    public function __construct($session_index = 'PHPLIBS_AUTH_SESSION')
+    //! Construct a php native authentication session
+    /**
+     * @param $session_index The index to use inside $_SESSION
+     */
+    public function __construct($session_index = 'PHPLIBS_AUTHN_SESSION')
     {
         $this->session_index = $session_index;
     }
     
     
-    public function set_identity(Auth_Identity $identity, $ttl = null)
+    public function set_identity(Authn_Identity $identity, $ttl = null)
     {
         session_regenerate_id();
         $_SESSION[$this->session_index] = $identity;

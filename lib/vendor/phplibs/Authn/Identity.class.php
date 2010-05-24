@@ -21,7 +21,7 @@
 
 
 //! Interface representing authentication identity
-interface Auth_Identity
+interface Authn_Identity
 {
     //! The id of this identity
     public function id();

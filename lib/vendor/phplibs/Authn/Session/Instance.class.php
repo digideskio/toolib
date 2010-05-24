@@ -20,16 +20,33 @@
  */
 
 
-//! Interface of authentication backend.
-interface Auth_Backend
+require_once(dirname(__FILE__) . '/../Session.class.php');
+
+//! Track identity inside the instance of this object
+class Authn_Session_Instance implements Authn_Session
 {
-    //! Authenticate a user on this authority
-    /**
-     * @param $username The username of credentials.
-     * @param $password The password of credentials.
-     * @return - @b false If the authentication failed.
-     *  - @b Auth_User object with the authenticated user.
-     */
-    public function authenticate($username, $password);
+    //! The session identity
+    private $online_identity;
+    
+    public function __construct()
+    {
+        $this->online_identity = false;
+    }
+        
+    public function set_identity(Authn_Identity $identity, $ttl = null)
+    {
+        $this->online_identity = $identity;
+    }
+
+    public function get_identity()
+    {
+        return $this->online_identity;
+    }
+    
+    public function clear_identity()
+    {
+        $this->online_identity = false;
+    }
 }
+
 ?>

@@ -20,33 +20,17 @@
  */
 
 
-require_once(dirname(__FILE__) . '/../Storage.class.php');
-
-//! Track identity inside the instance of this object
-class Auth_Storage_Instance implements Auth_Storage
+//! Interface of authentication backend.
+interface Authn_Backend
 {
-    //! The session identity
-    private $online_identity;
-    
-    public function __construct()
-    {
-        $this->online_identity = false;
-    }
-        
-    public function set_identity(Auth_Identity $identity, $ttl = null)
-    {
-        $this->online_identity = $identity;
-    }
-
-    public function get_identity()
-    {
-        return $this->online_identity;
-    }
-    
-    public function clear_identity()
-    {
-        $this->online_identity = false;
-    }
+    //! Authenticate a user on this authority
+    /**
+     * @param $username The username of credentials.
+     * @param $password The password of credentials.
+     * @return 
+     *  - @b false If the authentication failed.
+     *  - @b Authn_Identity object with the authenticated user.
+     */
+    public function authenticate($username, $password);
 }
-
 ?>

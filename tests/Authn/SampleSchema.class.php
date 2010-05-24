@@ -63,7 +63,7 @@ class User_sha1 extends DB_Record
 }
 
 //! Create a Sample schema
-class Auth_SampleSchema
+class Authn_SampleSchema
 {
     static public $conn_params = array(
         'host' => 'localhost',
