@@ -208,16 +208,16 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($list->get_resource('unknown', 'unknown id'));
         
         // General inheritance
-        $this->assertEquals($list->get_resource('directory'), $dir);
-        $this->assertEquals($list->get_resource('file'), $file);
-        $this->assertEquals($list->get_resource('file')->get_parent(), $dir);
+        $this->assertSame($list->get_resource('directory'), $dir);
+        $this->assertSame($list->get_resource('file'), $file);
+        $this->assertSame($list->get_resource('file')->get_parent(), $dir);
         
         // Instances
         $this->assertType('Authz_Resource', $list->get_resource('directory', 'test'), $dir);
-        $this->assertEquals($list->get_resource('directory', 'test'), $list->get_resource('directory', 'test'));
-        $this->assertEquals($list->get_resource('directory', 'test')->get_parent(), $dir);
-        $this->assertEquals($list->get_resource('file', 'test')->get_parent(), $file);
-        $this->assertEquals($list->get_resource('file', 'test')->get_parent()->get_parent(), $dir);
+        $this->assertSame($list->get_resource('directory', 'test'), $list->get_resource('directory', 'test'));
+        $this->assertSame($list->get_resource('directory', 'test')->get_parent(), $dir);
+        $this->assertSame($list->get_resource('file', 'test')->get_parent(), $file);
+        $this->assertSame($list->get_resource('file', 'test')->get_parent()->get_parent(), $dir);
     }
     
     /**
@@ -237,6 +237,25 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
     {
         $list = new Authz_ResourceList($this->roleFeeder());
         $list->add_resource('dir', 'file');
+    }
+    
+    public function testSerialize()
+    {
+        $list = new Authz_ResourceList($this->roleFeeder());
+        $dir = $list->add_resource('directory');
+        $dir->get_acl()->allow(null, 'read');
+        $dir->get_acl()->deny(null, 'write');
+        $dir->get_acl()->deny(null, 'delete');
+        $dir->get_acl()->allow('@fs-admin', 'write');
+        
+        $file = $list->add_resource('file', 'directory');
+        $file->get_acl()->allow('@fs-admin', 'delete');
+        
+        $list2 = unserialize(serialize($list));
+        
+        $this->assertNotSame($list, $list2);
+        $this->assertSame($list->get_resource('directory'), $list->get_resource('file')->get_parent());
+
     }
 }
 ?>

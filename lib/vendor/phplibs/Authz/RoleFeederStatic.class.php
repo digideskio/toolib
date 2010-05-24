@@ -36,3 +36,5 @@ class Authz_RoleFeederStatic implements Authz_RoleFeeder
         return isset($this->roles[$role_name]);
     }
 }
+
+?>

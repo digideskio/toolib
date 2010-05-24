@@ -22,7 +22,7 @@ class Authz_ResourceList
             if (!$this->has_resource($parent))
                 throw new InvalidArgumentException(
                     "Cannot add resource that depends on unknown resource \"{$parent}\"");
-                
+
         $this->resources[$name] = new Authz_ResourceClass(
             $this->roles_feeder,
             $name,
