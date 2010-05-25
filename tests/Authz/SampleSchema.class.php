@@ -61,12 +61,14 @@ class Authz_SampleSchema
     );
     
     static public $test_groups = array(
-        array('user1', 'group12'),
-        array('user2', 'group12'),
+        array('user1', 'group13'),
+        array('user2', 'group13'),
+        array('user3', 'group13'),
         array('user3', 'group34'),
         array('user4', 'group34'),
-        array('user5', 'group56'),
-        array('user6', 'group56'),
+        array('user4', 'group46'),
+        array('user5', 'group46'),
+        array('user6', 'group46'),
     );
 
     static public function connect($delayed = true)

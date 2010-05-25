@@ -35,7 +35,11 @@ class Authz_Role_FeederDatabase implements Authz_Role_Feeder
     
     protected $role_class;
     
-    public function __construct(DB_ModelQuery $role_query, $role_name_field, $parents_query = null, $parent_name_field = null, $role_class = null)
+    public function __construct(DB_ModelQuery $role_query,
+        $role_name_field,
+        $parents_query = null,
+        $parent_name_field = null,
+        $role_class = null)
     {
         $this->role_query = $role_query;
         $this->role_name = $role_name_field;

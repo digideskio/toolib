@@ -91,19 +91,37 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($list->get_role('user7'));
         
         $user1 = $list->get_role('user1');
+        $user4 = $list->get_role('user4');
         $user5 = $list->get_role('user5');
         $this->assertType('Authz_Role_Database', $user1);
         $this->assertEquals($user1->get_name(), 'user1');
         $this->assertType('Authz_Role_Database', $user5);
         $this->assertEquals($user5->get_name(), 'user5');
+        $this->assertType('Authz_Role_Database', $user4);
+        $this->assertEquals($user4->get_name(), 'user4');
         
         $this->assertFalse($user1->has_parent('wrong'));
-        $this->assertTrue($user1->has_parent('group12'));
+        $this->assertTrue($user1->has_parent('group13'));
         $this->assertFalse($user5->has_parent('wrong'));
-        $this->assertTrue($user5->has_parent('group56'));
+        $this->assertTrue($user5->has_parent('group46'));
         $this->assertFalse($user5->has_parent('group12'));
+
+        $this->assertType('array', $user5->get_parents());
+        $this->assertEquals(count($user5->get_parents()), 1);
+        list($group46) = $user5->get_parents();
+        $this->assertEquals($group46->get_name(), 'group46');
+        $this->assertFalse($group46->has_parent('test'));
+        $this->assertEquals($group46->get_parents(), array());
         
-        $this->assertEquals($user1->get_parents(), array());
+        $this->assertType('array', $user4->get_parents());
+        $this->assertEquals(count($user4->get_parents()), 2);
+        list($group34, $group46) = $user4->get_parents();
+       $this->assertEquals($group34->get_name(), 'group34');
+        $this->assertFalse($group34->has_parent('test'));
+        $this->assertEquals($group34->get_parents(), array());
+        $this->assertEquals($group46->get_name(), 'group46');
+        $this->assertFalse($group46->has_parent('test'));
+        $this->assertEquals($group46->get_parents(), array());
     }
     
 }

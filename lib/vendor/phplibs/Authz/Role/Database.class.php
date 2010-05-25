@@ -52,7 +52,7 @@ class Authz_Role_Database implements Authz_Role
         $parents = array();
         foreach($result as $record)
             $parents[] = new Authz_Role_Database(
-                $record->{$this->parent_name_field}, $this->parents_query, $this->parent_name_field);
+                $record->{$this->parent_name_field}, null, null);
 
         return $parents;
     }
