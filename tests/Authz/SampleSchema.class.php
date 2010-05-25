@@ -22,9 +22,9 @@
 
 require_once dirname(__FILE__) .  '/../path.inc.php';
 
-class User_plain extends DB_Record
+class Users extends DB_Record
 {
-    static public $table = 'users_plain';
+    static public $table = 'users';
     static public $fields = array(
         'username' => array('pk' => true),
         'password',
@@ -32,38 +32,17 @@ class User_plain extends DB_Record
         );
 }
 
-class User_id extends DB_Record
+class Membership extends DB_Record
 {
-    static public $table = 'users_id';
-    static public $fields = array(
-        'id' => array('pk' => true, 'ai' => true),
-        'username',
-        'password',
-        'enabled'
-        );
-}
-class User_md5 extends DB_Record
-{
-    static public $table = 'users_md5';
+    static public $table = 'memberships';
     static public $fields = array(
         'username' => array('pk' => true),
-        'password',
-        'enabled'
-        );
-}
-
-class User_sha1 extends DB_Record
-{
-    static public $table = 'users_sha1';
-    static public $fields = array(
-        'username' => array('pk' => true),
-        'password',
-        'enabled'
+        'groupname' => array('pk' => true),
         );
 }
 
 //! Create a Sample schema
-class Authn_SampleSchema
+class Authz_SampleSchema
 {
     static public $conn_params = array(
         'host' => 'localhost',
@@ -80,6 +59,15 @@ class Authn_SampleSchema
         array('user5', 'password1', 0),
         array('user6', 'password1', 0)
     );
+    
+    static public $test_groups = array(
+        array('user1', 'group12'),
+        array('user2', 'group12'),
+        array('user3', 'group34'),
+        array('user4', 'group34'),
+        array('user5', 'group56'),
+        array('user6', 'group56'),
+    );
 
     static public function connect($delayed = true)
     {
@@ -90,14 +78,6 @@ class Authn_SampleSchema
             self::$conn_params['schema'],
             $delayed
         );
-    }
-
-    static public function insert_user($table, $username, $password, $enabled)
-    {   
-        DB_Conn::query("INSERT INTO {$table} (username, password, enabled) VALUES " .
-            "( '" . DB_Conn::get_link()->real_escape_string($username) . "', " .
-            " '" .  DB_Conn::get_link()->real_escape_string($password) . "', " .
-            " '" . $enabled . "')");
     }
 
     static public function build()
@@ -120,7 +100,7 @@ class Authn_SampleSchema
 
         // Create schema
         DB_Conn::query('
-        CREATE TABLE `users_plain` (
+        CREATE TABLE `users` (
             username varchar(15),
             password varchar(255),
             enabled TINYINT DEFAULT 1,
@@ -129,56 +109,29 @@ class Authn_SampleSchema
         ');
 
         DB_Conn::query('
-        CREATE TABLE `users_id` (
-            id INT auto_increment NOT NULL,
+        CREATE TABLE `memberships` (
             username varchar(15),
-            password varchar(255),
-            enabled TINYINT DEFAULT 1,
-            PRIMARY KEY(id),
-            UNIQUE KEY(username)
-        );
-        ');
-
-        DB_Conn::query('
-        CREATE TABLE `users_md5` (
-            username varchar(15),
-            password CHAR(32),
-            enabled TINYINT DEFAULT 1,
-            PRIMARY KEY(username)
-        );
-        ');
-
-        DB_Conn::query('
-        CREATE TABLE `users_sha1` (
-            username varchar(15),
-            password CHAR(40),
-            enabled TINYINT DEFAULT 1,
-            PRIMARY KEY(username)
+            groupname varchar(255),
+            PRIMARY KEY(username, groupname)
         );
         ');
 
         foreach(self::$test_users as $record)
         {   
             list($username, $password, $enabled) = $record;
-            self::insert_user('users_plain', $username, $password, $enabled);
+            DB_Conn::query("INSERT INTO `users` (username, password, enabled) VALUES " .
+                "( '" . DB_Conn::get_link()->real_escape_string($username) . "', " .
+                " '" .  DB_Conn::get_link()->real_escape_string($password) . "', " .
+                " '" . $enabled . "')");
         }
-
-        foreach(self::$test_users as $record)
+        
+        foreach(self::$test_groups as $record)
         {   
-            list($username, $password, $enabled) = $record;
-            self::insert_user('users_id', $username, $password, $enabled);
-        }
+            list($user, $group) = $record;
+            DB_Conn::query("INSERT INTO `memberships` (username, groupname) VALUES " .
+                "( '" . DB_Conn::get_link()->real_escape_string($user) . "', " .
+                " '" .  DB_Conn::get_link()->real_escape_string($group) . "')");
 
-        foreach(self::$test_users as $record)
-        {   
-            list($username, $password, $enabled) = $record;
-            self::insert_user('users_md5', $username, md5($password), $enabled);
-        }
-
-        foreach(self::$test_users as $record)
-        {   
-            list($username, $password, $enabled) = $record;
-            self::insert_user('users_sha1', $username, sha1($password), $enabled);
         }
     }
 

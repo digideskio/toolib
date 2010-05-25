@@ -21,7 +21,7 @@
 
 
 require_once dirname(__FILE__) . '/ACL.class.php';
-require_once dirname(__FILE__) . '/RoleFeeder.class.php';
+require_once dirname(__FILE__) . '/Role/Feeder.class.php';
 
 class Authz_Resource
 {
@@ -62,7 +62,7 @@ class Authz_Resource
     }
     
     //! Search through role inheritance and resource inheritance for effective ace
-    public function effective_ace($role, $action, Authz_RoleFeeder $roles, & $depth)
+    public function effective_ace($role, $action, Authz_Role_Feeder $roles, & $depth)
     {   $matched = array('ace' => null, 'depth' => -1);    
         
         // Search local acl

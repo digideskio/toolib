@@ -21,7 +21,7 @@
 
 
 require_once dirname(__FILE__) . '/Authz/ResourceList.class.php';
-require_once dirname(__FILE__) . '/Authz/RoleFeederInstance.class.php';
+require_once dirname(__FILE__) . '/Authz/Role/FeederInstance.class.php';
 
 class Authz
 {
@@ -46,7 +46,7 @@ class Authz
         return self::$role_feeder;
     }
     
-    static public function set_role_feeder(Authz_RoleFeeder $feeder)
+    static public function set_role_feeder(Authz_Role_Feeder $feeder)
     {
         self::$role_feeder = $feeder;
     }

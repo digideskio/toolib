@@ -27,15 +27,15 @@ class Authz_ResourceTest extends PHPUnit_Framework_TestCase
 {
     public function roleFeeder()
     {
-        $roles = new Authz_RoleFeederInstance();
-        $roles->add_role(new Authz_Role('@game'));
-        $roles->add_role(new Authz_Role('@video'));
-        $roles->add_role(new Authz_Role('@user', array('@game', '@video')));
-        $roles->add_role(new Authz_Role('@web-user'));
-        $roles->add_role(new Authz_Role('@web-admin', '@web-user'));
-        $roles->add_role(new Authz_Role('@fs-admin'));
-        $roles->add_role(new Authz_Role('@logger'));
-        $roles->add_role(new Authz_Role('@admin', array('@user', '@web-admin', '@fs-admin')));
+        $roles = new Authz_Role_FeederInstance();
+        $roles->add_role('@game');
+        $roles->add_role('@video');
+        $roles->add_role('@user', array('@game', '@video'));
+        $roles->add_role('@web-user');
+        $roles->add_role('@web-admin', '@web-user');
+        $roles->add_role('@fs-admin');
+        $roles->add_role('@logger');
+        $roles->add_role('@admin', array('@user', '@web-admin', '@fs-admin'));
         return $roles;
     }
     

@@ -23,24 +23,24 @@
 require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__) .  '/../path.inc.php';
 
-class Authz_RoleTest extends PHPUnit_Framework_TestCase
+class Authz_RoleInstanceTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $role = new Authz_Role('admin');
+        $role = new Authz_Role_Instance('admin');
         $this->assertEquals($role->get_name(), 'admin');
         $this->assertEquals($role->get_parents(), array());
         $this->assertFalse($role->has_parent('admin'));
         $this->assertFalse($role->has_parent(null));
 
-        $role = new Authz_Role('admin', 'test');
+        $role = new Authz_Role_Instance('admin', 'test');
         $this->assertEquals($role->get_name(), 'admin');
         $this->assertEquals($role->get_parents(), array('test'));
         $this->assertFalse($role->has_parent('admin'));
         $this->assertFalse($role->has_parent(null));
         $this->assertTrue($role->has_parent('test'));
         
-        $role = new Authz_Role('super-admin', array('network-admin', 'disk-admin') );
+        $role = new Authz_Role_Instance('super-admin', array('network-admin', 'disk-admin') );
         $this->assertEquals($role->get_name(), 'super-admin');
         $this->assertEquals($role->get_parents(), array('network-admin', 'disk-admin'));
         $this->assertFalse($role->has_parent('super-admin'));

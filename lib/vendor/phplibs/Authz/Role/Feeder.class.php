@@ -20,14 +20,12 @@
  */
 
 
-interface Authz_Role
+interface Authz_Role_Feeder
 {
-    public function get_name();
-        
-    public function get_parents();
-        
-    public function has_parent($parent);
 
+    public function has_role($name);
+    
+    public function get_role($name);
 }
 
 ?>

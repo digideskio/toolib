@@ -46,8 +46,8 @@ class Authn_RealmTest extends PHPUnit_Framework_TestCase
     {
         Authn_SampleSchema::build();
         Authn_Realm::events()->connect(
-        NULL,
-        array('Authn_RealmTest', 'push_event')
+            NULL,
+            array('Authn_RealmTest', 'push_event')
         );
         Authn_SampleSchema::connect();
         self::$storage = new Authn_Session_Instance();

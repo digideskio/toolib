@@ -27,18 +27,16 @@ class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $list = new Authz_RoleFeederInstance();
+        $list = new Authz_Role_FeederInstance();
         
         $this->assertFalse($list->has_role('test'));
         $this->assertFalse($list->get_role('test'));
 
-        $member_role = new Authz_Role('member');
-        $list->add_role($member_role);
+        $member_role = $list->add_role('member');
         $this->assertTrue($list->has_role('member'));
         $this->assertEquals($list->get_role('member'), $member_role);
         
-        $admin_role = new Authz_Role('admin', 'member');
-        $list->add_role($admin_role);
+        $admin_role = $list->add_role('admin', 'member');
         $this->assertTrue($list->has_role('admin'));
         $this->assertEquals($list->get_role('admin'), $admin_role);
         $this->assertTrue($list->has_role('member'));
@@ -50,9 +48,9 @@ class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
      */
     public function testSameRoleException()
     {
-        $list = new Authz_RoleFeederInstance();
-        $list->add_role(new Authz_Role('member'));
-        $list->add_role(new Authz_Role('member', array('test', 'test2')));
+        $list = new Authz_Role_FeederInstance();
+        $list->add_role('member');
+        $list->add_role('member', array('test', 'test2'));
     }
 
     /**
@@ -60,8 +58,8 @@ class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
      */
     public function testBrokenDependencyException()
     {
-        $list = new Authz_RoleFeederInstance();
-        $list->add_role(new Authz_Role('member', array('everyone')));
+        $list = new Authz_Role_FeederInstance();
+        $list->add_role('member', array('everyone'));
     }
 }
 ?>

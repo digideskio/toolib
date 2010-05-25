@@ -20,7 +20,7 @@
  */
 
 
-require_once dirname(__FILE__) . '/RoleFeeder.class.php';
+require_once dirname(__FILE__) . '/Role/Feeder.class.php';
 require_once dirname(__FILE__) . '/ResourceClass.class.php';
 
 class Authz_ResourceList
