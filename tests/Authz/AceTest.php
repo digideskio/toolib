@@ -37,5 +37,28 @@ class Authz_AceTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($ace2->get_role(), '@devs');
         $this->assertEquals($ace2->get_action(), 'write');
     }
+    
+    public function testSetAllowed()
+    {
+        $ace = new Authz_ACE('admin', 'read', false);
+        $this->assertFalse($ace->is_allowed());
+        $ace->set_allowed(true);
+        $this->assertTrue($ace->is_allowed());
+        $ace->set_allowed(false);
+        $this->assertFalse($ace->is_allowed());
+    }
+    
+    public function testIsRoleNull()
+    {
+        $ace = new Authz_ACE('admin', 'read', false);
+        $this->assertFalse($ace->is_role_null());
+        $ace = new Authz_ACE('0', null, false);
+        $this->assertFalse($ace->is_role_null());
+        $ace = new Authz_ACE(0, null, false);
+        $this->assertFalse($ace->is_role_null());
+        $ace = new Authz_ACE(null, null, false);
+        $this->assertTrue($ace->is_role_null());
+
+    }
 }
 ?>

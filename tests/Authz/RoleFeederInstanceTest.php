@@ -23,11 +23,11 @@
 require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__) .  '/../path.inc.php';
 
-class Authz_RoleFeederStaticTest extends PHPUnit_Framework_TestCase
+class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $list = new Authz_RoleFeederStatic();
+        $list = new Authz_RoleFeederInstance();
         
         $this->assertFalse($list->has_role('test'));
         $this->assertFalse($list->get_role('test'));
@@ -50,7 +50,7 @@ class Authz_RoleFeederStaticTest extends PHPUnit_Framework_TestCase
      */
     public function testSameRoleException()
     {
-        $list = new Authz_RoleFeederStatic();
+        $list = new Authz_RoleFeederInstance();
         $list->add_role(new Authz_Role('member'));
         $list->add_role(new Authz_Role('member', array('test', 'test2')));
     }
@@ -60,7 +60,7 @@ class Authz_RoleFeederStaticTest extends PHPUnit_Framework_TestCase
      */
     public function testBrokenDependencyException()
     {
-        $list = new Authz_RoleFeederStatic();
+        $list = new Authz_RoleFeederInstance();
         $list->add_role(new Authz_Role('member', array('everyone')));
     }
 }

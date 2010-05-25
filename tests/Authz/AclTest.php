@@ -25,66 +25,80 @@ require_once dirname(__FILE__) .  '/../path.inc.php';
 
 class Authz_AclTest extends PHPUnit_Framework_TestCase
 {
-    public function testGeneral()
+   
+    public function dataEffectiveAceTestData()
     {
-        $list = new Authz_RoleFeederStatic();
-        $list->add_role(new Authz_Role('@game'));
-        $list->add_role(new Authz_Role('@video'));
-        $list->add_role(new Authz_Role('@user', array('@game', '@video')));
-        $list->add_role(new Authz_Role('@web-user'));
-        $list->add_role(new Authz_Role('@web-admin', '@web-user'));
-        $list->add_role(new Authz_Role('@fs-admin'));
-        $list->add_role(new Authz_Role('@logger'));
-        $list->add_role(new Authz_Role('@admin', array('@user', '@web-admin', '@fs-admin')));
-        
-        $acl = new Authz_ACL($list);
+        return array(
+            array('read', array(
+                array(null, true),
+                array('@user', true),
+                array('@admin', true),
+                array('@logger', false),
+                array('@game', true),
+                array('unknown', true)
+                )
+            ),
+            array('write', array(
+                array(null, null),
+                array('@user', false),
+                array('@admin', true),
+                array('@logger', null),
+                array('@game', null),
+                array('unknown', null)
+                )
+            ),
+            array('play', array(
+                array(null, false),
+                array('@user', false),
+                array('@admin', false),
+                array('@logger', false),
+                array('@game', true),
+                array('unknown', false)
+                )
+            ),
+        );
+    }
+    
+    /**
+     * @dataProvider dataEffectiveAceTestData
+     */
+    public function testEffectiveAce($test_action, $tests)
+    {
+        $acl = new Authz_ACL();
         $acl->allow(null, 'read');
         $acl->deny('@logger', 'read');
-        
         $acl->deny('@user', 'write');
-        $acl->allow('@fs-admin', 'write');
-        
+        $acl->allow('@admin', 'write');
         $acl->deny(null, 'play');
         $acl->allow('@game', 'play');
         
-        $this->assertFalse($acl->is_allowed(null, 'unknown-action'));
+        // Unknown action
+        $this->assertNull($acl->effective_ace(null, 'unknown-action'));
         
-        // Read 
-        $this->assertTrue($acl->is_allowed(null, 'read'));
-        $this->assertTrue($acl->is_allowed('@user', 'read'));
-        $this->assertTrue($acl->is_allowed('@admin', 'read'));
-        $this->assertTrue($acl->is_allowed('@web-user', 'read'));
-        $this->assertTrue($acl->is_allowed('@web-admin', 'read'));
-        $this->assertTrue($acl->is_allowed('@fs-admin', 'read'));
-        $this->assertTrue($acl->is_allowed('@game', 'read'));
-        $this->assertTrue($acl->is_allowed('@video', 'read'));
-        $this->assertFalse($acl->is_allowed('@logger', 'read'));
-        
-        // Write
-        $this->assertFalse($acl->is_allowed(null, 'write'));
-        $this->assertFalse($acl->is_allowed('@user', 'write'));
-        $this->assertTrue($acl->is_allowed('@admin', 'write'));
-        $this->assertFalse($acl->is_allowed('@web-user', 'write'));
-        $this->assertFalse($acl->is_allowed('@web-admin', 'write'));
-        $this->assertTrue($acl->is_allowed('@fs-admin', 'write'));
-        $this->assertFalse($acl->is_allowed('@game', 'write'));
-        $this->assertFalse($acl->is_allowed('@video', 'write'));
-        
-        // Play
-        $this->assertFalse($acl->is_allowed(null, 'play'));
-        $this->assertTrue($acl->is_allowed('@user', 'play'));
-        $this->assertTrue($acl->is_allowed('@admin', 'play'));
-        $this->assertFalse($acl->is_allowed('@web-user', 'play'));
-        $this->assertFalse($acl->is_allowed('@web-admin', 'play'));
-        $this->assertFalse($acl->is_allowed('@fs-admin', 'play'));
-        $this->assertTrue($acl->is_allowed('@game', 'play'));
-        $this->assertFalse($acl->is_allowed('@video', 'play'));
+        // Read
+        foreach($tests as $test)
+        {
+            if ($test[1] === null)
+            {
+                $this->assertNull($acl->effective_ace($test[0], $test_action,
+                    "Ace [{$test[0]}, $test_action] must be null"));
+                continue;
+            }
+            
+            $this->assertNotNull($acl->effective_ace($test[0], $test_action),
+                "Ace [{$test[0]}, $test_action] must not be null");
+            $this->assertEquals($acl->effective_ace($test[0], $test_action)->get_action(), $test_action);
+            
+            if ($test[1])
+                $this->assertTrue($acl->effective_ace($test[0], $test_action)->is_allowed());
+            else
+                $this->assertFalse($acl->effective_ace($test[0], $test_action)->is_allowed());
+        }
     }
     
     public function testEmpty()
     {
-        $list = new Authz_RoleFeederStatic();
-        $acl = new Authz_ACL($list);
+        $acl = new Authz_ACL();
         $this->assertTrue($acl->is_empty());
         
         $acl->allow(null, 'read');
@@ -105,8 +119,7 @@ class Authz_AclTest extends PHPUnit_Framework_TestCase
     
     public function testGetAces()
     {
-        $list = new Authz_RoleFeederStatic();
-        $acl = new Authz_ACL($list);
+        $acl = new Authz_ACL();
         $this->assertEquals($acl->get_aces(), array());
         
         $acl->allow(null, 'read');
@@ -127,8 +140,7 @@ class Authz_AclTest extends PHPUnit_Framework_TestCase
     
     public function testRemoveAce()
     {
-        $list = new Authz_RoleFeederStatic();
-        $acl = new Authz_ACL($list);
+        $acl = new Authz_ACL();
         $this->assertEquals($acl->get_aces(), array());
         
         $acl->allow(null, 'read');
