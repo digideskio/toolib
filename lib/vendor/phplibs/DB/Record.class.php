@@ -610,7 +610,7 @@ class DB_Record
 			}
 			if ($rel['type'] === 'many')
 			{	$pks = $this->key();
-				return new DBRecordManyRelationship(
+				return new DB_Record_RelationshipMany(
 			        $this->model,
 					$rel['foreign_model'],
 					$pks[0]);
@@ -618,7 +618,7 @@ class DB_Record
 
 			if ($rel['type'] === 'bridge')
 			{   $pks = $this->key();
-			    return new DBRecordBridgeRelationship(
+			    return new DB_Record_RelationshipBridge(
 			        $this->model,
 			        $rel['bridge_model'],
 			        $rel['foreign_model'],
