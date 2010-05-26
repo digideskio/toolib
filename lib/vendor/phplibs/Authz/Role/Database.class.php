@@ -24,17 +24,21 @@ require_once dirname(__FILE__) . '/../Role.class.php';
 
 class Authz_Role_Database implements Authz_Role
 {
-    protected $parents_query;
-    
-    protected $parent_name_field;
+    protected $options;
     
     protected $name;
     
-    public function __construct($name, $parents_query, $parent_name_field)
+    public function __construct($name, $options)
     {
         $this->name = $name;
-        $this->parents_query = $parents_query;
-        $this->parent_name_field = $parent_name_field;
+        $this->options = $options;
+    }
+    
+    protected function has_parents_ability()
+    {
+        if (($this->options === null) || ($this->options['parents_query'] === null))
+            return false;
+        return true;
     }
     
     public function get_name()
@@ -44,29 +48,30 @@ class Authz_Role_Database implements Authz_Role
         
     public function get_parents()
     {
-        if ($this->parents_query === null)
+        if (! $this->has_parents_ability())
             return array();
             
-        $result = $this->parents_query->execute($this->get_name());
+        $result = $this->options['parents_query']->execute($this->get_name());
 
         $parents = array();
         foreach($result as $record)
+        {   
+            $parent_name = $record->{$this->options['parent_name_field']};
+            if ($this->options['parent_name_filter_func'])
+                $parent_name = call_user_func($this->options['parent_name_filter_func'], $parent_name);
             $parents[] = new Authz_Role_Database(
-                $record->{$this->parent_name_field}, null, null);
+                $parent_name , null);
+        }
 
         return $parents;
     }
 
     public function has_parent($parent)
-    {
-        if ($this->parents_query === null)
-            return false;
-            
+    {      
         foreach($this->get_parents() as $p)
             if ($p->get_name() == $parent)
                 return true;
         return false;
-    }
-    
+    }   
 }
 ?>

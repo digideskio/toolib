@@ -56,19 +56,39 @@ class Authz_ResourceTest extends PHPUnit_Framework_TestCase
         $this->assertSame($file->get_parent(), $dir);
     }
     
+    public function testGetInstance()
+    {
+        $dir = new Authz_ResourceClass('directory');
+        $this->assertTrue($dir->get_acl()->is_empty());
+        $this->assertEquals($dir->get_name(), 'directory');
+        $this->assertFalse($dir->has_parent());
+        $this->assertNull($dir->get_parent());
+
+        $root = $dir->get_instance('/');
+        $this->assertTrue($root->get_acl()->is_empty());
+        $this->assertEquals($root->get_name(), '/');
+        $this->assertTrue($root->has_parent());
+        $this->assertSame($root->get_parent(), $dir);
+    }
+    
     public function dataEffectiveAce()
     {
         
         $roles = $this->roleFeeder();
         
-        $dir = new Authz_Resource('directory');
+        $dir = new Authz_ResourceClass('directory');
         $dir->get_acl()->allow(null, 'read');
         $dir->get_acl()->deny(null, 'write');
         $dir->get_acl()->deny(null, 'delete');
+        $dir->get_acl()->allow(null, 'create');
         $dir->get_acl()->allow('@fs-admin', 'write');
         
-        $file = new Authz_Resource('file', $dir);
+        $file = new Authz_ResourceClass('file', $dir);
         $file->get_acl()->allow('@fs-admin', 'delete');
+        
+        $root = $dir->get_instance('/');
+        $root->get_acl()->deny(null, 'create');
+        $root->get_acl()->allow('@fs-admin', 'create');
         
         return array(
             // roles, $resource, $role, $action, $ace, $depth
@@ -77,6 +97,10 @@ class Authz_ResourceTest extends PHPUnit_Framework_TestCase
             array($roles, $dir, '@user', 'unknown-action', null, null),
             array($roles, $dir, '@user', 'read', true, 500),
             array($roles, $dir, '@logger', 'read', true, 500),
+            array($roles, $dir, '@user', 'create', true, 500),
+            array($roles, $dir, '@logger', 'create', true, 500),
+            array($roles, $dir, '@admin', 'create', true, 500),
+            array($roles, $dir, null, 'create', true, 500),
             array($roles, $dir, '@logger', 'write', false, 500),
             array($roles, $dir, '@logger', 'delete', false, 500),
             array($roles, $dir, '@fs-admin', 'delete', false, 500),
@@ -89,12 +113,32 @@ class Authz_ResourceTest extends PHPUnit_Framework_TestCase
             array($roles, $file, '@user', 'unknown-action', null, null),
             array($roles, $file, '@user', 'read', true, 10500),
             array($roles, $file, '@logger', 'read', true, 10500),
+            array($roles, $file, '@user', 'create', true, 10500),
+            array($roles, $file, '@logger', 'create', true, 10500),
+            array($roles, $file, '@admin', 'create', true, 10500),
+            array($roles, $file, null, 'create', true, 10500),
             array($roles, $file, '@logger', 'write', false, 10500),
             array($roles, $file, '@logger', 'delete', false, 10500),
             array($roles, $file, '@fs-admin', 'delete', true, 0),
             array($roles, $file, '@admin', 'delete', true, 1),
             array($roles, $file, '@fs-admin', 'write', true, 10000),
             array($roles, $file, '@admin', 'write', true, 10001),
+            
+            array($roles, $root, null, 'unknown-action', null, null),
+            array($roles, $root, 'unknown', 'unknown-action', null, null),
+            array($roles, $root, '@user', 'unknown-action', null, null),
+            array($roles, $root, '@user', 'read', true, 10500),
+            array($roles, $root, '@logger', 'read', true, 10500),
+            array($roles, $root, '@user', 'create', false, 500),
+            array($roles, $root, '@logger', 'create', false, 500),
+            array($roles, $root, '@admin', 'create', true, 1),
+            array($roles, $root, null, 'create', false, 500),
+            array($roles, $root, '@logger', 'write', false, 10500),
+            array($roles, $root, '@logger', 'delete', false, 10500),
+            array($roles, $root, '@fs-admin', 'delete', false, 10500),
+            array($roles, $root, '@admin', 'delete', false, 10500),
+            array($roles, $root, '@fs-admin', 'write', true, 10000),
+            array($roles, $root, '@admin', 'write', true, 10001),
         );
     }
     
@@ -119,6 +163,6 @@ class Authz_ResourceTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expected_depth, $depth);
     }
 
-  
+
 }
 ?>

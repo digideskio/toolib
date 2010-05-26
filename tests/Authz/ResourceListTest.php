@@ -41,7 +41,6 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
     
     public function testGeneral()
     {
-
         $list = new Authz_ResourceList();
         
         $this->assertFalse($list->has_resource('test'));
@@ -56,113 +55,6 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
         $this->assertType('Authz_Resource', $list->get_resource('directory'));
         $this->assertTrue($list->has_resource('file'));
         $this->assertType('Authz_Resource', $list->get_resource('file'));
-    }
-    
-    
-    public function testAcl()
-    {   return;
-        $list = new Authz_ResourceList();
-        $dir = $list->add_resource('directory');
-        $dir->get_acl()->allow(null, 'read');
-        $dir->get_acl()->deny(null, 'write');
-        $dir->get_acl()->deny(null, 'delete');
-        $dir->get_acl()->allow('@fs-admin', 'write');
-        
-        $file = $list->add_resource('file', 'directory');
-        $file->get_acl()->allow('@fs-admin', 'delete');
-        
-        $this->assertFalse($dir->is_allowed(null, 'unknown-action'));
-        $this->assertFalse($dir->is_allowed('unknown', 'unknown-action'));
-        $this->assertFalse($dir->is_allowed('@user', 'unknown-action'));
-        $this->assertTrue($dir->is_allowed('@user', 'read'));
-        $this->assertTrue($dir->is_allowed('@logger', 'read'));
-        $this->assertFalse($dir->is_allowed('@logger', 'write'));
-        $this->assertFalse($dir->is_allowed('@logger', 'delete'));
-        $this->assertFalse($dir->is_allowed('@fs-admin', 'delete'));
-        $this->assertFalse($dir->is_allowed('@admin', 'delete'));
-        $this->assertTrue($dir->is_allowed('@fs-admin', 'write'));
-        $this->assertTrue($dir->is_allowed('@admin', 'write'));
-        
-        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
-        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
-        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
-        $this->assertTrue($file->is_allowed('@user', 'read'));
-        $this->assertTrue($file->is_allowed('@logger', 'read'));
-        $this->assertFalse($file->is_allowed('@logger', 'write'));
-        $this->assertFalse($file->is_allowed('@logger', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
-        $this->assertTrue($file->is_allowed('@admin', 'write'));
-    }
-    
-    public function testInstanceAcl()
-    {   return;
-        $list = new Authz_ResourceList($this->roleFeeder());
-        $dir = $list->add_resource('directory');
-        $dir->get_acl()->allow(null, 'read');
-        $dir->get_acl()->deny(null, 'write');
-        $dir->get_acl()->deny(null, 'delete');
-        $dir->get_acl()->allow('@fs-admin', 'write');
-        
-        $file = $list->add_resource('file', 'directory');
-        $file->get_acl()->allow('@fs-admin', 'delete');
-        
-        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
-        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
-        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
-        $this->assertTrue($file->is_allowed('@user', 'read'));
-        $this->assertTrue($file->is_allowed('@logger', 'read'));
-        $this->assertFalse($file->is_allowed('@logger', 'write'));
-        $this->assertFalse($file->is_allowed('@logger', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
-        $this->assertTrue($file->is_allowed('@admin', 'write'));
-        
-        $file = $list->get_resource('file', '/tmp/testfile');
-        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
-        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
-        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
-        $this->assertTrue($file->is_allowed('@user', 'read'));
-        $this->assertTrue($file->is_allowed('@logger', 'read'));
-        $this->assertFalse($file->is_allowed('@logger', 'write'));
-        $this->assertFalse($file->is_allowed('@logger', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
-        $this->assertTrue($file->is_allowed('@admin', 'write'));
-        
-        // Add a specific rule on instance
-        $file->get_acl()->allow(null, 'write');
-        $file->get_acl()->allow('@logger', 'delete');
-        
-        $file = $list->get_resource('file', '/tmp/testfile');
-        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
-        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
-        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
-        $this->assertTrue($file->is_allowed('@user', 'read'));
-        $this->assertTrue($file->is_allowed('@logger', 'read'));
-        $this->assertTrue($file->is_allowed('@logger', 'write'));
-        $this->assertTrue($file->is_allowed('@logger', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
-        $this->assertTrue($file->is_allowed('@admin', 'write'));
-        
-        // Retry on file class to check that it is left intact
-        $file = $list->get_resource('file');
-        $this->assertFalse($file->is_allowed(null, 'unknown-action'));
-        $this->assertFalse($file->is_allowed('unknown', 'unknown-action'));
-        $this->assertFalse($file->is_allowed('@user', 'unknown-action'));
-        $this->assertTrue($file->is_allowed('@user', 'read'));
-        $this->assertTrue($file->is_allowed('@logger', 'read'));
-        $this->assertFalse($file->is_allowed('@logger', 'write'));
-        $this->assertFalse($file->is_allowed('@logger', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@admin', 'delete'));
-        $this->assertTrue($file->is_allowed('@fs-admin', 'write'));
-        $this->assertTrue($file->is_allowed('@admin', 'write'));
     }
     
     public function testRemoveResource()

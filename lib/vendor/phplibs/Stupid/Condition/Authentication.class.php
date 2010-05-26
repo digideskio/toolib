@@ -25,7 +25,7 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
 //! Implementation of auth Stupid_Condition
 /**
  * A condition evaluator that can perform checks on the
- * WAAS and Group based on current logged on user.\n
+ * Authn_Realm
  * This evaluator implements the <b> type = "authn"</b> 
  *
  * @par Acceptable condition options
@@ -35,10 +35,10 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
  * 
  * @par Examples
  * @code
- * // This action is accesible only from users of group admin
+ * // This action is accesible only from user root
  * Stupid::add_rule('create_news',
  *     array('type' => 'url_path', 'path' => '/\/news\/\+create/'),
- *     array('type' => 'authn', 'op' => 'ingroup', 'group' => 'admin'));
+ *     array('type' => 'authn', 'op' => 'isuser', 'user' => 'root'));
  * @endcode
  */
 class Stupid_Condition_Authentication extends Stupid_Condition

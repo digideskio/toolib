@@ -25,32 +25,31 @@ require_once dirname(__FILE__) . '/Database.class.php';
 
 class Authz_Role_FeederDatabase implements Authz_Role_Feeder
 {
-    protected $role_query;
+    protected $options;
     
-    protected $role_name_field;
-    
-    protected $parents_query;
-    
-    protected $parent_name_field;
-    
-    protected $role_class;
-    
-    public function __construct(DB_ModelQuery $role_query,
-        $role_name_field,
-        $parents_query = null,
-        $parent_name_field = null,
-        $role_class = null)
+    public function __construct($options)
     {
-        $this->role_query = $role_query;
-        $this->role_name = $role_name_field;
-        $this->parents_query = $parents_query;
-        $this->parent_name_field = $parent_name_field;
-        $this->role_class = ($role_class == null?'Authz_Role_Database':$role_class);
+        $def_options = array(
+            'role_query' => null,
+            'role_name_field' => null,
+            'parents_query' => null,
+            'parent_name_field' => null,
+            'parent_name_filter_func' => null,
+            'role_class' => 'Authz_Role_Database'
+        );
+
+        $this->options = array_merge($def_options, $options);
+        
+        if (!$this->options['role_query'])
+            throw new InvalidArgumentException('Missing mandatory option "role_query".');
+            
+        if (!$this->options['role_name_field'])
+            throw new InvalidArgumentException('Missing mandatory option "role_name_field".');
     }
     
     public function has_role($name)
     {
-        $result = $this->role_query->execute($name);
+        $result = $this->options['role_query']->execute($name);
         if (count($result) !== 1)
             return false;
         return true;
@@ -61,7 +60,7 @@ class Authz_Role_FeederDatabase implements Authz_Role_Feeder
         if (!$this->has_role($name))
             return false;
         
-        return new $this->role_class($name, $this->parents_query, $this->parent_name_field);
+        return new $this->options['role_class']($name, $this->options);
     }
 }
 ?>
