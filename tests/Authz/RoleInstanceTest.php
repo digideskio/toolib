@@ -27,26 +27,30 @@ class Authz_RoleInstanceTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $role = new Authz_Role_Instance('admin');
-        $this->assertEquals($role->get_name(), 'admin');
-        $this->assertEquals($role->get_parents(), array());
-        $this->assertFalse($role->has_parent('admin'));
-        $this->assertFalse($role->has_parent(null));
+        $parent = new Authz_Role_Instance('parent');
+        $this->assertEquals($parent->get_name(), 'parent');
+        $this->assertEquals($parent->get_parents(), array());
+        $this->assertFalse($parent->has_parent('admin'));
+        $this->assertFalse($parent->has_parent(null));
 
-        $role = new Authz_Role_Instance('admin', 'test');
-        $this->assertEquals($role->get_name(), 'admin');
-        $this->assertEquals($role->get_parents(), array('test'));
-        $this->assertFalse($role->has_parent('admin'));
-        $this->assertFalse($role->has_parent(null));
-        $this->assertTrue($role->has_parent('test'));
+        $child = new Authz_Role_Instance('child', array($parent));
+        $this->assertEquals($child->get_name(), 'child');
+        $this->assertEquals($child->get_parents(), array('parent' => $parent));
+        $this->assertFalse($child->has_parent('admin'));
+        $this->assertFalse($child->get_parent('admin'));
+        $this->assertFalse($child->has_parent(null));
+        $this->assertTrue($child->has_parent('parent'));
+        $this->assertEquals($child->get_parent('parent'), $parent);
         
-        $role = new Authz_Role_Instance('super-admin', array('network-admin', 'disk-admin') );
-        $this->assertEquals($role->get_name(), 'super-admin');
-        $this->assertEquals($role->get_parents(), array('network-admin', 'disk-admin'));
-        $this->assertFalse($role->has_parent('super-admin'));
-        $this->assertFalse($role->has_parent(null));
-        $this->assertTrue($role->has_parent('network-admin'));
-        $this->assertTrue($role->has_parent('disk-admin'));
+        $mix = new Authz_Role_Instance('mix', array($parent, $child) );
+        $this->assertEquals($mix->get_name(), 'mix');
+        $this->assertEquals($mix->get_parents(), array('parent' => $parent, 'child' => $child));
+        $this->assertFalse($mix->has_parent('mix'));
+        $this->assertFalse($mix->has_parent(null));
+        $this->assertTrue($mix->has_parent('parent'));
+        $this->assertEquals($mix->get_parent('parent'), $parent);
+        $this->assertTrue($mix->has_parent('child'));
+        $this->assertEquals($mix->get_parent('child'), $child);
     }
 }
 ?>

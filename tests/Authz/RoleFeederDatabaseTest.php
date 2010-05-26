@@ -134,14 +134,17 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
 
         $this->assertType('array', $user5->get_parents());
         $this->assertEquals(count($user5->get_parents()), 1);
-        list($group46) = $user5->get_parents();
+        $parents = $user5->get_parents();
+        $group46 = $parents['group46'];
         $this->assertEquals($group46->get_name(), 'group46');
         $this->assertFalse($group46->has_parent('test'));
         $this->assertEquals($group46->get_parents(), array());
         
         $this->assertType('array', $user4->get_parents());
         $this->assertEquals(count($user4->get_parents()), 2);
-        list($group34, $group46) = $user4->get_parents();
+        $parents = $user4->get_parents();
+        $group34 = $parents['group34'];
+        $group46 = $parents['group46'];
         $this->assertEquals($group34->get_name(), 'group34');
         $this->assertFalse($group34->has_parent('test'));
         $this->assertEquals($group34->get_parents(), array());
@@ -194,14 +197,17 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
 
         $this->assertType('array', $user5->get_parents());
         $this->assertEquals(count($user5->get_parents()), 1);
-        list($group46) = $user5->get_parents();
+        $parents = $user5->get_parents();
+        $group46 = $parents['@group46'];
         $this->assertEquals($group46->get_name(), '@group46');
         $this->assertFalse($group46->has_parent('test'));
         $this->assertEquals($group46->get_parents(), array());
         
         $this->assertType('array', $user4->get_parents());
         $this->assertEquals(count($user4->get_parents()), 2);
-        list($group34, $group46) = $user4->get_parents();
+        $parents = $user4->get_parents();
+        $group34 = $parents['@group34'];
+        $group46 = $parents['@group46'];
         $this->assertEquals($group34->get_name(), '@group34');
         $this->assertFalse($group34->has_parent('test'));
         $this->assertEquals($group34->get_parents(), array());

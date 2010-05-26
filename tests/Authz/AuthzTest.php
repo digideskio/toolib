@@ -63,9 +63,10 @@ class Authz_AuthzTest extends PHPUnit_Framework_TestCase
     /**
      * @depends testSetGet
      */
-    public function testIsAllowed()
+    public function testIsRoleAllowed()
     {
         Authz::set_resource_list($list = new Authz_ResourceList());
+        Authz::set_role_feeder($this->roleFeeder());
         $dir = $list->add_resource('directory');
         Authz::allow('directory', null, 'read');
         Authz::deny('directory', null, 'write');
@@ -78,29 +79,77 @@ class Authz_AuthzTest extends PHPUnit_Framework_TestCase
         
         Authz::allow(array('file', '/') , null, 'list');
 
-        $this->assertFalse(Authz::is_allowed('directory', null, 'unknown'));
-        $this->assertTrue(Authz::is_allowed('directory', null, 'read'));
-        $this->assertFalse(Authz::is_allowed('directory', null, 'write'));
-        $this->assertFalse(Authz::is_allowed('directory', null, 'execute'));
-        $this->assertFalse(Authz::is_allowed('directory', null, 'list'));
-        $this->assertTrue(Authz::is_allowed('directory', 'admin', 'write'));
-        $this->assertFalse(Authz::is_allowed('directory', 'admin', 'execute'));
-        $this->assertFalse(Authz::is_allowed('directory', 'admin', 'list'));
-        $this->assertFalse(Authz::is_allowed('directory', 'user', 'execute'));
-        $this->assertTrue(Authz::is_allowed('directory', 'user', 'list'));
+        $this->assertFalse(Authz::is_role_allowed_to(null, 'directory', 'unknown'));
+        $this->assertTrue(Authz::is_role_allowed_to(null, 'directory', 'read'));
+        $this->assertFalse(Authz::is_role_allowed_to(null, 'directory', 'write'));
+        $this->assertFalse(Authz::is_role_allowed_to(null, 'directory', 'execute'));
+        $this->assertFalse(Authz::is_role_allowed_to(null, 'directory', 'list'));
+        $this->assertTrue(Authz::is_role_allowed_to('admin', 'directory', 'write'));
+        $this->assertFalse(Authz::is_role_allowed_to('admin', 'directory', 'execute'));
+        $this->assertFalse(Authz::is_role_allowed_to('admin', 'directory', 'list'));
+        $this->assertFalse(Authz::is_role_allowed_to('user', 'directory', 'execute'));
+        $this->assertTrue(Authz::is_role_allowed_to('user', 'directory', 'list'));
         
-        $this->assertFalse(Authz::is_allowed('file', null, 'unknown'));
-        $this->assertTrue(Authz::is_allowed('file', null, 'read'));
-        $this->assertFalse(Authz::is_allowed('file', null, 'write'));
-        $this->assertFalse(Authz::is_allowed('file', null, 'execute'));
-        $this->assertFalse(Authz::is_allowed('file', null, 'list'));
-        $this->assertTrue(Authz::is_allowed('file', 'admin', 'write'));
-        $this->assertFalse(Authz::is_allowed('file', 'admin', 'execute'));
-        $this->assertFalse(Authz::is_allowed('file', 'admin', 'list'));
-        $this->assertTrue(Authz::is_allowed('file', 'user', 'execute'));
-        $this->assertFalse(Authz::is_allowed('file', 'user', 'list'));
-        $this->assertFalse(Authz::is_allowed(array('file', 'unknown'), 'user', 'list'));
-        $this->assertTrue(Authz::is_allowed(array('file', '/'), 'user', 'list'));
+        $this->assertFalse(Authz::is_role_allowed_to(null, 'file', 'unknown'));
+        $this->assertTrue(Authz::is_role_allowed_to(null, 'file', 'read'));
+        $this->assertFalse(Authz::is_role_allowed_to(null, 'file', 'write'));
+        $this->assertFalse(Authz::is_role_allowed_to(null, 'file', 'execute'));
+        $this->assertFalse(Authz::is_role_allowed_to(null, 'file', 'list'));
+        $this->assertTrue(Authz::is_role_allowed_to('admin', 'file', 'write'));
+        $this->assertFalse(Authz::is_role_allowed_to('admin', 'file', 'execute'));
+        $this->assertFalse(Authz::is_role_allowed_to('admin', 'file', 'list'));
+        $this->assertTrue(Authz::is_role_allowed_to('user', 'file', 'execute'));
+        $this->assertFalse(Authz::is_role_allowed_to('user', 'file', 'list'));
+        $this->assertFalse(Authz::is_role_allowed_to('user', array('file', 'unknown'), 'list'));
+        $this->assertTrue(Authz::is_role_allowed_to('user', array('file', '/'), 'list'));
+    }
+    
+    public function testIsAllowed()
+    {
+        Authz::set_resource_list($list = new Authz_ResourceList());
+        Authz::set_role_feeder($this->roleFeeder());
+        $dir = $list->add_resource('directory');
+        Authz::allow('directory', null, 'read');
+        Authz::deny('directory', null, 'write');
+        Authz::allow('directory', 'admin', 'write');
+        Authz::allow('directory', 'user', 'list');
+
+        $file = $list->add_resource('file', 'directory');
+        Authz::allow('file', 'user', 'execute');
+        Authz::deny('file', null, 'list');
+        
+        Authz::allow(array('file', '/') , null, 'list');
+
+        Authz::set_current_role_func(create_function('', 'return null;'));
+        $this->assertFalse(Authz::is_allowed('directory', 'unknown'));
+        $this->assertTrue(Authz::is_allowed('directory', 'read'));
+        $this->assertFalse(Authz::is_allowed('directory', 'write'));
+        $this->assertFalse(Authz::is_allowed('directory', 'execute'));
+        $this->assertFalse(Authz::is_allowed('directory', 'list'));
+        Authz::set_current_role_func(create_function('', 'return "admin";'));
+        $this->assertTrue(Authz::is_allowed('directory', 'write'));
+        $this->assertFalse(Authz::is_allowed('directory', 'execute'));
+        $this->assertFalse(Authz::is_allowed('directory', 'list'));
+        Authz::set_current_role_func(create_function('', 'return "user";'));
+        $this->assertFalse(Authz::is_allowed('directory', 'execute'));
+        $this->assertTrue(Authz::is_allowed('directory', 'list'));
+
+
+        Authz::set_current_role_func(create_function('', 'return null;'));
+        $this->assertFalse(Authz::is_allowed('file', 'unknown'));
+        $this->assertTrue(Authz::is_allowed('file', 'read'));
+        $this->assertFalse(Authz::is_allowed('file', 'write'));
+        $this->assertFalse(Authz::is_allowed('file', 'execute'));
+        $this->assertFalse(Authz::is_allowed('file', 'list'));
+        Authz::set_current_role_func(create_function('', 'return "admin";'));
+        $this->assertTrue(Authz::is_allowed('file', 'write'));
+        $this->assertFalse(Authz::is_allowed('file', 'execute'));
+        $this->assertFalse(Authz::is_allowed('file', 'list'));
+        Authz::set_current_role_func(create_function('', 'return "user";'));
+        $this->assertTrue(Authz::is_allowed('file', 'execute'));
+        $this->assertFalse(Authz::is_allowed('file', 'list'));
+        $this->assertFalse(Authz::is_allowed(array('file', 'unknown'), 'list'));
+        $this->assertTrue(Authz::is_allowed(array('file', '/'), 'list'));
     }
     
     public function testGetResource()
