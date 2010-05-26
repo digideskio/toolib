@@ -23,14 +23,25 @@
 require_once dirname(__FILE__) . '/ACL.class.php';
 require_once dirname(__FILE__) . '/Role/Feeder.class.php';
 
+//! Representation of resource.
 class Authz_Resource
 {
+    //! The name of the resource
     protected $name;
     
+    //! The parent of this resource.
     protected $parent = null;
     
+    //! The Authz_ACL of this resource.
     protected $acl;
-        
+
+    //! Construct a new resource
+    /**
+     * @param $name The name of this resource.
+     * @param $parent 
+     * - @b Authz_Resource The parent of this resource.
+     * - @b null If this resource has no parent.
+     */
     public function __construct($name, $parent = null)
     {
         $this->acl = new Authz_ACL();
@@ -41,27 +52,42 @@ class Authz_Resource
             $this->parent = $parent;
     }
     
+    //! Get the name of this resource.
     public function get_name()
     {
         return $this->name;
     }
 
+    //! Get the parent of this resource.
     public function get_parent()
     {
         return $this->parent;
     }
     
+    //! Check if this resource has parent.
     public function has_parent()
     {
         return $this->parent !== null;
     }
     
+    //! Get the access control list of this resource.
     public function get_acl()
     {
         return $this->acl;
     }
     
-    //! Search through role inheritance and resource inheritance for effective ace
+    //! Search through role inheritance and resource inheritance for effective ACE
+    /**
+     * @param $role The name of the role to search for effective ACE.
+     * @param $action The action to search for.
+     * @param $roles The roles feeder that describes roles inheritance.
+     * @param $depth A return value of the ACE's depth.
+     *  This value is relative to implementation but it can be used to compare weight of ACEs.
+     * @return
+     *  - @b Authz_ACE The effective ACE that was found.
+     *  - @b null If no ACE was found for criteria.
+     *  .
+     */
     public function effective_ace($role, $action, Authz_Role_Feeder $roles, & $depth)
     {   $matched = array('ace' => null, 'depth' => -1);    
         

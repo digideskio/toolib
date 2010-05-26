@@ -20,12 +20,20 @@
  */
 
 
+//! Implementation of Authz_Role for Authz_Role_FeederInstance
 class Authz_Role_Instance implements Authz_Role
 {
+    //! The name of the role
     private $name;
     
+    //! Array of Authz_Role_Instance parents.
     private $parents = array();
     
+    //! Construct a new role
+    /**
+     * @param $name The name of the role.
+     * @param $parents The parents of the instance.
+     */
     public function __construct($name, $parents = null)
     {
         $this->name = $name;

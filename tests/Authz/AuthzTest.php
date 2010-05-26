@@ -47,10 +47,8 @@ class Authz_AuthzTest extends PHPUnit_Framework_TestCase
         Authz::set_resource_list($list2);
         $this->assertSame(Authz::get_resource_list(), $list2);
         $this->assertNotSame($list, $list2);
-        
-        
-        $this->assertNull(Authz::get_role_feeder());
 
+        
         $roles1 = $this->roleFeeder();
         $roles2 = $this->roleFeeder();
         $this->assertNotSame($roles1, $roles2);
@@ -67,16 +65,18 @@ class Authz_AuthzTest extends PHPUnit_Framework_TestCase
      */
     public function testIsAllowed()
     {
-        $list = Authz::get_resource_list();
+        Authz::set_resource_list($list = new Authz_ResourceList());
         $dir = $list->add_resource('directory');
-        $dir->get_acl()->allow(null, 'read');
-        $dir->get_acl()->deny(null, 'write');
-        $dir->get_acl()->allow('admin', 'write');
-        $dir->get_acl()->allow('user', 'list');
+        Authz::allow('directory', null, 'read');
+        Authz::deny('directory', null, 'write');
+        Authz::allow('directory', 'admin', 'write');
+        Authz::allow('directory', 'user', 'list');
 
         $file = $list->add_resource('file', 'directory');
-        $file->get_acl()->allow('user', 'execute');
-        $file->get_acl()->deny(null, 'list');
+        Authz::allow('file', 'user', 'execute');
+        Authz::deny('file', null, 'list');
+        
+        Authz::allow(array('file', '/') , null, 'list');
 
         $this->assertFalse(Authz::is_allowed('directory', null, 'unknown'));
         $this->assertTrue(Authz::is_allowed('directory', null, 'read'));
@@ -99,6 +99,31 @@ class Authz_AuthzTest extends PHPUnit_Framework_TestCase
         $this->assertFalse(Authz::is_allowed('file', 'admin', 'list'));
         $this->assertTrue(Authz::is_allowed('file', 'user', 'execute'));
         $this->assertFalse(Authz::is_allowed('file', 'user', 'list'));
+        $this->assertFalse(Authz::is_allowed(array('file', 'unknown'), 'user', 'list'));
+        $this->assertTrue(Authz::is_allowed(array('file', '/'), 'user', 'list'));
+    }
+    
+    public function testGetResource()
+    {
+        Authz::set_resource_list($list = new Authz_ResourceList());
+        $dir = $list->add_resource('directory');
+        Authz::allow('directory', null, 'read');
+        Authz::deny('directory', null, 'write');
+        Authz::allow('directory', 'admin', 'write');
+        Authz::allow('directory', 'user', 'list');
+
+        $file = $list->add_resource('file', 'directory');
+        Authz::allow('file', 'user', 'execute');
+        Authz::deny('file', null, 'list');
+        $root = $file->get_instance('/');
+        
+        $this->assertSame($file, Authz::get_resource('file'));
+        $this->assertSame($dir, Authz::get_resource('directory'));
+        
+        $this->assertSame($root, Authz::get_resource(array('file', '/')));
+        
+        $this->assertFalse(Authz::get_resource(array('unknown', '/')));
+        $this->assertFalse(Authz::get_resource('unknown'));
     }
 }
 ?>

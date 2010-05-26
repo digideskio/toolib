@@ -20,14 +20,25 @@
  */
 
 
+//! Access Control Entry
 class Authz_ACE
 {
+
+    //! The role this entry is for.
     private $role;
     
+    //! The action this entry refers to.
     private $action;
     
+    //! The given access.
     private $allowed;
     
+    //! Constuct a new ACE
+    /**
+     * @param $role The role this entry is for.
+     * @param $action The action this entry refers to.
+     * @param $allowed The access given to the previous tuple.
+     */
     public function __construct($role, $action, $allowed)
     {        
         $this->role = $role;
@@ -37,31 +48,43 @@ class Authz_ACE
         $this->allowed = (boolean) $allowed;
     }
     
+    //! Get the role this ace is for.
     public function get_role()
     {
         return $this->role;
     }
     
+    //! Check if the role is null (wildcard role)
     public function is_role_null()
     {
         return $this->role === null;
     }
     
+    //! Get the action this entry refers to.
     public function get_action()
     {
         return $this->action;
     }
     
+    //! Check if this ace permit access to resource.
     public function is_allowed()
     {
         return $this->allowed;
     }
     
+    //! Set the value of access.
+    /**
+     * @param $allowed A @b boolean allowing or denying access for this tuple.
+     */
     public function set_allowed($allowed)
     {
         $this->allowed = (boolean) $allowed;
     }
     
+    //! Get a distringuish name hash for this ace
+    /**
+     * The hash is unique for the @b role, @b action tuple.
+     */
     public function get_dn_hash()
     {   
         // @todo fix security flaw

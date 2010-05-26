@@ -23,10 +23,25 @@
 require_once dirname(__FILE__) . '/Feeder.class.php';
 require_once dirname(__FILE__) . '/Database.class.php';
 
+
+//! Implementation of Database Role Feeder
 class Authz_Role_FeederDatabase implements Authz_Role_Feeder
 {
+    //! Options of database connection
     protected $options;
     
+    
+    //! Construct database role feeder
+    /**
+     * @param $options An associative array with options
+     *  - @b role_query [@b Mandatory]: A DB_ModelQuery object for role querying
+     *  - @b role_name_field [@b Mandatory]: The field that holds the role name.
+     *  - @b parents_query [Default = null]: The DB_ModelQuery object for role's parent querying.
+     *  - @b parent_name_field [Default = null]: The field that holds the parent name.
+     *  - @b parent_name_filter_func [Default = null]: A filter function to pass the parents name.
+     *  - @b role_class [Default = Authz_Role_Database]: The class for creating role objects.
+     *  .
+     */
     public function __construct($options)
     {
         $def_options = array(

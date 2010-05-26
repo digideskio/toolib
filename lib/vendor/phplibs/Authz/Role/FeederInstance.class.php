@@ -23,10 +23,23 @@
 require_once dirname(__FILE__) . '/Feeder.class.php';
 require_once dirname(__FILE__) . '/Instance.class.php';
 
+//! A role feeder with life-cycle of object instance.
 class Authz_Role_FeederInstance implements Authz_Role_Feeder
 {
+    //! Array with all roles
     private $roles = array();
     
+    //! Add a new role in feeder
+    /**
+     * @param $name The name of the role.
+     * @param $parents
+     *  - @b null If the role has no parents.
+     *  - @b string The name of the single parent.
+     *  - @b array Array of parents names.
+     *  .
+     * @throws InvalidArgumentException If there is already role with that name.
+     * @throws InvalidArgumentException If at least one parent is unknown.
+     */
     public function add_role($name, $parents = null)
     {
         // Check for duplication
@@ -46,6 +59,10 @@ class Authz_Role_FeederInstance implements Authz_Role_Feeder
         return $this->roles[$name] = new Authz_Role_Instance($name, $parents);
     }
     
+    //! Remove a role from the feeder
+    /**
+     * @param $name The name of the role to remove.
+     */
     public function remove_role($name)
     {
         if (isset($this->roles[$name]))

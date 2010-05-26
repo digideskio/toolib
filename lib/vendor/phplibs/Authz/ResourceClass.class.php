@@ -22,10 +22,20 @@
 
 require_once dirname(__FILE__) . '/Resource.class.php';
 
+//! Representation of resource class.
+/**
+ * Resource class is an extension of basic resource to support instances.
+ */
 class Authz_ResourceClass extends Authz_Resource
 {
+    //! An array with all instances of the class
     protected $instances = array();
 
+    //! Get an instance based on its id
+    /**
+     * If the instance is known the previous handle is returned,
+     * otherwise a new one inheriting the class is returned.
+     */
     public function get_instance($id)
     {
         if (isset($this->instances[$id]))

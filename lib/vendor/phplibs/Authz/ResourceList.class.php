@@ -23,10 +23,23 @@
 require_once dirname(__FILE__) . '/Role/Feeder.class.php';
 require_once dirname(__FILE__) . '/ResourceClass.class.php';
 
+//! A containers for resources
 class Authz_ResourceList
 {
+    //! The array that hold all resource classes
     private $resources = array();
     
+    //! Add a new resource class in container
+    /**
+     * @param $name The name of the new resource class.
+     * @param $parent
+     *  - The name of the parent of this new class.
+     *  - @b null if this resource has no parent.
+     *  .
+     * @return Authz_ResourceClass holding the new resource.
+     * @throws InvalidArgumentException If there is already a resource with this name.
+     * @throws InvalidArgumentException If the parent is unknwon.
+     */
     public function add_resource($name, $parent = null)
     {
         // Check for duplication
@@ -47,6 +60,15 @@ class Authz_ResourceList
         return $this->resources[$name];
     }
     
+    //! Remove a resource from this container
+    /**
+     * @param $name The name of the resource class to remove.
+     * @return
+     *  - @b true If the resource was removed succesfully.
+     *  - @b false On any kind of error.
+     *  .
+    * @throws RuntimeException if there is another resource that depends on this one.
+     */
     public function remove_resource($name)
     {
         if (!isset($this->resources[$name]))
@@ -62,6 +84,16 @@ class Authz_ResourceList
         return true;
     }
     
+    //! Get a resource class or instance from this container
+    /**
+     * @param $name The name of the resource class.
+     * @param $instance The id of the resource class instance.
+     * @return
+     *  - @b Authz_ResourceClass if you asked for resource without instance.
+     *  - @b Authz_Resource if you asked for resource instance.
+     *  - @b false if it was not found.
+     *  .
+     */
     public function get_resource($name, $instance = null)
     {
         if (!isset($this->resources[$name]))
@@ -73,6 +105,10 @@ class Authz_ResourceList
         return $this->resources[$name]->get_instance($instance);
     }
     
+    //! Check that there is a resource class in this container.
+    /**
+     * @param $name The name of the resource class.
+     */
     public function has_resource($name)
     {
         return isset($this->resources[$name]);

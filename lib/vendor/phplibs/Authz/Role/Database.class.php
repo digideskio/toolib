@@ -22,18 +22,27 @@
 
 require_once dirname(__FILE__) . '/../Role.class.php';
 
+//! Implementation of Authz_Role for Authz_Role_FeederDatabase
 class Authz_Role_Database implements Authz_Role
 {
+    //! Options of database communication
     protected $options;
     
+    //! The name of this role
     protected $name;
     
+    //! Construct a new role
+    /**
+     * @param $name The name of the role.
+     * @param $options Normalized options given by Authz_Role_FeederDatabase
+     */
     public function __construct($name, $options)
     {
         $this->name = $name;
         $this->options = $options;
     }
     
+    //! Check if this role have info for parents location
     protected function has_parents_ability()
     {
         if (($this->options === null) || ($this->options['parents_query'] === null))

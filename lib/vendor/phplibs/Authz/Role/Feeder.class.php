@@ -20,11 +20,26 @@
  */
 
 
+//! Interface to implement roles feeder
 interface Authz_Role_Feeder
 {
-
+    //! Check if there is a role in feeder.
+    /**
+     * @param $name The name of the feeder.
+     * @return
+     *  - @b true if the role was found.
+     *  - @b false if there is no role with that name.
+     */
     public function has_role($name);
     
+    //! Get a role from the feeder
+    /**
+     * @param $name The name of the role we are looking for.
+     * @return
+     *  - @b Authz_Role the role object.
+     *  - @b false if no role was found with that name.
+     *  .
+     */
     public function get_role($name);
 }
 
