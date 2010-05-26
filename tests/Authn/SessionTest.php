@@ -24,28 +24,28 @@ require_once 'PHPUnit/Framework.php';
 require_once dirname(__FILE__) .  '/../path.inc.php';
 require_once dirname(__FILE__) . '/SampleSchema.class.php';
 
-class Auth_StorageTest extends PHPUnit_Framework_TestCase
+class Authn_SessionTest extends PHPUnit_Framework_TestCase
 {
 
-    public function testInstanceStorage()
-    {   $stor = new Auth_Storage_Instance();
+    public function testInstanceSession()
+    {   $stor = new Authn_Session_Instance();
 
     $this->assertFalse($stor->get_identity());
 
-    $stor->set_identity(new Auth_Identity_DB(true,true,true));
-    $this->assertType('Auth_Identity_DB', $stor->get_identity());
+    $stor->set_identity(new Authn_Identity_DB(true,true,true));
+    $this->assertType('Authn_Identity_DB', $stor->get_identity());
 
     $stor->clear_identity();
     $this->assertFalse($stor->get_identity());
     }
 
-    public function testSessionStorage()
-    {   $stor = new Auth_Storage_Session();
+    public function testNativeSession()
+    {   $stor = new Authn_Session_Native();
 
     $this->assertFalse($stor->get_identity());
 
-    $stor->set_identity(new Auth_Identity_DB(true,true,true));
-    $this->assertType('Auth_Identity_DB', $stor->get_identity());
+    $stor->set_identity(new Authn_Identity_DB(true,true,true));
+    $this->assertType('Authn_Identity_DB', $stor->get_identity());
 
     $stor->clear_identity();
     $this->assertFalse($stor->get_identity());

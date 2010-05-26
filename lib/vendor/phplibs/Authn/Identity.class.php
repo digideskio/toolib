@@ -20,7 +20,10 @@
  */
 
 
-//! An operation was done without an established connection
-class NotConnectedException extends RuntimeException {};
-
+//! Interface representing authentication identity
+interface Authn_Identity
+{
+    //! The id of this identity
+    public function id();
+}
 ?>

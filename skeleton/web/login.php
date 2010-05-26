@@ -35,12 +35,12 @@ function reference_url()
 }
 
 // Logout user if there is someone logged on
-Stupid::add_rule(create_function('', 'Auth_Realm::clear_identity(); Net_HTTP_Response::redirect(reference_url());'),
+Stupid::add_rule(create_function('', 'Authn_Realm::clear_identity(); Net_HTTP_Response::redirect(reference_url());'),
 array('type' => 'url_path', 'chunk[-1]' => '/\+logout/'));
 Stupid::chain_reaction();
 
 // Login form
-if (! Auth_Realm::has_identity())
+if (! Authn_Realm::has_identity())
 {
     $form = new UI_LoginForm(reference_url());
     etag('div', $form->render());
