@@ -197,8 +197,6 @@ class DB_Record
 	        'foreign_model' => $model_name,
 	        'bridge_model' => $bridge_model_name
 	    );
-
-	    var_dump(self::$dynamic_relationships);
 	}
 	
 	//! Open the record based on its primary key
@@ -356,7 +354,8 @@ class DB_Record
 		$insert_args = array();
 		$values = array();
 		foreach($model->fields(true) as $field_name => $field)
-		{	if ($field['ai'])
+		{	
+		    if ($field['ai'])
 				continue;	// We cannot set values for ai fields
 			if (isset($args[$field_name]))
 				$values[$field_name] = $model->db_field_data($field_name, $args[$field_name]);
@@ -441,7 +440,8 @@ class DB_Record
 	
 		// Populate fields data
 		foreach($model->fields(true) as $field_name => $field)
-		{	$this->fields_data[$field_name] = (isset($sql_data[$field['sqlfield']]))?$sql_data[$field['sqlfield']]:NULL;
+		{	
+		    $this->fields_data[$field_name] = (isset($sql_data[$field['sqlfield']]))?$sql_data[$field['sqlfield']]:NULL;
 			$this->data_cast_cache[$field_name] = NULL;			
 		}
 	}

@@ -57,7 +57,6 @@ class Stupid_Condition_Authorization extends Stupid_Condition
 		    'instance' => null,
 		    'backref_instance' => false
 		);
-		
 		$options = array_merge($defcond, $this->options);
 		
 		// Check mandatory options
@@ -72,7 +71,6 @@ class Stupid_Condition_Authorization extends Stupid_Condition
                     
             $options['instance'] = $previous_backrefs[$options['backref_instance']];
         }
-        
         return Authz::is_allowed(array($options['resource'], $options['instance']), $options['action']);
 	}
 }

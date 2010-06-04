@@ -322,8 +322,13 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(null, $m->user_field_data('id', null));
 
         // Datetime db -> external
-        $this->assertEquals(date_create('2002-10-10'), $m->user_field_data('date', '2002-10-10'));
-        $this->assertEquals(date_create('@123'), $m->user_field_data('date', '@123'));
+        
+        $this->assertEquals(date_create('2002-10-10', new DateTimeZone('UTC'))
+            ->setTimeZone(new DateTimeZone(date_default_timezone_get())),
+            $m->user_field_data('date', '2002-10-10')
+        );
+        $this->assertEquals(date_create('@123', new DateTimeZone('UTC'))
+            ->setTimeZone(new DateTimeZone(date_default_timezone_get())), $m->user_field_data('date', '@123'));
 
         // Serializable db -> external
         $this->assertEquals('text sample', $m->user_field_data('image', 's:11:"text sample";'));
@@ -340,7 +345,8 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('', $m->db_field_data('id', null));
 
         // Datetime external -> db
-        $this->assertEquals('2002-10-10T00:00:00+0300', $m->db_field_data('date', date_create('2002-10-10')));
+        $this->assertEquals(date_create('2002-10-10 00:00:00')->setTimeZone(new DateTimeZone('UTC'))->format(DATE_ISO8601),
+            $m->db_field_data('date', date_create('2002-10-10 00:00:00')));
         $this->assertEquals('1970-01-01T00:02:03+0000', $m->db_field_data('date', date_create('@123')));
 
         // Serializable external -> db
