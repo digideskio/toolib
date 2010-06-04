@@ -120,7 +120,9 @@ class DB_ModelQuery
 	//! Check if statement is alterable
 	/**
 	 * Alterable means that there can be more options on the query. 
-	 * @return @b TRUE if query is alterable, @b FALSE if the query is closed for changes. 
+	 * @return
+	 *  - @b true if query is alterable
+	 *  - @b FALSE if the query is closed for changes. 
 	 */
 	public function is_alterable()
 	{	return ($this->sql_query === NULL);	}
@@ -213,7 +215,17 @@ class DB_ModelQuery
 		return $this;
 	}
 
-	//! Where is the expression
+	//! Add a conditional expresion on query
+	/**
+	 * @param $exp A single operand expression between fields and dynamic parameters (exclamation mark).
+	 *  If you want to pass a literal value, use combination of dynamic (?) and push_exec_param().\n
+     *  @bExamples:
+     *  - @code 'title = ?' @endcode
+     *  - @code '? = ?' @endcode
+     *  - @code 'title LIKE ?' @endcode
+     *  - @code 'title NOT LIKE ?' @endcode
+     *  .
+     */
 	public function & where($exp, $bool_op = 'AND')
 	{	$this->assure_alterable();
 		$this->conditions[] = array(
@@ -285,21 +297,24 @@ class DB_ModelQuery
 	
 	//! Get the type of query
 	public function type()
-	{	return $this->query_type;	} 
+	{   
+	    return $this->query_type;
+	} 
 	
 	//! Get query hash
 	public function hash()
-	{	return $this->sql_hash;		}
+	{
+	    return $this->sql_hash;
+    }
 
 	//! Analyze WHERE side value
 	private function analyze_where_value(& $cond, $side, $string)
-	{   $matched = preg_match_all(
+	{
+	    $matched = preg_match_all(
 	        '/^[\s]*' . // Pre-field space
 	        '(' .
-	            '\?' .                          // prepared statement wildcard
-	            '|\'[^\']+\'' .                 // literal string value
-	            '|[\d]+' .                      // literal decimal value
-	            '|((p|l)\.)?([\w]+)' .          // column reference
+	            '(?P<wildcard>\?)' .                        // prepared statement wildcard
+	            '|((?P<table>p|l)\.)?(?P<field>[\w\-]+)' .  // column reference
 	        ')' . 
 	        '[\s]*/', // Post-field space
 	        $string,
@@ -309,57 +324,62 @@ class DB_ModelQuery
 	    if ($matched != 1)
 		    throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
 
-	    if ($matches[1][0] === '?')
+	    if ($matches['wildcard'][0] === '?')
 	    {   $cond['require_argument'] = true;
 	        $cond[$side] = '?';
 	    }
-	    else if(! empty($matches[4][0]))
-	    {   $table_shorthand = (empty($matches[3][0])?'p':$matches[3][0]);
+	    else
+	    {   
+	        $table_shorthand = (empty($matches['table'][0])?'p':$matches['table'][0]);
 
 	        if ($table_shorthand === 'p')
-    	        $sqlfield = $this->model->field_info($matches[4][0], 'sqlfield');
+    	        $sqlfield = $this->model->field_info($matches['field'][0], 'sqlfield');
     	    else if ($table_shorthand === 'l')
     	    {   if ($this->ljoin === NULL)
-    	            throw new RuntimeException("You cannot use \"l\" shorthand in WHERE when there is no LEFT JOIN!");
-    	        $sqlfield = $this->ljoin['model']->field_info($matches[4][0], 'sqlfield');
+    	            throw new InvalidArgumentException("You cannot use \"l\" shorthand in WHERE when there is no LEFT JOIN!");
+    	        $sqlfield = $this->ljoin['model']->field_info($matches['field'][0], 'sqlfield');
     	    }
     	        	    
             if ($sqlfield === NULL)
-			    throw new RuntimeException("There is no field with name {$matches[4][0]} in model {$this->model->name()}");
+			    throw new InvalidArgumentException(
+			        "There is no field with name {$matches['field'][0]} in model {$this->model->name()}");
 
             //! Construct valid sql query
             $cond[$side] = (($this->ljoin !== NULL)?$table_shorthand . '.':'') . '`' . $sqlfield . '`';
 	    }
-	    else
-	    {   $cond[$side] = $matches[1][0];  }
-	    
 	}
 	
 	//! Analyze WHERE conditions and return where statement
 	private function analyze_where_conditions()
-	{	$query = '';
+	{	
+	    $query = '';
 		if (count($this->conditions) > 0)
 		{	$query = ' WHERE';
 			$first = true;
 			foreach($this->conditions as & $cond)
 			{	$matched = 
-					preg_match_all('/^[\s]*([\w\.]+|\?|\'[^\']+\')[\s]*' .
-						'([=<>]+|like|between|in)' .
-						'[\s]*([\w\.]+|\?|\'[^\']+\')[\s]*$/',
+					preg_match_all('/^[\s]*(?<lvalue>([\w\.\?])+)[\s]*' .
+					    '(?P<not_op>not\s)?[\s]*' .
+						'(?P<op>[=<>]+|like)[\s]*' .
+						'(?P<rvalue>([\w\.\?])+)[\s]*$/i',
 						$cond['expression'], $matches);
 
 				if ($matched != 1)
 					throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
 
                 // Operator
-				$cond['op'] = $matches[2][0];
+				$cond['op'] = strtoupper($matches['not_op']['0']) . strtoupper($matches['op']['0']);
                 $cond['require_argument'] = false;
-
+                
+                // Check operator
+                if (! in_array($cond['op'], array('=', '>', '>=', '<', '<=', '<>', 'LIKE', 'NOT LIKE')))
+                    throw new InvalidArgumentException("Invalid WHERE expression operand '{$cond['op']}' was given.");
+					
                 // L-value
-                $this->analyze_where_value($cond, 'lvalue', $matches[1][0]);
+                $this->analyze_where_value($cond, 'lvalue', $matches['lvalue']['0']);
                 
                 // R-value
-                $this->analyze_where_value($cond, 'rvalue', $matches[3][0]);
+                $this->analyze_where_value($cond, 'rvalue', $matches['rvalue']['0']);
 
 				if ($first)
 					$first = false;
@@ -375,7 +395,8 @@ class DB_ModelQuery
 
 	//! Generate SELECT query
 	private function analyze_select_query()
-	{	$query = 'SELECT';
+	{
+	    $query = 'SELECT';
 		foreach($this->select_fields as $field)
 		{	if (strcasecmp($field, 'count(*)') === 0)
 			{	$fields[] = 'count(*)';
@@ -427,7 +448,8 @@ class DB_ModelQuery
 	
 	//! Generate UPDATE query
 	private function analyze_update_query()
-	{	$query = 'UPDATE `' . $this->model->table() . '` SET';
+	{	
+	    $query = 'UPDATE `' . $this->model->table() . '` SET';
 	
 		if (count($this->set_fields) === 0)
 			throw new InvalidArgumentException("Cannot execute update() command without using set()");
@@ -465,7 +487,8 @@ class DB_ModelQuery
 	
 	//! Generate INSERT query
 	private function analyze_insert_query()
-	{	$query = 'INSERT INTO ' . $this->model->table();
+	{
+	    $query = 'INSERT INTO ' . $this->model->table();
 	
 		if (count($this->insert_fields) === 0)
 			throw new InvalidArgumentException("Cannot execute insert() with no fields!");
@@ -491,9 +514,9 @@ class DB_ModelQuery
 	
 	//! Analyze DELETE query
 	private function analyze_delete_query()
-	{	$query = 'DELETE FROM ' . $this->model->table();
+	{	
+	    $query = 'DELETE FROM ' . $this->model->table();
 		$query .= $this->analyze_where_conditions();
-		
 		
 		// Order by
 		if (!empty($this->order_by))
@@ -517,7 +540,8 @@ class DB_ModelQuery
 
 	//! Get cache hint for caching query results
 	public function cache_hints()
-	{   // Return if it is already generated
+	{   
+	    // Return if it is already generated
 	    if ($this->cache_hints !== NULL)
 	        return $this->cache_hints;
 

@@ -51,7 +51,7 @@ class Post extends DB_Record
     static public $fields = array(
         'id' => array('pk' => true, 'ai' => true),
         'thread_id' => array('fk' => 'Thread'),
-        'post',
+        'post' => array('sqlfield' => 'posted_text'),
         'image' => array('type' => 'serialized'),
         'poster',
         'date' => array('type' => 'datetime')
