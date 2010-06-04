@@ -83,13 +83,13 @@ class DB_ModelQuery
 	//! Execute parameters
 	protected $exec_params = array();
 	
-	//! Use DBRecord::query() factory to create DB_ModelQuery objects
+	//! Use DB_Record::open_query() factory to create DB_ModelQuery objects
 	/**
-	 * @see DBRecord::query() on how to create objects of this class.
+	 * @see DB_Record::open_query() on how to create objects of this class.
 	 * @param $model Pass model object
 	 * @param $data_wrapper_callback A callback to wrap data after execution
 	 */
-	final public function __construct($model, $data_wrapper_callback = NULL)
+	final public function __construct(DB_Model $model, $data_wrapper_callback = NULL)
 	{	
 		// Save pointer of the model
 		$this->model = & $model;
@@ -100,7 +100,8 @@ class DB_ModelQuery
 	
 	//! Reset query so that it can be used again
 	public function & reset()
-	{	// Reset all values to default
+	{	
+	    // Reset all values to default
 		$this->query_type = NULL;
 		$this->select_fields = array();
 		$this->set_fields = array();
@@ -125,17 +126,21 @@ class DB_ModelQuery
 	 *  - @b FALSE if the query is closed for changes. 
 	 */
 	public function is_alterable()
-	{	return ($this->sql_query === NULL);	}
+	{
+	    return ($this->sql_query === NULL);
+    }
 	
 	//! Check if it i alterable otherwise throw exception
 	private function assure_alterable()
-	{	if (!$this->is_alterable())
+	{
+	    if (!$this->is_alterable())
 			throw new RuntimeException('This DB_ModelQuery instance is no longer alterable!');
 	}
 	
 	//! Start a deletion on model
 	public function & delete()
-	{	$this->assure_alterable();
+	{	
+	    $this->assure_alterable();
 	
 		// Check if there is already a type command
 		if ($this->query_type !== NULL)
@@ -148,7 +153,8 @@ class DB_ModelQuery
 	
 	//! Start an update on model
 	public function & update()
-	{	$this->assure_alterable();
+	{	
+	    $this->assure_alterable();
 	
 		// Check if there is already a type command
 		if ($this->query_type !== NULL)
@@ -161,7 +167,8 @@ class DB_ModelQuery
 	
 	//! Start a selection query on model
 	public function & select($fields)
-	{	$this->assure_alterable();
+	{	
+	    $this->assure_alterable();
 	
 		// Check if there is already a type command
 		if ($this->query_type !== NULL)
@@ -173,9 +180,10 @@ class DB_ModelQuery
 		return $this;
 	}
 	
-	//Start an insertation query on model
+	//! Start an insertation query on model
 	public function & insert($fields)
-	{	$this->assure_alterable();
+	{	
+	    $this->assure_alterable();
 	
 		// Check if there is already a type command
 		if ($this->query_type !== NULL)
@@ -189,7 +197,8 @@ class DB_ModelQuery
 	
 	//! Define values of insert command as an array
 	public function & values_array($values)
-	{	$this->assure_alterable();
+	{	
+	    $this->assure_alterable();
 		if (count($values) != count($this->insert_fields))
 			throw new InvalidArgumentException('The quantity of values, must be exactly ' .
 				'the same with the fields defined with insert()');
@@ -200,13 +209,15 @@ class DB_ModelQuery
 	
 	//! Define values of insert command as arguments
 	public function & values()
-	{	$args = func_get_args();
+	{	
+	    $args = func_get_args();
 		return $this->values_array($args);
 	}
 	
 	//! Set a field value
 	public function & set($field, $value = NULL)
-	{	$this->assure_alterable();
+	{	
+	    $this->assure_alterable();
 		$this->set_fields[] = array(
 			'field' => $field,
 			'value' => $value
@@ -215,43 +226,77 @@ class DB_ModelQuery
 		return $this;
 	}
 
-	//! Add a conditional expresion on query
+	//! Add a general conditional expresion on query
 	/**
 	 * @param $exp A single operand expression between fields and dynamic parameters (exclamation mark).
 	 *  If you want to pass a literal value, use combination of dynamic (?) and push_exec_param().\n
-     *  @bExamples:
+     *  @b Examples:
      *  - @code 'title = ?' @endcode
      *  - @code '? = ?' @endcode
      *  - @code 'title LIKE ?' @endcode
      *  - @code 'title NOT LIKE ?' @endcode
      *  .
+     * @param $bool_op
+     *  - @b 'AND' If this condition is checked only if the previous expression is @b true.
+     *  - @b 'OR' If this condition is checked if the previous expression is @b false as an alternative.
+     *  .
      */
 	public function & where($exp, $bool_op = 'AND')
-	{	$this->assure_alterable();
+	{	
+	    $this->assure_alterable();
 		$this->conditions[] = array(
 			'expression' => $exp,
-			'bool_op' => $bool_op,
+			'bool_op' => (strtoupper($bool_op) == 'AND'?'AND':'OR'),
 			'op' => NULL,
 			'lvalue' => NULL,
-			'ltype' => NULL,
 			'rvalue' => NULL,
-			'rtype' => NULL,
 			'require_argument' => false,
 		);
+
 		$this->sql_hash .= ':where:' . $bool_op . ':' . $exp;
 		return $this;
 	}
+	
+	//! Add an "in" conditional expression on query
+	/**
+	 * @param $field_name The name of the field to be checked for beeing equal with an array entity.
+     * @param $values
+     *  - @b integer The number of dynamic values
+     *  - @b array An static values to pass on where clause.
+     *  .
+     * @param $bool_op
+     *  - @b 'AND' If this condition is checked only if the previous expression is @b true.
+     *  - @b 'OR' If this condition is checked if the previous expression is @b false as an alternative.
+     *  .
+     */
+    public function & where_in($field_name, $values, $bool_op = 'AND')
+    {
+	    $this->assure_alterable();
+		$this->conditions[] = array(
+			'bool_op' => (strtoupper($bool_op) == 'AND'?'AND':'OR'),
+			'op' => 'IN',
+			'lvalue' => $field_name,
+			'rvalue' => $values,
+			'require_argument' => false,
+		);
+
+		$this->sql_hash .= ':wherein:' . $bool_op . ':' . (is_array($values)?implode(':', $values):$values);
+		return $this;
+    }
 
 	//! Declare left join table (for extra criteria only)
 	/**
 	 * After declaring left join you can use it in criteria by refering to it with "l" shortcut.
 	 * Example l.title = ?
 	 * @param $model_name The left joined model.
-	 * @param $primary_field The local field of the join.
-	 * @param $joined_field The foreing field of the join.
+	 * @param $primary_field [Default: null] The local field of the join.
+	 * @param $joined_field [Default: null] The foreing field of the join.
+	 * @note If there is a declared relationship between this model and the left join, you can
+	 *  ommit $primary_field and $joined_field as it can implicitly join on the declared reference key.
 	 */
-	public function & left_join($model_name, $primary_field, $joined_field)
-	{   $this->assure_alterable();
+	public function & left_join($model_name, $primary_field = null, $joined_field = null)
+	{   
+	    $this->assure_alterable();
 
 	    // Check if there is already a type command
 		if ($this->query_type !== 'select')
@@ -268,7 +313,8 @@ class DB_ModelQuery
 
 	//! Limit the query
 	public function & limit($length, $offset = NULL)
-	{	$this->assure_alterable();
+	{	
+	    $this->assure_alterable();
 		$this->limit = array('length' => $length, 'offset' => $offset);
 		$this->sql_hash .= ':limit:' . $length . ':' . $offset;
 		return $this;
@@ -276,7 +322,8 @@ class DB_ModelQuery
 	
 	//! Select order by
 	public function & order_by($field, $order = 'ASC')
-	{	$this->assure_alterable();
+	{	
+	    $this->assure_alterable();
 		$this->order_by[] = array('field' => $field, 'order' => $order);
 		$this->sql_hash .= ':order:' . $field . ':' . $order;
 		return $this;
@@ -284,15 +331,25 @@ class DB_ModelQuery
 
 	//! Set the callback wrapper function
 	public function & set_data_wrapper($callback)
-	{   $this->assure_alterable();
+	{   
+	    $this->assure_alterable();
 	    $this->data_wrapper_callback = $callback;
 	    return $this;
 	}
 	
 	//! Push an execute parameter
 	public function & push_exec_param($value)
-	{	$this->exec_params[] = $value;
+	{	    
+	    $this->exec_params[] = $value;
 		return $this;
+	}
+	
+	//! Push an array of execute parameters
+	public function & push_exec_params($values)
+	{
+	    foreach($values as $v)
+    	    $this->exec_params[] = $value;
+	    return $this;
 	}
 	
 	//! Get the type of query
@@ -325,7 +382,8 @@ class DB_ModelQuery
 		    throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
 
 	    if ($matches['wildcard'][0] === '?')
-	    {   $cond['require_argument'] = true;
+	    {   
+	        $cond['require_argument'] = true;
 	        $cond[$side] = '?';
 	    }
 	    else
@@ -350,37 +408,57 @@ class DB_ModelQuery
 	}
 	
 	//! Analyze WHERE conditions and return where statement
-	private function analyze_where_conditions()
+	private function generate_where_conditions()
 	{	
 	    $query = '';
 		if (count($this->conditions) > 0)
-		{	$query = ' WHERE';
+		{	
+		    $query = ' WHERE';
 			$first = true;
 			foreach($this->conditions as & $cond)
-			{	$matched = 
-					preg_match_all('/^[\s]*(?<lvalue>([\w\.\?])+)[\s]*' .
-					    '(?P<not_op>not\s)?[\s]*' .
-						'(?P<op>[=<>]+|like)[\s]*' .
-						'(?P<rvalue>([\w\.\?])+)[\s]*$/i',
-						$cond['expression'], $matches);
+			{
+			    if ($cond['op'] === null)
+			    {
+			        $matched = 
+					    preg_match_all('/^[\s]*(?<lvalue>([\w\.\?])+)[\s]*' .
+					        '(?P<not_op>not\s)?[\s]*' .
+						    '(?P<op>[=<>]+|like)[\s]*' .
+						    '(?P<rvalue>([\w\.\?])+)[\s]*$/i',
+						    $cond['expression'], $matches);
 
-				if ($matched != 1)
-					throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
+				    if ($matched != 1)
+					    throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
 
-                // Operator
-				$cond['op'] = strtoupper($matches['not_op']['0']) . strtoupper($matches['op']['0']);
-                $cond['require_argument'] = false;
-                
-                // Check operator
-                if (! in_array($cond['op'], array('=', '>', '>=', '<', '<=', '<>', 'LIKE', 'NOT LIKE')))
-                    throw new InvalidArgumentException("Invalid WHERE expression operand '{$cond['op']}' was given.");
+                    // Operator
+				    $cond['op'] = strtoupper($matches['not_op']['0']) . strtoupper($matches['op']['0']);
+                    $cond['require_argument'] = false;
+                    
+                    // Check operator
+                    if (! in_array($cond['op'], array('=', '>', '>=', '<', '<=', '<>', 'LIKE', 'NOT LIKE')))
+                        throw new InvalidArgumentException("Invalid WHERE expression operand '{$cond['op']}' was given.");
 					
-                // L-value
-                $this->analyze_where_value($cond, 'lvalue', $matches['lvalue']['0']);
-                
-                // R-value
-                $this->analyze_where_value($cond, 'rvalue', $matches['rvalue']['0']);
+                    // L-value
+                    $this->analyze_where_value($cond, 'lvalue', $matches['lvalue']['0']);
+                    
+                    // R-value
+                    $this->analyze_where_value($cond, 'rvalue', $matches['rvalue']['0']);
+                }
+                else if($cond['op'] === 'IN')
+                {
+                    // L-value
+                    $this->analyze_where_value($cond, 'lvalue', $cond['lvalue']);
 
+                    if (is_array($cond['rvalue']))
+                    {
+                        $array_size = count($cond['rvalue']);
+                        foreach($cond['rvalue'] as $val)
+                            $this->push_exec_param($val);
+                    }
+                    else
+                        $array_size = (integer) $cond['rvalue'];
+                    $cond['rvalue'] = '(' . implode(', ', array_fill(0, $array_size, '?')) . ')';
+                }
+                
 				if ($first)
 					$first = false;
 				else
@@ -392,14 +470,97 @@ class DB_ModelQuery
 		}
 		return $query;
 	}
+	
+	//! Generate LIMIT clause
+	private function generate_limit()
+	{   
+	    // No limit
+	    if ($this->limit === NULL)
+	        return '';
+		
+		// Limit
+        if (($this->limit['offset'] !== NULL) && ($this->query_type === 'select'))
+			return " LIMIT {$this->limit['offset']},{$this->limit['length']}";
+
+        return " LIMIT {$this->limit['length']}";
+    }
+    
+    //! Generate ORDER BY clause
+    private function generate_orderby()
+    {
+        if (empty($this->order_by))
+            return '';
+
+	    $orders = array();
+        foreach($this->order_by as $order)
+            $orders[] = 
+		        (($this->ljoin !== NULL)?' p.':'') .
+		        $this->model->field_info($order['field'], 'sqlfield') .
+			    ' ' . $order['order'];
+        $query = ' ORDER BY ' . implode(', ', $orders);
+
+    }
+    
+    private function generate_left_join()
+    {
+        if ($this->ljoin === NULL)
+            return '';
+
+        // Add foreign model name
+        if (! isset($this->ljoin['model']))
+        {
+            $lmodel_name = $this->ljoin['model_name'];
+            if ( !($this->ljoin['model'] = DB_Model::open($lmodel_name)))
+                throw new InvalidArgumentException("Cannot find model with name \"{$lmodel_name}\".");
+        }
+        
+        // Add explicit relationship
+        if (($this->ljoin['join_foreign_field'] !== null) && ($this->ljoin['join_local_field'] !== null))
+        {
+            $lfield = $this->ljoin['model']->field_info($this->ljoin['join_foreign_field'], 'sqlfield');
+            if (!$lfield)
+                throw new InvalidArgumentException(
+                    "There is no field with name \"{$lfield}\" on model \"{$lmodel_name}\".");
+            $pfield = $this->model->field_info($this->ljoin['join_local_field'], 'sqlfield');
+            if (!$pfield)
+                throw new InvalidArgumentException(
+                    "There is no field with name \"{$pfield}\" on model \"{$this->model->name()}\".");
+        }
+        else
+        {
+            // Add implicit relationship
+            
+            if (($pfield = $this->model->fk_field_for($lmodel_name, true)))
+            {   
+                $pfield = $pfield['sqlfield'];
+                list($lfield) = $this->ljoin['model']->pk_fields();
+                $lfield = $this->ljoin['model']->field_info($lfield, 'sqlfield');
+            }
+            else if (($lfield = $this->ljoin['model']->fk_field_for($this->model->name(), true)))
+            {
+                $lfield = $lfield['sqlfield'];
+                list($pfield) = $this->model->pk_fields(false);
+                $pfield = $this->model->field_info($pfield, 'sqlfield');
+            }
+            else
+            {
+                // No relationship found
+                throw new InvalidArgumentException(
+                    "You cannot declare a left join of \"{$this->model->name()}\" ".
+                     "with \"{$lmodel_name}\" without explicitly defining join fields.");
+            }
+        }
+        return " LEFT JOIN `{$this->ljoin['model']->table()}` l ON l.`{$lfield}` = p.`{$pfield}`";
+    }
 
 	//! Generate SELECT query
-	private function analyze_select_query()
+	private function generate_select_query()
 	{
 	    $query = 'SELECT';
 		foreach($this->select_fields as $field)
 		{	if (strcasecmp($field, 'count(*)') === 0)
-			{	$fields[] = 'count(*)';
+			{	
+			    $fields[] = 'count(*)';
 				continue;
 			}
 			$fields[] = (($this->ljoin !== NULL)?'p.':'') . "`" . $this->model->field_info($field, 'sqlfield') . "`";
@@ -409,45 +570,22 @@ class DB_ModelQuery
 		$query .= ' FROM `' . $this->model->table() . '`' . (($this->ljoin !== NULL)?' p':'');
 
         // Left join
-        if ($this->ljoin !== NULL)
-        {   if (! isset($this->ljoin['model']))
-            {
-                $lmodel_name = $this->ljoin['model_name'];
-                $this->ljoin['model'] = call_user_func(array($lmodel_name, 'model'));
-            }
-            $lfield = $this->ljoin['model']->field_info($this->ljoin['join_foreign_field'], 'sqlfield');
-            $pfield = $this->model->field_info($this->ljoin['join_local_field'], 'sqlfield');   
-            $query .= " LEFT JOIN `{$this->ljoin['model']->table()}` l ON l.`{$lfield}` = p.`{$pfield}`";
-        }
+        $query .= $this->generate_left_join();
         
 		// Conditions
-		$query .= $this->analyze_where_conditions();
+		$query .= $this->generate_where_conditions();
 		
-		// Order by
-		if (!empty($this->order_by))
-		{   $query .= ' ORDER BY ';
-		
-		    $orders = array();
-	        foreach($this->order_by as $order)
-	            $orders[] = 
-			        (($this->ljoin !== NULL)?' p.':'') .
-			        $this->model->field_info($order['field'], 'sqlfield') .
-				    ' ' . $order['order'];
-            $query .= implode(', ', $orders);
-        }
+        // Order by
+        $query .= $this->generate_orderby();
+
 		// Limit
-		if ($this->limit !== NULL)
-		{	if ($this->limit['offset'] !== NULL)
-				$query .= " LIMIT {$this->limit['offset']},{$this->limit['length']}";
-			else
-				$query .= " LIMIT {$this->limit['length']}";
-		}
+		$query .= $this->generate_limit();
 		
 		return $query;
 	}
 	
 	//! Generate UPDATE query
-	private function analyze_update_query()
+	private function generate_update_query()
 	{	
 	    $query = 'UPDATE `' . $this->model->table() . '` SET';
 	
@@ -464,29 +602,19 @@ class DB_ModelQuery
 			$fields[] = $set_query;
 		}
 		$query .= ' ' . implode(', ', $fields);
-		$query .= $this->analyze_where_conditions();
+		$query .= $this->generate_where_conditions();
 		
-    	// Order by
-		if (!empty($this->order_by))
-		{   $query .= ' ORDER BY ';
-		
-		    $orders = array();
-	        foreach($this->order_by as $order)
-	            $orders[] = 
-			        (($this->ljoin !== NULL)?' p.':'') .
-			        $this->model->field_info($order['field'], 'sqlfield') .
-				    ' ' . $order['order'];
-            $query .= implode(', ', $orders);
-        }
+        // Order by
+        $query .= $this->generate_orderby();
         
 		// Limit
-		if ($this->limit !== NULL)
-			$query .= " LIMIT {$this->limit['length']}";
+		$query .= $this->generate_limit();
+
 		return $query;
 	}
 	
 	//! Generate INSERT query
-	private function analyze_insert_query()
+	private function generate_insert_query()
 	{
 	    $query = 'INSERT INTO ' . $this->model->table();
 	
@@ -513,27 +641,17 @@ class DB_ModelQuery
 	}
 	
 	//! Analyze DELETE query
-	private function analyze_delete_query()
+	private function generate_delete_query()
 	{	
 	    $query = 'DELETE FROM ' . $this->model->table();
-		$query .= $this->analyze_where_conditions();
+		$query .= $this->generate_where_conditions();
 		
-		// Order by
-		if (!empty($this->order_by))
-		{   $query .= ' ORDER BY ';
-		
-		    $orders = array();
-	        foreach($this->order_by as $order)
-	            $orders[] = 
-			        (($this->ljoin !== NULL)?' p.':'') .
-			        $this->model->field_info($order['field'], 'sqlfield') .
-				    ' ' . $order['order'];
-            $query .= implode(', ', $orders);
-        }
+        // Order by
+        $query .= $this->generate_orderby();
 		
 		// Limit
-		if ($this->limit !== NULL)
-			$query .= " LIMIT {$this->limit['length']}";
+		$query .= $this->generate_limit();
+		
 		return $query;
 	}
 
@@ -569,7 +687,8 @@ class DB_ModelQuery
 	 * @return The string with SQL command.
 	 */
 	public function sql()
-	{	// Check if sql has been already crafted
+	{	
+	    // Check if sql has been already crafted
 		if ($this->sql_query !== NULL)
 			return $this->sql_query;
 		
@@ -582,13 +701,13 @@ class DB_ModelQuery
 		}
 		
 		if ($this->query_type === 'select')
-			$this->sql_query = $this->analyze_select_query();
+			$this->sql_query = $this->generate_select_query();
 		else if ($this->query_type === 'update')
-			$this->sql_query = $this->analyze_update_query();
+			$this->sql_query = $this->generate_update_query();
 		else if ($this->query_type === 'delete')
-			$this->sql_query = $this->analyze_delete_query();
+			$this->sql_query = $this->generate_delete_query();
 		else if ($this->query_type === 'insert')
-			$this->sql_query = $this->analyze_insert_query();
+			$this->sql_query = $this->generate_insert_query();
 		else
 			throw new RuntimeException('Query is not finished to be exported.' .
 				' You have to use at least one of the main commands insert()/update()/delete()/select(). ');
@@ -614,13 +733,15 @@ class DB_ModelQuery
 	 * @return NULL
 	 */
 	public function prepare()
-	{	if (!DB_Conn::is_key_used($this->sql_hash))
+	{	
+	    if (!DB_Conn::is_key_used($this->sql_hash))
 			return DB_Conn::prepare($this->sql_hash, $this->sql());
 	}
 	
 	//! Execute statement and return the results
 	public function execute()
-	{	// Merge pushed parameters with functions
+	{	
+	    // Merge pushed parameters with functions
 		$params = func_get_args();		
 		$params = array_merge($this->exec_params, $params);
 		
@@ -643,7 +764,7 @@ class DB_ModelQuery
 
 		// User wrapper
 		if ($this->data_wrapper_callback !== NULL)
-		{	$data = call_user_func($this->data_wrapper_callback, $data, $this->model);		}
+		    $data = call_user_func($this->data_wrapper_callback, $data, $this->model);
 
 		// Cache it
 		$this->query_cache->process_query($this, $params, $data);

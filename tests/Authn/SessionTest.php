@@ -26,6 +26,15 @@ require_once dirname(__FILE__) . '/SampleSchema.class.php';
 
 class Authn_SessionTest extends PHPUnit_Framework_TestCase
 {
+    public function getBackend()
+    {
+        return new Authn_Backend_DB(array(
+            'query_user' => User_plain::open_query()
+                ->where('username = ?'),
+            'field_username' => 'username',
+            'field_password' => 'password'
+        ));
+    }
 
     public function testInstanceSession()
     {
@@ -33,7 +42,7 @@ class Authn_SessionTest extends PHPUnit_Framework_TestCase
 
         $this->assertFalse($stor->get_identity());
 
-        $stor->set_identity(new Authn_Identity_DB(true,true,true));
+        $stor->set_identity(new Authn_Identity_DB(true,$this->getBackend(),true));
         $this->assertType('Authn_Identity_DB', $stor->get_identity());
 
         $stor->clear_identity();
@@ -46,7 +55,7 @@ class Authn_SessionTest extends PHPUnit_Framework_TestCase
 
         $this->assertFalse($stor->get_identity());
 
-        @$stor->set_identity(new Authn_Identity_DB(true,true,true));
+        @$stor->set_identity(new Authn_Identity_DB(true,$this->getBackend(),true));
         $this->assertType('Authn_Identity_DB', $stor->get_identity());
 
         $stor->clear_identity();

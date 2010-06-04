@@ -230,7 +230,7 @@ class DB_Model
 	//! Find the foreign key that references to a foreign model
 	/**
 	 * @param $model The model that fk references to.
-	 * @param $fields_info Set @b true to request fields info otherwise only names.
+	 * @param $field_info Set @b true to request field info otherwise only names.
 	 * @return
 	 *  - @b associative @b array All the information of the field.
 	 *  - @b string The name of the field.
@@ -295,7 +295,7 @@ class DB_Model
 	/**
 	 * @param $field_name The name of the field that data belongs to.
 	 * @param $db_data The data to be casted
-	 * @return The data casted to @i user format based on the @i type of the field.
+	 * @return The data casted to @e user format based on the @e type of the field.
 	 * @throws InvalidArgumentException if $field_name is not valid
 	 */
 	public function user_field_data($field_name, $db_data)
@@ -323,8 +323,8 @@ class DB_Model
 	//! Cast data user -> db 
 	/**
 	 * @param $field_name The name of the field that data belongs to.
-	 * @param $db_data The data to be casted
-	 * @return The data casted to @i db format based on the @i type of the field.
+	 * @param $user_data The data to be casted
+	 * @return The data casted to @e db format based on the @e type of the field.
 	 * @throws InvalidArgumentException if $field_name is not valid
 	 */
 	public function db_field_data($field_name, $user_data)

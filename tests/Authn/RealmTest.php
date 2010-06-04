@@ -52,7 +52,8 @@ class Authn_RealmTest extends PHPUnit_Framework_TestCase
         Authn_SampleSchema::connect();
         self::$storage = new Authn_Session_Instance();
         self::$auth = new Authn_Backend_DB(array(
-            'model_user' => 'User_md5',
+            'query_user' => User_md5::open_query()
+                ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',
             'hash_function' => 'md5'
@@ -82,23 +83,25 @@ class Authn_RealmTest extends PHPUnit_Framework_TestCase
     }
 
     public function check_last_event($type, $name, $check_last)
-    {   $e = self::pop_event();
-    $this->assertType('Event', $e);
-    $this->assertEquals($e->type, $type);
-    $this->assertEquals($e->name, $name);
-    if ($check_last)
-    $this->assertEquals(0, count(self::$events));
-    return $e;
+    {   
+        $e = self::pop_event();
+        $this->assertType('Event', $e);
+        $this->assertEquals($e->type, $type);
+        $this->assertEquals($e->name, $name);
+        if ($check_last)
+            $this->assertEquals(0, count(self::$events));
+        return $e;
     }
 
     public function check_first_event($type, $name, $check_last)
-    {   $e = array_shift(self::$events);
-    $this->assertType('Event', $e);
-    $this->assertEquals($e->type, $type);
-    $this->assertEquals($e->name, $name);
-    if ($check_last)
-    $this->assertEquals(0, count(self::$events));
-    return $e;
+    {   
+        $e = array_shift(self::$events);
+        $this->assertType('Event', $e);
+        $this->assertEquals($e->type, $type);
+        $this->assertEquals($e->name, $name);
+        if ($check_last)
+            $this->assertEquals(0, count(self::$events));
+        return $e;
     }
 
     public function testSetters()

@@ -154,8 +154,118 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         $mq->select(array('id'))
             ->where("p.post  Not   LiKe   ?");
         $this->assertEquals("SELECT `id` FROM `posts` WHERE `posted_text` NOT LIKE ?", $mq->sql());
-
     }
+    
+    public function testSelectConditionalWhereInQuery()
+    {
+        // Where_in with numeric value
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where_in('post', 3);
+        $this->assertEquals("SELECT `id` FROM `posts` WHERE `posted_text` IN (?, ?, ?)", $mq->sql());
+
+        // Where_in with literal values
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where_in('id', array(1,2));
+        $this->assertEquals("SELECT `id` FROM `posts` WHERE `id` IN (?, ?)", $mq->sql());
+        $records = $mq->execute();
+        $this->assertEquals(count($records), 2);
+        $this->assertEquals($records[0]['id'], 1);
+        $this->assertEquals($records[1]['id'], 2);
+        
+        // Where in with left join and literal values
+        $mq = Thread::raw_query();
+        $mq->select(array('id', 'title'))
+            ->left_join('Post', 'id', 'thread_id')
+            ->where_in('l.post', array('', 'nothing', 'draft'));
+        $this->assertEquals('SELECT p.`id`, p.`title` FROM `threads` p LEFT JOIN `posts` l ON ' .
+            'l.`thread_id` = p.`id` WHERE l.`posted_text` IN (?, ?, ?)', $mq->sql());
+            
+        // Boolean operators with where_in
+        $mq = Thread::raw_query();
+        $mq->select(array('id'))
+            ->where_in('title', 1)
+            ->where_in('id', 1)
+            ->where_in('forum_id', 1, 'OR')
+            ->where_in('datetime', 1, 'AND');
+        $this->assertEquals('SELECT `id` FROM `threads` WHERE `title` IN (?) AND '.
+            '`id` IN (?) OR `forum_id` IN (?) AND `datetime` IN (?)', $mq->sql());
+    }
+    
+    public function testSelectLeftJoinQuery()
+    {
+        // Perform a join with explicit defined bond
+        $mq = Thread::raw_query();
+        $mq->select(Thread::model()->fields())
+            ->left_join('Post', 'id', 'thread_id')
+            ->where("p.title  not LiKe   ?")
+            ->where("l.post  LiKe   ?");
+        $this->assertEquals('SELECT p.`id`, p.`forum_id`, p.`title`, p.`datetime` FROM `threads` ' .
+            'p LEFT JOIN `posts` l ON l.`thread_id` = p.`id` WHERE p.`title` NOT LIKE ? AND l.`posted_text` LIKE ?', $mq->sql());
+
+
+        // Perform a join with implicit defined bond 1-M
+        $mq = Thread::raw_query();
+        $mq->select(Thread::model()->fields())
+            ->left_join('Post')
+            ->where("p.title  not LiKe   ?")
+            ->where("l.post  LiKe   ?");
+        $this->assertEquals('SELECT p.`id`, p.`forum_id`, p.`title`, p.`datetime` FROM `threads` ' .
+            'p LEFT JOIN `posts` l ON l.`thread_id` = p.`id` WHERE p.`title` NOT LIKE ? AND l.`posted_text` LIKE ?', $mq->sql());
+
+        // Perform a join with implicit defined bond M-1
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->left_join('Thread')
+            ->where("l.title  not LiKe   ?");
+        $this->assertEquals('SELECT p.`id` FROM `posts` p LEFT JOIN `threads` l ' .
+            'ON l.`id` = p.`thread_id` WHERE l.`title` NOT LIKE ?', $mq->sql());
+
+            
+        // Perform a query with group_by (TODO)
+        $mq = Thread::raw_query();
+        $mq->select(Thread::model()->fields())
+            ->left_join('Post', 'id', 'thread_id')
+            ->where("p.title  not LiKe   ?")
+            ->where("l.post  LiKe   ?");
+        $this->assertEquals('SELECT p.`id`, p.`forum_id`, p.`title`, p.`datetime` FROM `threads` ' .
+            'p LEFT JOIN `posts` l ON l.`thread_id` = p.`id` WHERE p.`title` NOT LIKE ? AND l.`posted_text` LIKE ?', $mq->sql());
+    }
+    
+    
+    public function invalidLeftJoins()
+    {
+        return array(
+            // Wrong join keys,
+            array(Thread::raw_query()
+                ->select(Thread::model()->fields())
+                ->left_join('Post', 'id', 'invalid_thread_id')),
+            array(Thread::raw_query()
+                ->select(Thread::model()->fields())
+                ->left_join('Post', 'invalid_id', 'invalid_thread_id')),
+            array(Thread::raw_query()
+                ->select(Thread::model()->fields())
+                ->left_join('Post', 'invalid_id', 'thread_id')),
+            array(Thread::raw_query()
+                ->select(Thread::model()->fields())
+                ->left_join('InvalidModel', 'invalid_id', 'thread_id')),
+            // Left join without explicit join keys on non-related models
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->left_join('Post')),
+        );
+    }
+    
+    /**
+     * @dataProvider invalidLeftJoins()
+     * @expectedException InvalidArgumentException
+     */
+    public function testInvalidLeftJoins($mq)
+    {
+        $mq->sql();
+    }
+
 
     public function invalidConditions()
     {
@@ -211,11 +321,12 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
                 ->where("title is not ?")),
         );
     }
+    
     /**
      * @dataProvider invalidConditions()
      * @expectedException InvalidArgumentException
      */
-    public function testSelectInvalidCondiationQuery($mq)
+    public function testSelectInvalidConditionalQuery($mq)
     {
         $mq->sql();
     }

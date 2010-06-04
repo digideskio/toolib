@@ -59,6 +59,7 @@ class SampleSchema
                 self::$conn_params['password'],
                 self::$conn_params['schema']
             );
+            DB_Conn::get_link()->autocommit(false);
 
             // Create schema
             DB_Conn::query('
@@ -186,7 +187,8 @@ class SampleSchema
             $stmt->send_long_data(0, $big_post);
             $stmt->execute();
             $stmt->close();
-
+            
+            DB_Conn::get_link()->autocommit(true);
         }
 
         static public function destroy()
