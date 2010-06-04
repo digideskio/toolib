@@ -4,6 +4,11 @@ body {
 	margin: 10px 50px;
 }
 
+/* General classes */
+.error{
+    color: red;
+}
+
 /* Execption / Error title */
 div.exception, div.error {
 	font-size: 14pt;
@@ -89,14 +94,20 @@ ul.backtrace>li .line:after {
 }
 
 /* Code */
-ul.code {
-	list-style-type: none;
+
+.code {
 	font-family: MonoSpace, "Courier New";
 	font-size: 10pt;
 	font-weight: bold;
-	display: none;
 	color: white;
 	background-color: #343434;
+	padding: 5px;
+	margin: 3px;
+}
+
+ul.code {
+	list-style-type: none;
+	display: none;
 	padding: 5px;
 	margin: 3px;
 }
@@ -115,6 +126,12 @@ div.ui-form.ui-installation{
 	width: 500px;
 }
 
+div.ui-form.ui-installation h4{
+	margin-top: 30px;
+	margin-bottom: 10px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid gray;
+}
 div.ui-form.ui-installation input[type=text], div.ui-form.ui-installation input[type=password]{
 	width: 99%;
 }
@@ -125,4 +142,14 @@ div.ui-form.ui-installation label{
 
 div.ui-form.ui-installation dt{
     margin-bottom: 15px;
+}
+
+.ui-form-hint {
+    color: gray;
+    font-style: italic;
+}
+
+.ui-form-error {
+    font-weight: bold;
+    color: red;
 }

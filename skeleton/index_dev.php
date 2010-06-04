@@ -26,7 +26,8 @@
  */
 require_once 'bootstrap.php';
 
-$dl = Layout::create('debug')->activate();
+$dl = new Layout('debug');
+$dl->activate();
 $dl->get_document()->title = 'Error';
 $dl->get_document()->add_ref_css(surl('/static/css/debug.css'));
 $dl->deactivate();
@@ -66,7 +67,7 @@ function show_source_slice($file, $line)
 function show_backtrace_interface($exception = null)
 {
     if ($exception)
-    $db = $exception->getTrace();
+        $db = $exception->getTrace();
     else
     {
         $db = debug_backtrace();
@@ -97,6 +98,7 @@ function manager_error($code, $message, $file, $line, $context)
 {
     if (Layout::activated())
         Layout::activated()->deactivate();
+    header('Content-Type: text/html');
     Layout::open('debug')->activate();
     Layout::open('debug')->get_document()->title = 'Error: ' . $message;
 
@@ -113,6 +115,7 @@ function manage_exception($exception)
 {
     if (Layout::activated())
         Layout::activated()->deactivate();
+    header('Content-Type: text/html');
     Layout::open('debug')->activate();
     Layout::open('debug')->get_document()->title = get_class($exception) . ': ' . $exception->getMessage();
 

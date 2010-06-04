@@ -48,6 +48,11 @@ require_once dirname(__FILE__) . '/config.inc.php';
 DB_Conn::connect(Config::get('db.host'), Config::get('db.user'), Config::get('db.pass'), Config::get('db.schema'), 'error_log', true);
 DB_Conn::query('SET NAMES utf8;');
 DB_Conn::query("SET time_zone='+0:00';");
+DB_Conn::events()->connect('error',function($e)
+{
+    error_log( $e->arguments['message']); 
+});
+
 
 // PHP TimeZone
 date_default_timezone_set(Config::get('site.timezone'));
@@ -63,11 +68,12 @@ if (!isset($_SESSION['initialized']))
 
 // Setup authentication
 $auth = new Authn_Backend_DB(array(
-    'model_user' => 'User',
+    'query_user' => User::open_query()
+        ->where('enabled = ?')->push_exec_param(1)
+        ->where('username = ?'),
     'field_username' => 'username',
     'field_password' => 'password',
-    'hash_function' => 'sha1',
-    'where_conditions' => array('enabled = 1')
+    'hash_function' => 'sha1'
 ));
 Authn_Realm::set_backend($auth);
 

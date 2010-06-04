@@ -30,6 +30,7 @@ class UI_InstallationForm extends Output_HTML_Form
     {
         $this->config_file = $config_file;
         $this->db_build_file = $db_build_file;
+        $this->tzones = DateTimeZone::listIdentifiers();
         
         parent::__construct(array(
             'db' => array('type' => 'custom', 'value' => '<h4>Database Options</h4>'),
@@ -44,7 +45,8 @@ class UI_InstallationForm extends Output_HTML_Form
 			'db-pass2' => array('display' => '', 'type' => 'password', 'regcheck' => '/^.+$/',
 				'onerror' => 'This field is mandatory.'),
 			'db-build' => array('display' => 'Execute database creation script', 'type' => 'checkbox'),
-            'other' => array('type' => 'custom', 'value' => '<h4>Other Options</h4>'),
+            'hr-other' => array('type' => 'custom', 'value' => '<h4>Other Options</h4>'),
+            'timezone' => array('display' => 'Default timezone', 'type' => 'dropbox', 'optionlist' => $this->tzones),
 			'site-ga' => array('display' => 'Google Analytics Web Property ID',
 			    'hint' => 'If you want to track this site with google analytics add your id here.'),
         ),
@@ -80,7 +82,11 @@ class UI_InstallationForm extends Output_HTML_Form
         Config::set('db.schema', $values['db-schema']);
         Config::set('site.google_analytics', $values['site-ga']);
         
-        $data = "<?php\n// File generated with install.php\n";
+        // Timezone
+        if (isset($this->tzones[$values['timezone']]))
+            Config::set('site.timezone', $this->tzones[$values['timezone']]);
+            
+        $data = "<?php\n// File generated with /install\n";
         	
         foreach(Config::get_all() as $name => $value)
             $data .= sprintf("\nConfig::set('%s', '%s');\n",
@@ -105,22 +111,17 @@ class UI_InstallationForm extends Output_HTML_Form
         
         // Show result
         $this->hide();
-        $relative_folder = dirname($_SERVER['SCRIPT_NAME']);
-        etag('p', 'Installation finished succesfully !');
-        etag('p', 'You can add support for cool urls by adding the
-        	following data in .htaccess file at skeleton\'s root directory.',
-            tag('pre class="code"', 
-<<< EOF
-php_flag magic_quotes_gpc off
-
-RewriteEngine On
-RewriteBase $relative_folder
-
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ ./index.php/$1 [PT,L,QSA]
-EOF
-            ));
+        
+        etag('strong', 'Installation finished succesfully !');
+        etag('p class="error"', 'For security reasons you must delete folder "install" from web server.');
+        
+        $relative_folder = implode('/', array_slice(explode('/', dirname($_SERVER['SCRIPT_NAME'])), 0, -1));        
+        if (!empty($relative_folder))
+            etag('p class="error"', 'Site is running under a subdirectory, for proper support of ' .
+                'cool urls, the .htaccess file must be edit and the option ', tag('strong', 'RewriteBase'),
+                ' should be change to: ',
+            tag('pre class="code"', "RewriteBase $relative_folder")
+            );
     }
 }
 ?>
