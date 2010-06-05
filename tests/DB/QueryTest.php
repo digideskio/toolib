@@ -100,9 +100,86 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         // Limit maximum 15, offset 3
         $mq = Forum::raw_query();
         $mq->select(Forum::model()->fields())
-            ->limit(15,3);
+            ->limit(15, 3);
         $this->assertEquals('SELECT `id`, `title` FROM `forums` LIMIT 3,15', $mq->sql());
-
+    }
+    
+    public function testSelectOrderByQuery()
+    {
+        // Order by one column ref
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->order_by('id');
+        $this->assertEquals('SELECT `id`, `title` FROM `forums` ORDER BY `id` ASC', $mq->sql());
+        
+        // Order by one column ref by number
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->order_by('2', 'deSc');
+        $this->assertEquals('SELECT `id`, `title` FROM `forums` ORDER BY 2 DESC', $mq->sql());
+        
+        // Order by one single expression
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->order_by('id = ?');
+        $this->assertEquals('SELECT `id`, `title` FROM `forums` ORDER BY `id` = ? ASC', $mq->sql());
+        
+        // Order by one single expression
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->order_by('id > ?', 'DESC');
+        $this->assertEquals('SELECT `id`, `title` FROM `forums` ORDER BY `id` > ? DESC', $mq->sql());
+        
+        // Order by left join column
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->left_join('Thread')
+            ->order_by('l.id > ?', 'DESC');
+        $this->assertEquals('SELECT p.`id`, p.`title` FROM `forums` p LEFT JOIN `threads` l' .
+            ' ON l.`forum_id` = p.`id` ORDER BY l.`id` > ? DESC', $mq->sql());
+    }
+    
+    
+    public function invalidOrderBy()
+    {
+        return array(
+            // Wrong expressions
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->order_by("id > 55", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->order_by("id > 'test'", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->order_by("id = 55", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->order_by("44 > 55", 'DESC')),
+            // Wrong columns
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->order_by("invalid_field", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->order_by("l.id", 'DESC')),
+            // Wrong numerical references
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->order_by("0", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->order_by("3", 'DESC')),
+        );
+    }
+    
+    /**
+     * @dataProvider invalidOrderBy
+     * @expectedException InvalidArgumentException
+     */
+    public function testInvalidOrderBy($mq)
+    {
+        $mq->sql();
     }
     
     public function testSelectConditionalQuery()
@@ -154,6 +231,16 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         $mq->select(array('id'))
             ->where("p.post  Not   LiKe   ?");
         $this->assertEquals("SELECT `id` FROM `posts` WHERE `posted_text` NOT LIKE ?", $mq->sql());
+        
+        // Testing boolean operators
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where("post = ?", 'and')
+            ->where("post = ?", 'oR')
+            ->where("post = ?", 'aNd');
+        $this->assertEquals(
+            "SELECT `id` FROM `posts` WHERE `posted_text` = ? OR `posted_text` = ? AND `posted_text` = ?",
+            $mq->sql());
     }
     
     public function testSelectConditionalWhereInQuery()
@@ -187,8 +274,8 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         $mq->select(array('id'))
             ->where_in('title', 1)
             ->where_in('id', 1)
-            ->where_in('forum_id', 1, 'OR')
-            ->where_in('datetime', 1, 'AND');
+            ->where_in('forum_id', 1, 'oR')
+            ->where_in('datetime', 1, 'AnD');
         $this->assertEquals('SELECT `id` FROM `threads` WHERE `title` IN (?) AND '.
             '`id` IN (?) OR `forum_id` IN (?) AND `datetime` IN (?)', $mq->sql());
     }
@@ -203,7 +290,6 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
             ->where("l.post  LiKe   ?");
         $this->assertEquals('SELECT p.`id`, p.`forum_id`, p.`title`, p.`datetime` FROM `threads` ' .
             'p LEFT JOIN `posts` l ON l.`thread_id` = p.`id` WHERE p.`title` NOT LIKE ? AND l.`posted_text` LIKE ?', $mq->sql());
-
 
         // Perform a join with implicit defined bond 1-M
         $mq = Thread::raw_query();
@@ -222,7 +308,6 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('SELECT p.`id` FROM `posts` p LEFT JOIN `threads` l ' .
             'ON l.`id` = p.`thread_id` WHERE l.`title` NOT LIKE ?', $mq->sql());
 
-            
         // Perform a query with group_by (TODO)
         $mq = Thread::raw_query();
         $mq->select(Thread::model()->fields())
@@ -319,6 +404,19 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
             array(Forum::raw_query()
                 ->select(Forum::model()->fields())
                 ->where("title is not ?")),
+            // Invalid operators
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'invalid')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'andnot')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'ornot')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'andor')),
         );
     }
     

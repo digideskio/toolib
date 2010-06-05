@@ -42,7 +42,7 @@ class DB_ModelQuery
 	protected $model = NULL;
 	
 	//! SELECT retrieve fields
-	protected $select_fields = NULL;
+	protected $select_fields = array();
 	
 	//! UPDATE set fields
 	protected $set_fields = array();
@@ -56,7 +56,7 @@ class DB_ModelQuery
 	//! Limit of affected records
 	protected $limit = NULL;
 	
-	//! Order of output data (on select only)
+	//! Order of output data
 	protected $order_by = array();
 
     //! Left join table
@@ -246,7 +246,7 @@ class DB_ModelQuery
 	    $this->assure_alterable();
 		$this->conditions[] = array(
 			'expression' => $exp,
-			'bool_op' => (strtoupper($bool_op) == 'AND'?'AND':'OR'),
+			'bool_op' => $bool_op,
 			'op' => NULL,
 			'lvalue' => NULL,
 			'rvalue' => NULL,
@@ -273,7 +273,7 @@ class DB_ModelQuery
     {
 	    $this->assure_alterable();
 		$this->conditions[] = array(
-			'bool_op' => (strtoupper($bool_op) == 'AND'?'AND':'OR'),
+			'bool_op' => $bool_op,
 			'op' => 'IN',
 			'lvalue' => $field_name,
 			'rvalue' => $values,
@@ -320,12 +320,19 @@ class DB_ModelQuery
 		return $this;
 	}
 	
-	//! Select order by
-	public function & order_by($field, $order = 'ASC')
+	//! Add an order by rule in query
+	/**
+	 * @param $expression A field name, column reference or an expression to be evaluated for each row.
+	 * @param $direction The direction of ordering.
+     */
+	public function & order_by($expression, $direction = 'ASC')
 	{	
 	    $this->assure_alterable();
-		$this->order_by[] = array('field' => $field, 'order' => $order);
-		$this->sql_hash .= ':order:' . $field . ':' . $order;
+		$this->order_by[] = array(
+		    'expression' => $expression,
+		    'direction' => $direction
+        );
+		$this->sql_hash .= ':exp:' . $expression . ':' . $direction;
 		return $this;
 	}
 
@@ -364,14 +371,47 @@ class DB_ModelQuery
 	    return $this->sql_hash;
     }
 
-	//! Analyze WHERE side value
-	private function analyze_where_value(& $cond, $side, $string)
+	//! Analayze table reference
+	/**
+	 * This function assumes that $exp comes sanitized and error checked.
+	 * @param $exp A column reference expression, written in "column" or "p.column" format
+	 */
+	private function analyze_column_reference($table_shorthand, $column)
+	{
+	    $result = array(
+	        'table_short' => (empty($table_shorthand)?'p':$table_shorthand),
+	        'column' => $column,
+	        'column_sqlfield' => null,
+	        'query' => ''
+	    );
+	    
+        if ($result['table_short'] === 'p')
+    	        $result['column_sqlfield'] = $this->model->field_info($column, 'sqlfield');
+    	    else if ($result['table_short'] === 'l')
+    	    {   
+    	        if ($this->ljoin === NULL)
+    	            throw new InvalidArgumentException("You cannot use \"l\" shorthand in EXPRESION when there is no LEFT JOIN!");
+    	        $result['column_sqlfield'] = $this->ljoin['model']->field_info($column, 'sqlfield');
+    	    }
+    	        	    
+            if ($result['column_sqlfield'] === NULL)
+			    throw new InvalidArgumentException(
+			        "There is no field with name \"{$column}\" in model \"{$this->model->name()}\"");
+			        
+	    //! Construct valid sql query
+        $result['query'] = (($this->ljoin !== NULL)?$result['table_short'] . '.':'') . '`' . $result['column_sqlfield'] . '`';
+        return $result;
+	}
+	
+	
+	//! Analyze single expresison side value
+	private function analyze_exp_side_value(& $cond, $side, $string)
 	{
 	    $matched = preg_match_all(
 	        '/^[\s]*' . // Pre-field space
 	        '(' .
 	            '(?P<wildcard>\?)' .                        // prepared statement wildcard
-	            '|((?P<table>p|l)\.)?(?P<field>[\w\-]+)' .  // column reference
+	            '|((?P<table>p|l)\.)?(?P<column>[\w\-]+)' .  // column reference
 	        ')' . 
 	        '[\s]*/', // Post-field space
 	        $string,
@@ -379,7 +419,7 @@ class DB_ModelQuery
 	    );
 
 	    if ($matched != 1)
-		    throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
+		    throw new InvalidArgumentException("Invalid EXPRESSION '{$cond['expression']}' was given.");
 
 	    if ($matches['wildcard'][0] === '?')
 	    {   
@@ -388,23 +428,40 @@ class DB_ModelQuery
 	    }
 	    else
 	    {   
-	        $table_shorthand = (empty($matches['table'][0])?'p':$matches['table'][0]);
-
-	        if ($table_shorthand === 'p')
-    	        $sqlfield = $this->model->field_info($matches['field'][0], 'sqlfield');
-    	    else if ($table_shorthand === 'l')
-    	    {   if ($this->ljoin === NULL)
-    	            throw new InvalidArgumentException("You cannot use \"l\" shorthand in WHERE when there is no LEFT JOIN!");
-    	        $sqlfield = $this->ljoin['model']->field_info($matches['field'][0], 'sqlfield');
-    	    }
-    	        	    
-            if ($sqlfield === NULL)
-			    throw new InvalidArgumentException(
-			        "There is no field with name {$matches['field'][0]} in model {$this->model->name()}");
-
-            //! Construct valid sql query
-            $cond[$side] = (($this->ljoin !== NULL)?$table_shorthand . '.':'') . '`' . $sqlfield . '`';
+            $anl = $this->analyze_column_reference($matches['table'][0], $matches['column'][0]);
+            $cond[$side] = $anl['query'];
 	    }
+	}
+	
+	//! Analyze single expression of the form l-Value OP r-Value
+	private function analyze_single_expression(& $cond, $expression)
+	{
+        $matched = 
+		    preg_match_all('/^[\s]*(?<lvalue>([\w\.\?])+)[\s]*' .
+		        '(?P<not_op>not\s)?[\s]*' .
+			    '(?P<op>[=<>]+|like)[\s]*' .
+			    '(?P<rvalue>([\w\.\?])+)[\s]*$/i',
+			    $expression, $matches);
+
+	    if ($matched != 1)
+		    throw new InvalidArgumentException("Invalid EXPRESSION '{$expression}' was given.");
+
+        // Operator
+	    $cond['op'] = strtoupper($matches['not_op']['0']) . strtoupper($matches['op']['0']);
+        $cond['require_argument'] = false;
+        
+        // Check operator
+        if (! in_array($cond['op'], array('=', '>', '>=', '<', '<=', '<>', 'LIKE', 'NOT LIKE')))
+            throw new InvalidArgumentException("Invalid EXPRESSION operand '{$cond['op']}' was given.");
+		
+        // L-value
+        $this->analyze_exp_side_value($cond, 'lvalue', $matches['lvalue']['0']);
+        
+        // R-value
+        $this->analyze_exp_side_value($cond, 'rvalue', $matches['rvalue']['0']);
+        
+        // Generated condition
+        $cond['query'] = "{$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
 	}
 	
 	//! Analyze WHERE conditions and return where statement
@@ -417,36 +474,17 @@ class DB_ModelQuery
 			$first = true;
 			foreach($this->conditions as & $cond)
 			{
+			    // Check bool operation
+			    $cond['bool_op'] = strtoupper($cond['bool_op']);
+			    if (($cond['bool_op'] != 'AND') && ($cond['bool_op'] != 'OR'))
+			        throw new InvalidArgumentException("The boolean operator \"{$cond['bool_op']}\" is invalid");
+			        
 			    if ($cond['op'] === null)
-			    {
-			        $matched = 
-					    preg_match_all('/^[\s]*(?<lvalue>([\w\.\?])+)[\s]*' .
-					        '(?P<not_op>not\s)?[\s]*' .
-						    '(?P<op>[=<>]+|like)[\s]*' .
-						    '(?P<rvalue>([\w\.\?])+)[\s]*$/i',
-						    $cond['expression'], $matches);
-
-				    if ($matched != 1)
-					    throw new InvalidArgumentException("Invalid WHERE expression '{$cond['expression']}' was given.");
-
-                    // Operator
-				    $cond['op'] = strtoupper($matches['not_op']['0']) . strtoupper($matches['op']['0']);
-                    $cond['require_argument'] = false;
-                    
-                    // Check operator
-                    if (! in_array($cond['op'], array('=', '>', '>=', '<', '<=', '<>', 'LIKE', 'NOT LIKE')))
-                        throw new InvalidArgumentException("Invalid WHERE expression operand '{$cond['op']}' was given.");
-					
-                    // L-value
-                    $this->analyze_where_value($cond, 'lvalue', $matches['lvalue']['0']);
-                    
-                    // R-value
-                    $this->analyze_where_value($cond, 'rvalue', $matches['rvalue']['0']);
-                }
+			        $this->analyze_single_expression($cond, $cond['expression']);
                 else if($cond['op'] === 'IN')
                 {
                     // L-value
-                    $this->analyze_where_value($cond, 'lvalue', $cond['lvalue']);
+                    $this->analyze_exp_side_value($cond, 'lvalue', $cond['lvalue']);
 
                     if (is_array($cond['rvalue']))
                     {
@@ -457,13 +495,14 @@ class DB_ModelQuery
                     else
                         $array_size = (integer) $cond['rvalue'];
                     $cond['rvalue'] = '(' . implode(', ', array_fill(0, $array_size, '?')) . ')';
+                    $cond['query'] = "{$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
                 }
                 
 				if ($first)
 					$first = false;
 				else
 					$query .= ' ' . $cond['bool_op'];
-				$query .= " {$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
+				$query .= ' ' . $cond['query'];
 					
 			}
 			unset($cond);
@@ -486,19 +525,62 @@ class DB_ModelQuery
     }
     
     //! Generate ORDER BY clause
-    private function generate_orderby()
+    private function generate_order_by()
     {
         if (empty($this->order_by))
             return '';
 
 	    $orders = array();
         foreach($this->order_by as $order)
-            $orders[] = 
-		        (($this->ljoin !== NULL)?' p.':'') .
-		        $this->model->field_info($order['field'], 'sqlfield') .
-			    ' ' . $order['order'];
-        $query = ' ORDER BY ' . implode(', ', $orders);
+        {
+            // Check direction string
+            $order['direction'] = (strtoupper($order['direction']) === 'ASC'?'ASC':'DESC');
+        
+            // Check for field name and column name
+            $matched = preg_match_all(
+	            '/^[\s]*' . // Pre space
+	            '(' .
+	                '(?P<wildcard>\?)' .                        // prepared statement wildcard
+	                '|(?P<num_ref>[\d]+)' .                     // numeric column reference
+	                '|((?P<table>p|l)\.)?(?P<column>[\w\-]+)' .  // named column reference,
+	            ')' . 
+	            '[\s]*$/', // Post space
+	        $order['expression'],
+	        $matches);
 
+
+	        if ($matched != 1)
+	        {
+	            // Not found lets try single expression analysis
+	            $exp_params = array();
+	            $this->analyze_single_expression($exp_params, $order['expression']);
+	            $orders[] = $exp_params['query'] . ' ' . $order['direction'];
+	            continue;
+	        }
+    
+	        if ($matches['wildcard'][0] === '?')
+	        {   
+	            $cond['require_argument'] = true;
+	            $cond[$side] = '?';
+	        }
+	        else if ($matches['num_ref'][0] !== '')
+	        {
+	            $col_ref = $matches['num_ref'][0];
+	            $total_cols = count($this->select_fields);
+	            if (($col_ref > $total_cols) or ($col_ref < 1))
+	                throw new InvalidArgumentException("The column numerical reference \"$col_ref\" " .
+	                    "exceeded the boundries of retrieved fields");
+	                    
+                $orders[] = (string)$col_ref . ' ' . $order['direction'];
+	        }
+	        else
+	        {
+                $anl = $this->analyze_column_reference($matches['table'][0], $matches['column'][0]);
+                $orders[] = $anl['query'] . ' ' . $order['direction'];
+	        }
+        }
+        
+        return ' ORDER BY ' . implode(', ', $orders);
     }
     
     private function generate_left_join()
@@ -529,7 +611,6 @@ class DB_ModelQuery
         else
         {
             // Add implicit relationship
-            
             if (($pfield = $this->model->fk_field_for($lmodel_name, true)))
             {   
                 $pfield = $pfield['sqlfield'];
@@ -576,7 +657,7 @@ class DB_ModelQuery
 		$query .= $this->generate_where_conditions();
 		
         // Order by
-        $query .= $this->generate_orderby();
+        $query .= $this->generate_order_by();
 
 		// Limit
 		$query .= $this->generate_limit();
@@ -605,7 +686,7 @@ class DB_ModelQuery
 		$query .= $this->generate_where_conditions();
 		
         // Order by
-        $query .= $this->generate_orderby();
+        $query .= $this->generate_order_by();
         
 		// Limit
 		$query .= $this->generate_limit();
@@ -647,7 +728,7 @@ class DB_ModelQuery
 		$query .= $this->generate_where_conditions();
 		
         // Order by
-        $query .= $this->generate_orderby();
+        $query .= $this->generate_order_by();
 		
 		// Limit
 		$query .= $this->generate_limit();
