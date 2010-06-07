@@ -21,46 +21,30 @@
 
 
 require_once 'PHPUnit/Framework.php';
-require_once __DIR__ .  '/../path.inc.php';
-require_once __DIR__ .  '/SampleSchema.class.php';
-require_once __DIR__ .  '/SampleModels.inc.php';
+require_once __DIR__ .  '/../../path.inc.php';
+require_once __DIR__ .  '/../SampleSchema.class.php';
+require_once __DIR__ .  '/../SampleModels.inc.php';
 
-class Record_QueryTest extends PHPUnit_Framework_TestCase
+class Record_Query_SQLSelectTest extends PHPUnit_Framework_TestCase
 {
 
     public static function setUpBeforeClass()
     {
-        SampleSchema::build();
+        //SampleSchema::build();
     }
 
     public static function tearDownAfterClass()
     {   
-        SampleSchema::destroy();
+        //SampleSchema::destroy();
     }
 
     public function setUp()
     {   
-        SampleSchema::connect();
+        //SampleSchema::connect();
     }
     public function tearDown()
     {
-        DB_Conn::disconnect();
-    }
-
-    public function testDefaultModelQueryInfo()
-    {
-        $mq = Forum::raw_query();
-        $this->assertType('DB_ModelQuery', $mq);
-        $this->assertEquals($mq->type(), null);
-    }
-    
-    /**
-     * @expectedException RuntimeException
-     */
-    public function testEmptyType()
-    {
-        $mq = Forum::raw_query();
-        $mq->sql();
+        //DB_Conn::disconnect();
     }
     
     public function testSelectFieldsQuery()
@@ -332,12 +316,9 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         // Where_in with literal values
         $mq = Post::raw_query();
         $mq->select(array('id'))
-            ->where_in('id', array(1,2));
-        $this->assertEquals("SELECT `id` FROM `posts` WHERE `id` IN (?, ?)", $mq->sql());
-        $records = $mq->execute();
-        $this->assertEquals(count($records), 2);
-        $this->assertEquals($records[0]['id'], 1);
-        $this->assertEquals($records[1]['id'], 2);
+            ->where_in('id', array(1,2))
+            ->where('post like ?');
+        $this->assertEquals("SELECT `id` FROM `posts` WHERE `id` IN (?, ?) AND `posted_text` LIKE ?", $mq->sql());
         
         // Where in with left join and literal values
         $mq = Thread::raw_query();
@@ -386,7 +367,7 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('SELECT p.`id` FROM `posts` p LEFT JOIN `threads` l ' .
             'ON l.`id` = p.`thread_id` WHERE l.`title` NOT LIKE ?', $mq->sql());
 
-        // Perform a query with group_by (TODO)
+        // Perform a query with group_by
         $mq = Thread::raw_query();
         $mq->select(Thread::model()->fields())
             ->left_join('Post', 'id', 'thread_id')
@@ -526,7 +507,7 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
             'WHERE NOT l.`posted_text` LIKE ? OR l.`id` IN (?, ?, ?, ?, ?) ' .
             'AND NOT p.`title` IN (?, ?, ?, ?, ?) OR p.`title` NOT LIKE ? ' .
             'GROUP BY p.`id` ASC, 3 DESC ORDER BY 1 ASC, p.`title` = ? DESC', $mq->sql());
-
     }
+    
 }
 ?>

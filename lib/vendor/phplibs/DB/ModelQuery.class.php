@@ -126,7 +126,7 @@ class DB_ModelQuery
 	 * Alterable means that there can be more options on the query. 
 	 * @return
 	 *  - @b true if query is alterable
-	 *  - @b FALSE if the query is closed for changes. 
+	 *  - @b false if the query is closed for changes. 
 	 */
 	public function is_alterable()
 	{
@@ -169,6 +169,9 @@ class DB_ModelQuery
 	}
 	
 	//! Start a selection query on model
+	/*
+	 * @param $fields @b Array of field names that you want to fetch values from.
+	 */
 	public function & select($fields)
 	{	
 	    $this->assure_alterable();
@@ -184,6 +187,9 @@ class DB_ModelQuery
 	}
 	
 	//! Start an insertation query on model
+	/**
+	 * @param $fields @b Array of field names that you will provide values for.
+	 */
 	public function & insert($fields)
 	{	
 	    $this->assure_alterable();
@@ -199,18 +205,33 @@ class DB_ModelQuery
 	}
 	
 	//! Define values of insert command as an array
+	/**
+	 * @param $values_array An array of values for adding one record. The values must be
+	 *  in the same order as the fields where declared in insert().
+	 */
 	public function & values_array($values)
 	{	
 	    $this->assure_alterable();
+
+	    // Check if there is already a type command
+		if ($this->query_type !== 'insert')
+			throw new RuntimeException('You cannot add values in a non-insert query!');
+			
 		if (count($values) != count($this->insert_fields))
 			throw new InvalidArgumentException('The quantity of values, must be exactly ' .
 				'the same with the fields defined with insert()');
+				
 		$this->insert_values[] = $values;
-		$this->sql_hash .= ':' . implode(':', $values);
+        $this->push_exec_params($values);
+        
+		$this->sql_hash .= ':v' . count($values);
 		return $this;
 	}
 	
 	//! Define values of insert command as arguments
+	/**
+	 * Same as values_array(), only this one you pass the values as function arguments
+	 */
 	public function & values()
 	{	
 	    $args = func_get_args();
@@ -218,14 +239,20 @@ class DB_ModelQuery
 	}
 	
 	//! Set a field value
-	public function & set($field, $value = NULL)
+	/**
+	 * @param $field The field to set its value to a new one
+	 * @param $value [Default = false] Optional literal value to push in dynamic parameters.
+	 */
+	public function & set($field, $value = false)
 	{	
 	    $this->assure_alterable();
 		$this->set_fields[] = array(
 			'field' => $field,
 			'value' => $value
 		);
-		$this->sql_hash .= ':set:' . $field . ':' . $value;
+		if ($value !== false)
+		    $this->push_exec_param($value);
+		$this->sql_hash .= ':set:' . $field;
 		return $this;
 	}
 
@@ -254,16 +281,16 @@ class DB_ModelQuery
 	public function & where($exp, $bool_op = 'AND')
 	{	
 	    $this->assure_alterable();
-		$this->conditions[] = array(
+		$this->conditions[] = $cond = array(
 			'expression' => $exp,
-			'bool_op' => $bool_op,
+			'bool_op' => strtoupper($bool_op),
 			'op' => NULL,
 			'lvalue' => NULL,
 			'rvalue' => NULL,
 			'require_argument' => false,
 		);
 
-		$this->sql_hash .= ':where:' . $bool_op . ':' . $exp;
+		$this->sql_hash .= ':where:' . $cond['bool_op'] . ':' . $exp;
 		return $this;
 	}
 	
@@ -289,15 +316,19 @@ class DB_ModelQuery
     public function & where_in($field_name, $values, $bool_op = 'AND')
     {
 	    $this->assure_alterable();
-		$this->conditions[] = array(
-			'bool_op' => $bool_op,
+		$this->conditions[] = $cond = array(
+			'bool_op' => strtoupper($bool_op),
 			'op' => 'IN',
 			'lvalue' => $field_name,
-			'rvalue' => $values,
+			'rvalue' => is_array($values)?count($values):$values,
 			'require_argument' => false,
 		);
+		
+		// Push execute parameters
+		if (is_array($values))
+		    $this->push_exec_params($values);
 
-		$this->sql_hash .= ':wherein:' . $bool_op . ':' . (is_array($values)?implode(':', $values):$values);
+		$this->sql_hash .= ':where:' . $cond['bool_op'] . ':' . (is_array($values)?count($values):$values);
 		return $this;
     }
 
@@ -393,7 +424,7 @@ class DB_ModelQuery
 	public function & push_exec_params($values)
 	{
 	    foreach($values as $v)
-    	    $this->exec_params[] = $value;
+    	    $this->exec_params[] = $v;
 	    return $this;
 	}
 	
@@ -516,7 +547,7 @@ class DB_ModelQuery
 			    // Check boolean operation
 			    $matched = 
 		            preg_match_all('/^[\s]*(?<op>\bAND|OR\b)?[\s]*(?<not>\bNOT\b)?[\s]*$/',
-	                strtoupper($cond['bool_op']), $matches);
+	                $cond['bool_op'], $matches);
 	            if ($matched != 1)
 			        throw new InvalidArgumentException("The boolean operator \"{$cond['bool_op']}\" is invalid");
                 $cond['bool_op'] = array('op' => (empty($matches['op'][0])?'AND':$matches['op'][0]));
@@ -529,14 +560,7 @@ class DB_ModelQuery
                     // L-value
                     $this->analyze_exp_side_value($cond, 'lvalue', $cond['lvalue']);
 
-                    if (is_array($cond['rvalue']))
-                    {
-                        $array_size = count($cond['rvalue']);
-                        foreach($cond['rvalue'] as $val)
-                            $this->push_exec_param($val);
-                    }
-                    else
-                        $array_size = (integer) $cond['rvalue'];
+                    $array_size = (integer) $cond['rvalue'];
                     $cond['rvalue'] = '(' . implode(', ', array_fill(0, $array_size, '?')) . ')';
                     $cond['query'] = "{$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
                 }
@@ -663,11 +687,11 @@ class DB_ModelQuery
             $lfield = $this->ljoin['model']->field_info($this->ljoin['join_foreign_field'], 'sqlfield');
             if (!$lfield)
                 throw new InvalidArgumentException(
-                    "There is no field with name \"{$lfield}\" on model \"{$lmodel_name}\".");
+                    "There is no field with name \"{$this->ljoin['join_foreign_field']}\" on model \"{$lmodel_name}\".");
             $pfield = $this->model->field_info($this->ljoin['join_local_field'], 'sqlfield');
             if (!$pfield)
                 throw new InvalidArgumentException(
-                    "There is no field with name \"{$pfield}\" on model \"{$this->model->name()}\".");
+                    "There is no field with name \"{$this->ljoin['join_local_field']}\" on model \"{$this->model->name()}\".");
         }
         else
         {
@@ -739,12 +763,11 @@ class DB_ModelQuery
 			
 		foreach($this->set_fields as $params)
 		{
-			$set_query = "`" . $this->model->field_info($params['field'], 'sqlfield') . "` = ";
-			if ($params['value'] === NULL)
-				$set_query .= '?';
-			else
-				$set_query .= "'" . DB_Conn::escape_string($params['value']) . "'"; 
-			$fields[] = $set_query;
+		    if (!($sqlfield = $this->model->field_info($params['field'], 'sqlfield')))
+    			throw new InvalidArgumentException("Unknown field {$params['field']} in update() command.");
+		        
+			$set_query = "`" . $sqlfield . "` = ?";
+            $fields[] = $set_query;
 		}
 		$query .= ' ' . implode(', ', $fields);
 		$query .= $this->generate_where_conditions();
@@ -761,7 +784,7 @@ class DB_ModelQuery
 	//! Generate INSERT query
 	private function generate_insert_query()
 	{
-	    $query = 'INSERT INTO ' . $this->model->table();
+	    $query = 'INSERT INTO `' . $this->model->table() . '`';
 	
 		if (count($this->insert_fields) === 0)
 			throw new InvalidArgumentException("Cannot execute insert() with no fields!");
@@ -773,23 +796,18 @@ class DB_ModelQuery
 		if (count($this->insert_values) === 0)
 			throw new InvalidArgumentException("Cannot insert() with no values, use values() to define them.");
 
-		foreach($this->insert_values as $values_series)
-		{	
-		    $values = array();
-			foreach($values_series as $value)
-				if ($value === NULL)
-					$values[] = '?';
-				else
-					$values[] = "'" . DB_Conn::escape_string($value) . "'";
-			$query .= ' (' . implode(', ', $values) . ')'; 
-		}
+        $query .= str_repeat(
+            ' (' . implode(', ', array_fill(0, count($this->insert_fields), '?')) . ')',
+            count($this->insert_values)
+        );
+
 		return $query;
 	}
 	
 	//! Analyze DELETE query
 	private function generate_delete_query()
 	{	
-	    $query = 'DELETE FROM ' . $this->model->table();
+	    $query = 'DELETE FROM `' . $this->model->table() . '`';
 		$query .= $this->generate_where_conditions();
 		
         // Order by

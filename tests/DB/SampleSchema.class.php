@@ -102,7 +102,7 @@ class SampleSchema
                     id INT auto_increment,
                     forum_id INT NOT NULL,
                     title varchar(255),
-                    date DATETIME,
+                    `datetime` DATETIME,
                     PRIMARY KEY(id),
                     FOREIGN KEY(forum_id) REFERENCES `forums`(`id`)
                 );
@@ -113,7 +113,7 @@ class SampleSchema
                     id INT auto_increment,
                     thread_id INT NOT NULL,
                     posted_text MEDIUMTEXT,
-                    imaged MEDIUMBLOB,
+                    image MEDIUMBLOB,
                     poster varchar(30),
                     date DATETIME,
                     PRIMARY KEY(id),
@@ -160,7 +160,7 @@ class SampleSchema
                 ('The third');
             ");
             DB_Conn::query("
-            INSERT INTO threads (forum_id, title, date) VALUES
+            INSERT INTO threads (forum_id, title, `datetime`) VALUES
                 (1, 'First thread', NOW()),
                 (1, 'Second thread', NOW()),
                 (1, 'Third thread', NOW()),
