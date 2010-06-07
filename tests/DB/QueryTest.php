@@ -235,11 +235,12 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         // Testing boolean operators
         $mq = Post::raw_query();
         $mq->select(array('id'))
-            ->where("post = ?", 'and')
-            ->where("post = ?", 'oR')
+            ->where("post = ?", 'and not')
+            ->where("post = ?", 'oR not')
+            ->where("post = ?", 'not')
             ->where("post = ?", 'aNd');
         $this->assertEquals(
-            "SELECT `id` FROM `posts` WHERE `posted_text` = ? OR `posted_text` = ? AND `posted_text` = ?",
+            "SELECT `id` FROM `posts` WHERE NOT `posted_text` = ? OR NOT `posted_text` = ? AND NOT `posted_text` = ? AND `posted_text` = ?",
             $mq->sql());
     }
     

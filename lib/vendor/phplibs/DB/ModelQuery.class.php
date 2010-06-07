@@ -236,9 +236,16 @@ class DB_ModelQuery
      *  - @code 'title LIKE ?' @endcode
      *  - @code 'title NOT LIKE ?' @endcode
      *  .
-     * @param $bool_op
+     * @param $bool_op [Default = "AND"]: <strong> [AND|OR] [NOT] </strong>
      *  - @b 'AND' If this condition is checked only if the previous expression is @b true.
      *  - @b 'OR' If this condition is checked if the previous expression is @b false as an alternative.
+     *  - @b 'NOT' If this condition has opposite effect.
+     *  .
+     *  @b Examples:
+     *  - @code 'AND' @endcode
+     *  - @code 'AND NOT' @endcode
+     *  - @code 'NOT' @endcode
+     *  - @code 'OR NOT' @endcode
      *  .
      */
 	public function & where($exp, $bool_op = 'AND')
@@ -264,9 +271,16 @@ class DB_ModelQuery
      *  - @b integer The number of dynamic values
      *  - @b array An static values to pass on where clause.
      *  .
-     * @param $bool_op
+     * @param $bool_op [Default = "AND"]: <strong> [AND|OR] [NOT] </strong>
      *  - @b 'AND' If this condition is checked only if the previous expression is @b true.
      *  - @b 'OR' If this condition is checked if the previous expression is @b false as an alternative.
+     *  - @b 'NOT' If this condition has opposite effect.
+     *  .
+     *  @b Examples:
+     *  - @code 'AND' @endcode
+     *  - @code 'AND NOT' @endcode
+     *  - @code 'NOT' @endcode
+     *  - @code 'OR NOT' @endcode
      *  .
      */
     public function & where_in($field_name, $values, $bool_op = 'AND')
@@ -311,7 +325,11 @@ class DB_ModelQuery
 	    return $this;
 	}
 
-	//! Limit the query
+	//! Limit the records affected by this query
+	/**
+	 *  @param $length The number of records to be retrieved or affected
+	 *  @param $offset The offset of records that query will start to retrive or affect.
+	 */
 	public function & limit($length, $offset = NULL)
 	{	
 	    $this->assure_alterable();
@@ -371,10 +389,11 @@ class DB_ModelQuery
 	    return $this->sql_hash;
     }
 
-	//! Analayze table reference
+	//! Analayze column reference
 	/**
-	 * This function assumes that $exp comes sanitized and error checked.
-	 * @param $exp A column reference expression, written in "column" or "p.column" format
+     * Analyze an already parsed column reference.
+	 *  @param $table_shorthand The table shorthand of the column ("p" or "l").
+     *  @param $column The column friendly name as parsed.
 	 */
 	private function analyze_column_reference($table_shorthand, $column)
 	{
@@ -464,7 +483,7 @@ class DB_ModelQuery
         $cond['query'] = "{$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
 	}
 	
-	//! Analyze WHERE conditions and return where statement
+	//! Analyze WHERE conditions and return query
 	private function generate_where_conditions()
 	{	
 	    $query = '';
@@ -474,11 +493,15 @@ class DB_ModelQuery
 			$first = true;
 			foreach($this->conditions as & $cond)
 			{
-			    // Check bool operation
-			    $cond['bool_op'] = strtoupper($cond['bool_op']);
-			    if (($cond['bool_op'] != 'AND') && ($cond['bool_op'] != 'OR'))
+			    // Check boolean operation
+			    $matched = 
+		            preg_match_all('/^[\s]*(?<op>\bAND|OR\b)?[\s]*(?<not>\bNOT\b)?[\s]*$/',
+	                strtoupper($cond['bool_op']), $matches);
+	            if ($matched != 1)
 			        throw new InvalidArgumentException("The boolean operator \"{$cond['bool_op']}\" is invalid");
-			        
+                $cond['bool_op'] = array('op' => (empty($matches['op'][0])?'AND':$matches['op'][0]));
+                $cond['bool_op']['not'] = ($matches['not'][0] == 'NOT');
+                
 			    if ($cond['op'] === null)
 			        $this->analyze_single_expression($cond, $cond['expression']);
                 else if($cond['op'] === 'IN')
@@ -501,8 +524,8 @@ class DB_ModelQuery
 				if ($first)
 					$first = false;
 				else
-					$query .= ' ' . $cond['bool_op'];
-				$query .= ' ' . $cond['query'];
+					$query .= ' ' . $cond['bool_op']['op'];
+				$query .= ($cond['bool_op']['not']?' NOT':'') . ' ' . $cond['query'];
 					
 			}
 			unset($cond);
