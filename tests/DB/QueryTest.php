@@ -104,6 +104,83 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('SELECT `id`, `title` FROM `forums` LIMIT 3,15', $mq->sql());
     }
     
+    public function testSelectGroupByQuery()
+    {
+        // Group by one column ref
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->group_by('id');
+        $this->assertEquals('SELECT `id`, `title` FROM `forums` GROUP BY `id` ASC', $mq->sql());
+        
+        // Group by one column ref by number
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->group_by('2', 'deSc');
+        $this->assertEquals('SELECT `id`, `title` FROM `forums` GROUP BY 2 DESC', $mq->sql());
+        
+        // Group by one single expression
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->group_by('id = ?');
+        $this->assertEquals('SELECT `id`, `title` FROM `forums` GROUP BY `id` = ? ASC', $mq->sql());
+        
+        // Group by one single expression
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->group_by('id > ?', 'DESC');
+        $this->assertEquals('SELECT `id`, `title` FROM `forums` GROUP BY `id` > ? DESC', $mq->sql());
+        
+        // Group by left join column
+        $mq = Forum::raw_query();
+        $mq->select(Forum::model()->fields())
+            ->left_join('Thread')
+            ->group_by('l.id > ?', 'DESC');
+        $this->assertEquals('SELECT p.`id`, p.`title` FROM `forums` p LEFT JOIN `threads` l' .
+            ' ON l.`forum_id` = p.`id` GROUP BY l.`id` > ? DESC', $mq->sql());
+    }
+    
+    public function invalidGroupBy()
+    {
+        return array(
+            // Wrong expressions
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->group_by("id > 55", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->group_by("id > 'test'", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->order_by("id = 55", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->group_by("44 > 55", 'DESC')),
+            // Wrong columns
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->group_by("invalid_field", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->group_by("l.id", 'DESC')),
+            // Wrong numerical references
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->group_by("0", 'DESC')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->group_by("3", 'DESC')),
+        );
+    }
+    
+    /**
+     * @dataProvider invalidGroupBy
+     * @expectedException InvalidArgumentException
+     */
+    public function testInvalidGroupBy($mq)
+    {
+        $mq->sql();
+    }
+    
     public function testSelectOrderByQuery()
     {
         // Order by one column ref
@@ -314,9 +391,9 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
         $mq->select(Thread::model()->fields())
             ->left_join('Post', 'id', 'thread_id')
             ->where("p.title  not LiKe   ?")
-            ->where("l.post  LiKe   ?");
-        $this->assertEquals('SELECT p.`id`, p.`forum_id`, p.`title`, p.`datetime` FROM `threads` ' .
-            'p LEFT JOIN `posts` l ON l.`thread_id` = p.`id` WHERE p.`title` NOT LIKE ? AND l.`posted_text` LIKE ?', $mq->sql());
+            ->group_by("p.id");
+        $this->assertEquals('SELECT p.`id`, p.`forum_id`, p.`title`, p.`datetime` FROM `threads` p ' .
+            'LEFT JOIN `posts` l ON l.`thread_id` = p.`id` WHERE p.`title` NOT LIKE ? GROUP BY p.`id` ASC', $mq->sql());
     }
     
     
@@ -428,6 +505,28 @@ class Record_QueryTest extends PHPUnit_Framework_TestCase
     public function testSelectInvalidConditionalQuery($mq)
     {
         $mq->sql();
+    }
+    
+    public function testSelectMixedGrill()
+    {
+        // Everything!
+        $mq = Thread::raw_query();
+        $mq->select(Thread::model()->fields())
+            ->left_join('Post', 'id', 'thread_id')
+            ->where('l.post like ?', 'not')
+            ->where_in('l.id', array(1,2,3,4,5), 'OR')
+            ->where_in('p.title like ?', 5, 'AND not')
+            ->where("p.title  not LiKe   ?", 'or')
+            ->order_by(1, 'ASC')
+            ->order_by('p.title = ?', 'DESC')
+            ->group_by("p.id")
+            ->group_by(3, 'DESC');
+        $this->assertEquals('SELECT p.`id`, p.`forum_id`, p.`title`, p.`datetime` FROM `threads` p ' .
+            'LEFT JOIN `posts` l ON l.`thread_id` = p.`id` ' .
+            'WHERE NOT l.`posted_text` LIKE ? OR l.`id` IN (?, ?, ?, ?, ?) ' .
+            'AND NOT p.`title` IN (?, ?, ?, ?, ?) OR p.`title` NOT LIKE ? ' .
+            'GROUP BY p.`id` ASC, 3 DESC ORDER BY 1 ASC, p.`title` = ? DESC', $mq->sql());
+
     }
 }
 ?>

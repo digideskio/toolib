@@ -56,8 +56,11 @@ class DB_ModelQuery
 	//! Limit of affected records
 	protected $limit = NULL;
 	
-	//! Order of output data
+	//! Order of affected records
 	protected $order_by = array();
+
+	//! Group rules for retrieving data
+	protected $group_by = array();
 
     //! Left join table
     protected $ljoin = NULL;
@@ -350,9 +353,26 @@ class DB_ModelQuery
 		    'expression' => $expression,
 		    'direction' => $direction
         );
-		$this->sql_hash .= ':exp:' . $expression . ':' . $direction;
+		$this->sql_hash .= ':order:' . $expression . ':' . $direction;
 		return $this;
 	}
+
+	//! Add a group by by rule in query
+	/**
+	 * @param $expression A field name, column reference or an expression to be evaluated for each row.
+	 * @param $direction The direction of ordering prior grouping.
+     */
+	public function & group_by($expression, $direction = 'ASC')
+	{	
+	    $this->assure_alterable();
+		$this->group_by[] = array(
+		    'expression' => $expression,
+		    'direction' => $direction
+        );
+		$this->sql_hash .= ':group:' . $expression . ':' . $direction;
+		return $this;
+	}
+
 
 	//! Set the callback wrapper function
 	public function & set_data_wrapper($callback)
@@ -547,17 +567,17 @@ class DB_ModelQuery
         return " LIMIT {$this->limit['length']}";
     }
     
-    //! Generate ORDER BY clause
-    private function generate_order_by()
+    //! Analyze * BY clause
+    private function analyze_by_rules($by_rules)
     {
-        if (empty($this->order_by))
+        if (empty($by_rules))
             return '';
 
-	    $orders = array();
-        foreach($this->order_by as $order)
+	    $gen_rules = array();
+        foreach($by_rules as $rule)
         {
             // Check direction string
-            $order['direction'] = (strtoupper($order['direction']) === 'ASC'?'ASC':'DESC');
+            $rule['direction'] = (strtoupper($rule['direction']) === 'ASC'?'ASC':'DESC');
         
             // Check for field name and column name
             $matched = preg_match_all(
@@ -568,7 +588,7 @@ class DB_ModelQuery
 	                '|((?P<table>p|l)\.)?(?P<column>[\w\-]+)' .  // named column reference,
 	            ')' . 
 	            '[\s]*$/', // Post space
-	        $order['expression'],
+	        $rule['expression'],
 	        $matches);
 
 
@@ -576,8 +596,8 @@ class DB_ModelQuery
 	        {
 	            // Not found lets try single expression analysis
 	            $exp_params = array();
-	            $this->analyze_single_expression($exp_params, $order['expression']);
-	            $orders[] = $exp_params['query'] . ' ' . $order['direction'];
+	            $this->analyze_single_expression($exp_params, $rule['expression']);
+	            $gen_rules[] = $exp_params['query'] . ' ' . $rule['direction'];
 	            continue;
 	        }
     
@@ -594,16 +614,34 @@ class DB_ModelQuery
 	                throw new InvalidArgumentException("The column numerical reference \"$col_ref\" " .
 	                    "exceeded the boundries of retrieved fields");
 	                    
-                $orders[] = (string)$col_ref . ' ' . $order['direction'];
+                $gen_rules[] = (string)$col_ref . ' ' . $rule['direction'];
 	        }
 	        else
 	        {
                 $anl = $this->analyze_column_reference($matches['table'][0], $matches['column'][0]);
-                $orders[] = $anl['query'] . ' ' . $order['direction'];
+                $gen_rules[] = $anl['query'] . ' ' . $rule['direction'];
 	        }
         }
         
-        return ' ORDER BY ' . implode(', ', $orders);
+        return implode(', ', $gen_rules);
+    }
+    
+    //! Generate ORDER BY clause
+    private function generate_order_by()
+    {
+        $rules = $this->analyze_by_rules($this->order_by);
+        if ($rules == '')
+            return '';
+        return ' ORDER BY ' . $rules;
+    }
+    
+    // Generate GROUP BY
+    private function generate_group_by()
+    {
+        $rules = $this->analyze_by_rules($this->group_by);
+        if ($rules == '')
+            return '';
+        return ' GROUP BY ' . $rules;
     }
     
     private function generate_left_join()
@@ -679,6 +717,9 @@ class DB_ModelQuery
 		// Conditions
 		$query .= $this->generate_where_conditions();
 		
+		// Group by
+		$query .= $this->generate_group_by();
+		
         // Order by
         $query .= $this->generate_order_by();
 
@@ -733,7 +774,8 @@ class DB_ModelQuery
 			throw new InvalidArgumentException("Cannot insert() with no values, use values() to define them.");
 
 		foreach($this->insert_values as $values_series)
-		{	$values = array();
+		{	
+		    $values = array();
 			foreach($values_series as $value)
 				if ($value === NULL)
 					$values[] = '?';
