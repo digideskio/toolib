@@ -345,7 +345,9 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('', $m->db_field_data('id', null));
 
         // Datetime external -> db
-        $this->assertEquals(date_create('2002-10-10 00:00:00')->setTimeZone(new DateTimeZone('UTC'))->format(DATE_ISO8601),
+        $formated_date = date_create('2002-10-10 00:00:00');
+        $formated_date->setTimeZone(new DateTimeZone('UTC'));
+        $this->assertEquals($formated_date->format(DATE_ISO8601),
             $m->db_field_data('date', date_create('2002-10-10 00:00:00')));
         $this->assertEquals('1970-01-01T00:02:03+0000', $m->db_field_data('date', date_create('@123')));
 

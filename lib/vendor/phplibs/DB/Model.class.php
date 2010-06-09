@@ -339,7 +339,10 @@ class DB_Model
 		if ($field['type'] === 'serialized')
 			return serialize($user_data);
 		else if ($field['type'] === 'datetime')
-			return $user_data->setTimeZone(new DateTimeZone(self::$database_time_zone))->format(DATE_ISO8601);
+		{   
+		    $user_data->setTimeZone(new DateTimeZone(self::$database_time_zone));
+			return $user_data->format(DATE_ISO8601);
+        }
 		else if ($field['type'] === 'relationship')
 			return $description;
 		return (string) $user_data;
