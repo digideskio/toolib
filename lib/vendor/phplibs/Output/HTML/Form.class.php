@@ -356,7 +356,8 @@ class Output_HTML_Form
     
     //! Process the posted data
     private function process_post()
-    {   // Check if the form is posted
+    {   
+        // Check if the form is posted
         if ((!isset($_POST['submited_form_id'])) ||
             ($_POST['submited_form_id'] != $this->form_id))
         {
