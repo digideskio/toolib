@@ -7,12 +7,14 @@ Config::set('db.user', 'root');
 
 Config::set('db.pass', 'root');
 
-Config::set('db.schema', 'test');
+Config::set('db.schema', 'issue-tracker');
 
 Config::set('site.title', 'Kick Ass Site');
 
-Config::set('site.timezone', 'Europe/Athens');
+Config::set('site.timezone', 'Africa/Abidjan');
 
 Config::set('site.google_analytics', '');
+
+Config::set('site.deploy_checks', '1');
 
 ?>

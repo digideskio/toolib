@@ -29,7 +29,21 @@ require_once dirname(__FILE__) . '/web/layouts.php';
  * check /web folder. If you want a different global url behaviour
  * then you should it here.
  */
-
+// Deploy checks
+if (Config::get('site.deploy_checks'))
+{
+    if (is_writable(dirname(__FILE__) . '/config.inc.php'))
+    {
+        echo 'Security check: "config.inc.php" is writable, change file permissions and retry.';
+        exit;
+    }
+    
+    if (is_dir(dirname(__FILE__) . '/install'))
+    {
+        echo 'Security check: You must delete folder "/install" if you have installed site.';
+        exit;
+    }
+}
 // Special handling for special urls
 Stupid::add_rule(create_function('', 'require(\'web/login.php\');'),
     array('type' => 'url_path', 'chunk[-1]' => '/\+login/')

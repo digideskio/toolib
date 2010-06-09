@@ -26,12 +26,15 @@ class UI_InstallationForm extends Output_HTML_Form
 
     public $db_build_file;
     
+    public $tzones = array();
+    
     public function __construct($config_file, $db_build_file = null)
     {
         $this->config_file = $config_file;
         $this->db_build_file = $db_build_file;
-        $this->tzones = DateTimeZone::listIdentifiers();
-        
+        $zone_identifiers = DateTimeZone::listIdentifiers();
+        foreach($zone_identifiers as $zone)
+            $this->tzones[$zone] = $zone;
         parent::__construct(array(
             'db' => array('type' => 'custom', 'value' => '<h4>Database Options</h4>'),
 			'db-host' => array('display' => 'Host', 'regcheck' => '/^.+$/',
@@ -46,7 +49,12 @@ class UI_InstallationForm extends Output_HTML_Form
 				'onerror' => 'This field is mandatory.'),
 			'db-build' => array('display' => 'Execute database creation script', 'type' => 'checkbox'),
             'hr-other' => array('type' => 'custom', 'value' => '<h4>Other Options</h4>'),
-            'timezone' => array('display' => 'Default timezone', 'type' => 'dropbox', 'optionlist' => $this->tzones),
+            'timezone' => array('display' => 'Default timezone', 'type' => 'dropbox',
+                'optionlist' => $this->tzones,
+                'onerror' => 'Select a valid time zone'),
+            'deploy-checks' => array('display' => 'Check for remaining development files.',
+                'type' => 'checkbox', 'hint' => 'It warn if /install folder exists or if configuration files are writable',
+                'value' => true),
 			'site-ga' => array('display' => 'Google Analytics Web Property ID',
 			    'hint' => 'If you want to track this site with google analytics add your id here.'),
         ),
@@ -65,7 +73,6 @@ class UI_InstallationForm extends Output_HTML_Form
         {
             $this->invalidate_field('db-pass2', 'The two password are not the same');
         }
-        
         if ($this->is_valid())
         {
             // Try to connect
@@ -81,6 +88,7 @@ class UI_InstallationForm extends Output_HTML_Form
         Config::set('db.pass', $values['db-pass']);
         Config::set('db.schema', $values['db-schema']);
         Config::set('site.google_analytics', $values['site-ga']);
+        Config::set('site.deploy_checks', $values['deploy-checks']);
         
         // Timezone
         if (isset($this->tzones[$values['timezone']]))

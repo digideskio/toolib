@@ -145,11 +145,13 @@ div.ui-form.ui-installation dt{
 }
 
 .ui-form-hint {
+    display: block;
     color: gray;
     font-style: italic;
 }
 
 .ui-form-error {
+    display: block;
     font-weight: bold;
     color: red;
 }
