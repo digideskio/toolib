@@ -299,9 +299,12 @@ class Record_Query_SQLSelectTest extends PHPUnit_Framework_TestCase
             ->where("post = ?", 'and not')
             ->where("post = ?", 'oR not')
             ->where("post = ?", 'not')
-            ->where("post = ?", 'aNd');
+            ->where("post = ?", 'XoR')
+            ->where("post = ?", 'aNd')
+            ->where("post = ?", 'XoR not');
         $this->assertEquals(
-            "SELECT `id` FROM `posts` WHERE NOT `posted_text` = ? OR NOT `posted_text` = ? AND NOT `posted_text` = ? AND `posted_text` = ?",
+            "SELECT `id` FROM `posts` WHERE NOT `posted_text` = ? OR NOT `posted_text` = ? ".
+            "AND NOT `posted_text` = ? XOR `posted_text` = ? AND `posted_text` = ? XOR NOT `posted_text` = ?",
             $mq->sql());
     }
     
@@ -476,6 +479,12 @@ class Record_Query_SQLSelectTest extends PHPUnit_Framework_TestCase
             array(Forum::raw_query()
                 ->select(Forum::model()->fields())
                 ->where("title = ?", 'andor')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'xornot')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'notxor')),
         );
     }
     

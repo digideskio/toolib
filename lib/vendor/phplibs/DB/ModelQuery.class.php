@@ -266,16 +266,16 @@ class DB_ModelQuery
      *  - @code 'title LIKE ?' @endcode
      *  - @code 'title NOT LIKE ?' @endcode
      *  .
-     * @param $bool_op [Default = "AND"]: <strong> [AND|OR] [NOT] </strong>
-     *  - @b 'AND' If this condition is checked only if the previous expression is @b true.
-     *  - @b 'OR' If this condition is checked if the previous expression is @b false as an alternative.
-     *  - @b 'NOT' If this condition has opposite effect.
+     * @param $bool_op [Default = "AND"]: <strong> [AND|OR|XOR] [NOT] </strong>
+     *  - @b 'AND' Use boolean @b AND operator between this expression and the previous one.
+     *  - @b 'OR' Use boolean @b NOT operator between this expression and the previous one.
+     *  - @b 'XOR' Use boolean @b XOR operator between this expression and the previous one.
      *  .
      *  @b Examples:
      *  - @code 'AND' @endcode
-     *  - @code 'AND NOT' @endcode
      *  - @code 'NOT' @endcode
      *  - @code 'OR NOT' @endcode
+     *  - @code 'XOR NOT' @endcode
      *  .
      */
 	public function & where($exp, $bool_op = 'AND')
@@ -301,16 +301,16 @@ class DB_ModelQuery
      *  - @b integer The number of dynamic values
      *  - @b array An static values to pass on where clause.
      *  .
-     * @param $bool_op [Default = "AND"]: <strong> [AND|OR] [NOT] </strong>
-     *  - @b 'AND' If this condition is checked only if the previous expression is @b true.
-     *  - @b 'OR' If this condition is checked if the previous expression is @b false as an alternative.
-     *  - @b 'NOT' If this condition has opposite effect.
+     * @param $bool_op [Default = "AND"]: <strong> [AND|OR|XOR] [NOT] </strong>
+     *  - @b 'AND' Use boolean @b AND operator between this expression and the previous one.
+     *  - @b 'OR' Use boolean @b NOT operator between this expression and the previous one.
+     *  - @b 'XOR' Use boolean @b XOR operator between this expression and the previous one.
      *  .
      *  @b Examples:
      *  - @code 'AND' @endcode
-     *  - @code 'AND NOT' @endcode
      *  - @code 'NOT' @endcode
      *  - @code 'OR NOT' @endcode
+     *  - @code 'XOR NOT' @endcode
      *  .
      */
     public function & where_in($field_name, $values, $bool_op = 'AND')
@@ -546,7 +546,7 @@ class DB_ModelQuery
 			{
 			    // Check boolean operation
 			    $matched = 
-		            preg_match_all('/^[\s]*(?<op>\bAND|OR\b)?[\s]*(?<not>\bNOT\b)?[\s]*$/',
+		            preg_match_all('/^[\s]*(?<op>\bAND|OR|XOR\b)?[\s]*(?<not>\bNOT\b)?[\s]*$/',
 	                $cond['bool_op'], $matches);
 	            if ($matched != 1)
 			        throw new InvalidArgumentException("The boolean operator \"{$cond['bool_op']}\" is invalid");
