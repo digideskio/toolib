@@ -337,14 +337,14 @@ class DB_Model
 		if (($field = $this->field_info($field_name)) === NULL)
 			throw new InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
 
+        // Short exit for null
+        if ($user_data === null)
+            return null;
+            
 		// Short exit for generic
 		if ($field['type'] === 'generic')
 			return (string) $user_data;
 			
-        // Short exit for null
-        if ($user_data === null)
-            return null;
-
 		if ($field['type'] === 'serialized')
 			return serialize($user_data);
 		else if ($field['type'] === 'datetime')

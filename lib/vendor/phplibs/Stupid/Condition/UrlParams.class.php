@@ -71,7 +71,7 @@ class Stupid_Condition_UrlParams extends Stupid_Condition
 		$options = array_merge($defcond, $this->options);
 		
 		// Check that parameter is set
-		if (($value = param::get($options['param'], $options['param_type'])) === NULL)
+		if (($value = Net_HTTP_RequestParam::get($options['param'], $options['param_type'])) === NULL)
 			return false;
 			
 		// Per operand

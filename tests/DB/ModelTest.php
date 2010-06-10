@@ -316,10 +316,10 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('same text', $m->user_field_data('id', 'same text'));
         $this->assertEquals('123', $m->user_field_data('id', 123));
         $this->assertEquals(123, $m->user_field_data('id', '123'));
-        $this->assertEquals(array('test'), $m->user_field_data('id', array('test')));
+        $this->assertSame(array('test'), $m->user_field_data('id', array('test')));
         $this->assertEquals(true, $m->user_field_data('id', true));
         $this->assertEquals(false, $m->user_field_data('id', false));
-        $this->assertEquals(null, $m->user_field_data('id', null));
+        $this->assertSame(null, $m->user_field_data('id', null));
 
         // Datetime db -> external
         $this->assertNull($m->user_field_data('date', null));  // Null is always null
@@ -344,7 +344,8 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(1, $m->db_field_data('id', true));
         $this->assertEquals('', $m->db_field_data('id', false));
         $this->assertEquals('', $m->db_field_data('id', null));
-        $this->assertEquals(null, $m->db_field_data('id', null));
+        $this->assertSame(null, $m->db_field_data('id', null));
+        var_dump($m->db_field_data('id', null));
 
         // Datetime external -> db
         $this->assertEquals(null, $m->db_field_data('date', null)); // Null is always null

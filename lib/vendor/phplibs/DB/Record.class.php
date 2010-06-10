@@ -474,10 +474,11 @@ class DB_Record
 		$q = self::raw_query($this->model->name())
 			->update()
 			->limit(1);
-			
+
 		// Add delta fields
 		foreach($this->dirty_fields as $field_name => $old_value)
-		{	$q->set($field_name);
+		{
+		    $q->set($field_name);
 			$update_args[] = $this->fields_data[$field_name];
 		}
 
@@ -485,7 +486,8 @@ class DB_Record
 		// Note: We must use old values if pk are changed 
 		// otherwise we will write over a wrong record.
 		foreach($this->model->pk_fields() as $field_name => $pk)
-		{	$q->where("{$pk} = ?");
+		{
+		    $q->where("{$pk} = ?");
 		    if (isset($this->dirty_fields[$pk]))
 		        $update_args[] = $this->dirty_fields[$pk];
 		    else
