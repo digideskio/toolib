@@ -48,10 +48,8 @@ require_once dirname(__FILE__) . '/config.inc.php';
 DB_Conn::connect(Config::get('db.host'), Config::get('db.user'), Config::get('db.pass'), Config::get('db.schema'), 'error_log', true);
 DB_Conn::query('SET NAMES utf8;');
 DB_Conn::query("SET time_zone='+0:00';");
-DB_Conn::events()->connect('error',function($e)
-{
-    error_log( $e->arguments['message']); 
-});
+DB_Conn::events()->connect('error',
+    create_function('$e', ' error_log( $e->arguments["message"]); '));
 
 
 // PHP TimeZone
