@@ -293,6 +293,30 @@ class Record_Query_SQLSelectTest extends PHPUnit_Framework_TestCase
             ->where("p.post  Not   LiKe   ?");
         $this->assertEquals("SELECT `id` FROM `posts` WHERE `posted_text` NOT LIKE ?", $mq->sql());
         
+        // Using is operator with spaces
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where("p.post  iS null");
+        $this->assertEquals("SELECT `id` FROM `posts` WHERE `posted_text` IS NULL", $mq->sql());
+
+        // Using is not operator with false
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where("p.post  iS Not FaLse");
+        $this->assertEquals("SELECT `id` FROM `posts` WHERE `posted_text` IS NOT FALSE", $mq->sql());
+
+        // Using is operator with True
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where("p.post  iS  truE ");
+        $this->assertEquals("SELECT `id` FROM `posts` WHERE `posted_text` IS TRUE", $mq->sql());
+        
+        // Using is operator with True
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where("p.post  iS  unKnown ");
+        $this->assertEquals("SELECT `id` FROM `posts` WHERE `posted_text` IS UNKNOWN", $mq->sql());
+        
         // Testing boolean operators
         $mq = Post::raw_query();
         $mq->select(array('id'))
@@ -306,6 +330,104 @@ class Record_Query_SQLSelectTest extends PHPUnit_Framework_TestCase
             "SELECT `id` FROM `posts` WHERE NOT `posted_text` = ? OR NOT `posted_text` = ? ".
             "AND NOT `posted_text` = ? XOR `posted_text` = ? AND `posted_text` = ? XOR NOT `posted_text` = ?",
             $mq->sql());
+    }
+    
+    public function invalidConditions()
+    {
+        return array(
+            // Literal values are not permitted
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = \'?")),                
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = 'test!@\'#%\"'")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = 1")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("1 = 1")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("1 = title")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("'test' = title")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = \"1\"")),
+            // Left table on non-joined query
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("l.title = ?")),
+            // Invalid r-values
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("l.title = null")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("l.title = false")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("l.title = true")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("l.title like true")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("l.title is ?")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("l.title is not ?")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("l.title is falsea")),
+            // Invalid operators
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title >< ?")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title =< ?")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title not = ?")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title in ?")),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title in ?")),
+            // Invalid operators
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'invalid')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'andnot')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'ornot')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'andor')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'xornot')),
+            array(Forum::raw_query()
+                ->select(Forum::model()->fields())
+                ->where("title = ?", 'notxor')),
+        );
+    }
+    
+    /**
+     * @dataProvider invalidConditions()
+     * @expectedException InvalidArgumentException
+     */
+    public function testSelectInvalidConditionalQuery($mq)
+    {
+        $mq->sql();
     }
     
     public function testSelectConditionalWhereInQuery()
@@ -414,88 +536,7 @@ class Record_Query_SQLSelectTest extends PHPUnit_Framework_TestCase
     }
 
 
-    public function invalidConditions()
-    {
-        return array(
-            // Literal values are not permitted
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = \'?")),                
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = 'test!@\'#%\"'")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = 1")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("1 = 1")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("1 = title")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("'test' = title")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = \"1\"")),
-            // Left table on non-joined query
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("l.title = ?")),
-            // Invalid operators
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title >< ?")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title =< ?")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title not = ?")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title in ?")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title in ?")),
-            // Unimplemented operators
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title is ?")),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title is not ?")),
-            // Invalid operators
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = ?", 'invalid')),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = ?", 'andnot')),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = ?", 'ornot')),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = ?", 'andor')),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = ?", 'xornot')),
-            array(Forum::raw_query()
-                ->select(Forum::model()->fields())
-                ->where("title = ?", 'notxor')),
-        );
-    }
     
-    /**
-     * @dataProvider invalidConditions()
-     * @expectedException InvalidArgumentException
-     */
-    public function testSelectInvalidConditionalQuery($mq)
-    {
-        $mq->sql();
-    }
     
     public function testSelectMixedGrill()
     {

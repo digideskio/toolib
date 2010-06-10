@@ -107,7 +107,8 @@ class DB_Model
 		// Validate and copy all fields
 		$filtered_fields = array();
 		foreach($fields as $field_name => $field)
-		{	// Check if it was given as number entry or associative entry
+		{	
+		    // Check if it was given as number entry or associative entry
 			if (is_numeric($field_name) && is_string($field))
 			{	$field_name = $field; 
 				$field = array();
@@ -303,10 +304,14 @@ class DB_Model
 		if (($field = $this->field_info($field_name)) === NULL)
 			throw new InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
 
-		// Fast exit for generic
+		// Short exit for generic
 		if ($field['type'] === 'generic')
 			return $db_data;
 
+        // Short exit for null
+        if ($db_data === null)
+            return null;
+            
 		// Check cast cache
 		if ($field['type'] === 'serialized')
 			return unserialize($db_data);
@@ -332,9 +337,13 @@ class DB_Model
 		if (($field = $this->field_info($field_name)) === NULL)
 			throw new InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
 
-		// Fast exit for generic
+		// Short exit for generic
 		if ($field['type'] === 'generic')
 			return (string) $user_data;
+			
+        // Short exit for null
+        if ($user_data === null)
+            return null;
 
 		if ($field['type'] === 'serialized')
 			return serialize($user_data);

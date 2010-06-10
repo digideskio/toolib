@@ -322,7 +322,7 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(null, $m->user_field_data('id', null));
 
         // Datetime db -> external
-        
+        $this->assertNull($m->user_field_data('date', null));  // Null is always null
         $this->assertEquals(date_create('2002-10-10', new DateTimeZone('UTC'))
             ->setTimeZone(new DateTimeZone(date_default_timezone_get())),
             $m->user_field_data('date', '2002-10-10')
@@ -331,6 +331,7 @@ class ModelTest extends PHPUnit_Framework_TestCase
             ->setTimeZone(new DateTimeZone(date_default_timezone_get())), $m->user_field_data('date', '@123'));
 
         // Serializable db -> external
+        $this->assertNull($m->user_field_data('image', null));  // Null is always null
         $this->assertEquals('text sample', $m->user_field_data('image', 's:11:"text sample";'));
         $this->assertEquals(array('item1', 'slot2' => 'item2'),
         $m->user_field_data('image', 'a:2:{i:0;s:5:"item1";s:5:"slot2";s:5:"item2";}'));
@@ -343,15 +344,18 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(1, $m->db_field_data('id', true));
         $this->assertEquals('', $m->db_field_data('id', false));
         $this->assertEquals('', $m->db_field_data('id', null));
+        $this->assertEquals(null, $m->db_field_data('id', null));
 
         // Datetime external -> db
+        $this->assertEquals(null, $m->db_field_data('date', null)); // Null is always null
         $formated_date = date_create('2002-10-10 00:00:00');
         $formated_date->setTimeZone(new DateTimeZone('UTC'));
         $this->assertEquals($formated_date->format(DATE_ISO8601),
             $m->db_field_data('date', date_create('2002-10-10 00:00:00')));
         $this->assertEquals('1970-01-01T00:02:03+0000', $m->db_field_data('date', date_create('@123')));
-
+        
         // Serializable external -> db
+        $this->assertEquals(null, $m->db_field_data('image', null)); // Null is always null
         $this->assertEquals('s:11:"text sample";', $m->db_field_data('image', 'text sample'));
         $this->assertEquals('a:2:{i:0;s:5:"item1";s:5:"slot2";s:5:"item2";}',
         $m->db_field_data('image', array('item1', 'slot2' => 'item2')));

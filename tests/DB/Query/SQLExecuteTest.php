@@ -57,7 +57,6 @@ class Record_Query_SQLExecuteTest extends PHPUnit_Framework_TestCase
         $this->assertType('Thread', $rec);
         $this->assertEquals('new title', $rec->title);
 
-
         $mq = Post::raw_query();
         $mq->update()
             ->set('post', 'test post updated')
@@ -68,6 +67,15 @@ class Record_Query_SQLExecuteTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('test post updated', $rec->post);
         $this->assertEquals('dokimi image', $rec->image);
 
+         // Update to null
+        $mq = Post::raw_query();
+        $mq->update()
+            ->set('image', null);
+        $res = $mq->execute();
+        $rec = Post::open(1);
+        $this->assertType('Post', $rec);
+        $this->assertEquals('test post updated', $rec->post);
+        $this->assertEquals(null, $rec->image);
     }
     
     public function testExecuteInsert()
@@ -92,7 +100,54 @@ class Record_Query_SQLExecuteTest extends PHPUnit_Framework_TestCase
         $this->assertType('Post', $rec);
         $this->assertEquals('image2', $rec->image);
         $this->assertEquals('post2', $rec->post);
+        
+        
+        // Insert null values
+        $mq = Post::raw_query();
+        $mq->insert(Post::model()->fields())
+            ->values_array(array(null, 1, null, null, null, null));
+        $res = $mq->execute();
+        $p = Post::open($res->insert_id);
+        $this->assertEquals($p->thread_id, 1);
+        $this->assertNull($p->post);
+        $this->assertNull($p->image);
+        $this->assertNull($p->poster);
+        $this->assertNull($p->date);
+    }
 
+    public function testExecuteSelectWhereNull()
+    {
+        SampleSchema::destroy();
+        SampleSchema::build();
+        // Select = empty for null values must return empty
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where('image = ?');
+        $this->assertEquals(count($mq->execute('')), 0);
+
+        // Select = null for null values must return empty
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where('image = ?');
+        $this->assertEquals(count($mq->execute(null)), 0);
+
+        // Select is null for null values must return all
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where('image is null');
+        $this->assertEquals(count($mq->execute()), 7);
+        
+        // Select is not null for null values must return all
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where('image is not null');
+        $this->assertEquals(count($mq->execute()), 0);
+        
+        // Select is not null for null values must return all
+        $mq = Post::raw_query();
+        $mq->select(array('id'))
+            ->where('post is not null');
+        $this->assertEquals(count($mq->execute()), 7);
     }
     
     public function testExecuteSelectWhereInLiteral()

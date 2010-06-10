@@ -265,6 +265,9 @@ class DB_ModelQuery
      *  - @code '? = ?' @endcode
      *  - @code 'title LIKE ?' @endcode
      *  - @code 'title NOT LIKE ?' @endcode
+     *  - @code 'title IS NULL' @endcode
+     *  - @code 'title IS NOT FALSE' @endcode
+     *  - @code 'title IS UNKNOWN' @endcode
      *  .
      * @param $bool_op [Default = "AND"]: <strong> [AND|OR|XOR] [NOT] </strong>
      *  - @b 'AND' Use boolean @b AND operator between this expression and the previous one.
@@ -508,8 +511,9 @@ class DB_ModelQuery
 	{
         $matched = 
 		    preg_match_all('/^[\s]*(?<lvalue>([\w\.\?])+)[\s]*' .
-		        '(?P<not_op>not\s)?[\s]*' .
-			    '(?P<op>[=<>]+|like)[\s]*' .
+		        '(?P<not_pre_op>not\s)?[\s]*' .
+			    '(?P<op>[=<>]+|like|is)[\s]*' .
+		        '(?P<not_post_op>\snot)?[\s]*' .
 			    '(?P<rvalue>([\w\.\?])+)[\s]*$/i',
 			    $expression, $matches);
 
@@ -517,18 +521,26 @@ class DB_ModelQuery
 		    throw new InvalidArgumentException("Invalid EXPRESSION '{$expression}' was given.");
 
         // Operator
-	    $cond['op'] = strtoupper($matches['not_op']['0']) . strtoupper($matches['op']['0']);
+	    $cond['op'] = strtoupper($matches['not_pre_op']['0']) . 
+	        strtoupper($matches['op'][0]) . strtoupper($matches['not_post_op'][0]);
         $cond['require_argument'] = false;
         
         // Check operator
-        if (! in_array($cond['op'], array('=', '>', '>=', '<', '<=', '<>', 'LIKE', 'NOT LIKE')))
+        if (! in_array($cond['op'], array('=', '>', '>=', '<', '<=', '<>', 'LIKE', 'NOT LIKE', 'IS', 'IS NOT')))
             throw new InvalidArgumentException("Invalid EXPRESSION operand '{$cond['op']}' was given.");
 		
         // L-value
-        $this->analyze_exp_side_value($cond, 'lvalue', $matches['lvalue']['0']);
+        $this->analyze_exp_side_value($cond, 'lvalue', $matches['lvalue'][0]);
         
         // R-value
-        $this->analyze_exp_side_value($cond, 'rvalue', $matches['rvalue']['0']);
+        if (substr($cond['op'], 0, 2) == 'IS')
+        {
+            $cond['rvalue'] = strtoupper($matches['rvalue'][0]);
+            if (! in_array($cond['rvalue'], array('NULL', 'TRUE', 'FALSE', 'UNKNOWN')))
+                throw new InvalidArgumentException("Invalid IS r-value '{$cond['rvalue']}' was given.");
+        }
+        else
+            $this->analyze_exp_side_value($cond, 'rvalue', $matches['rvalue'][0]);
         
         // Generated condition
         $cond['query'] = "{$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
