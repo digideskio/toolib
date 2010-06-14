@@ -52,7 +52,7 @@ class Net_HTTP_RequestParam
 	 *  - @b true If the parameter is set and is equal to $check_value
 	 *  .
 	 */			
-	function is_equal($name, $check_value, $param_type = 'both')
+	public static function is_equal($name, $check_value, $param_type = 'both')
 	{	if ($param_type == 'post')
 			$array = & $_POST;
 		else if ($param_type == 'get')
@@ -74,7 +74,7 @@ class Net_HTTP_RequestParam
 	 *  - @b NULL If the value is not set at all.
 	 *  .
 	 */
-	function get($name, $param_type = 'both')
+	public static function get($name, $param_type = 'both')
 	{
 		if ($param_type == 'post')
 			$array = & $_POST;
@@ -95,7 +95,7 @@ class Net_HTTP_RequestParam
      *  - @b false If the parameter is not set
      *  .
 	 */
-	function is_set($name, $param_type = 'both')
+	public static function is_set($name, $param_type = 'both')
 	{
 		if ($param_type == 'post')
 			$array = & $_POST;
@@ -116,7 +116,7 @@ class Net_HTTP_RequestParam
      *  - @b false If the parameter is not set or it is not numeric
      *  .
 	 */
-	function is_numeric($name, $param_type = 'both')
+	public static function is_numeric($name, $param_type = 'both')
 	{
 		if ($param_type == 'post')
 			$array = & $_POST;
