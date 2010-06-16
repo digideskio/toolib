@@ -26,9 +26,11 @@ require_once dirname(__FILE__) .  '/../path.inc.php';
 class ImageTest extends PHPUnit_Framework_TestCase
 {
 
-    static public function compare_image_files($file1, $file2)
+    static public function compare_image_files($file1, $file2, $maxerror = null)
     {   $equal = false;
-    
+        if ($maxerror === null)
+            $maxerror = 0.04;
+            
         $descriptorspec = array(
             0 => array("pipe", "r"),
             1 => array("pipe", "w"),
@@ -52,7 +54,7 @@ class ImageTest extends PHPUnit_Framework_TestCase
             if (preg_match_all('/\((?P<factor>[\d\.]+)\)/', $reply, $matches))
             {
                 $factor = (float)$matches['factor'][0];
-                if ($factor < 0.02)
+                if ($factor < $maxerror)
                     $equal = true;   
             }
         }
@@ -60,11 +62,11 @@ class ImageTest extends PHPUnit_Framework_TestCase
         return $equal;
     }
     
-    static public function compare_imgobj_file(Image $img, $file)
+    static public function compare_imgobj_file(Image $img, $file, $maxerror = null)
     {
         $tmpfile = tempnam(sys_get_temp_dir(), 'phplibs-imagetest-');
         $img->save($tmpfile, array('quality' => 100));
-        $response = self::compare_image_files($tmpfile, $file);
+        $response = self::compare_image_files($tmpfile, $file, $maxerror);
         unlink($tmpfile);
         return $response;
     }
@@ -275,19 +277,83 @@ class ImageTest extends PHPUnit_Framework_TestCase
         $this->assertSame($equal, self::compare_imgobj_file($img, $file));
     }
     
-    public function testCurrent()
+    public function dataResizeFunctions()
     {
-        $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.gif');
-        $img->crop(10, 10 , 100, 100);
-        $img->save(dirname(__FILE__) . '/test.gif');
-        
-        $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.png');
-        $img->crop(10, 10 , 100, 100);
-        $img->save(dirname(__FILE__) . '/test.png');
+        $data = array();
+        foreach($this->originalFiles() as $image)
+        {
+            $file = $image[0];
+            $input = $image[1];
+            $options = $image[2];
+            
+
+            $data[] = array(
+                self::image_create($input, $options)->resize(100, 100, false),
+                dirname(__FILE__) . '/samples/resize/100x100_N_' . $file,
+                true
+            );
+            
+            $data[] = array(
+                self::image_create($input, $options)->resize(130, 100, false),
+                dirname(__FILE__) . '/samples/resize/130x100_N_' . $file,
+                true
+            );
+
+            $data[] = array(
+                self::image_create($input, $options)->resize(100, 130, false),
+                dirname(__FILE__) . '/samples/resize/100x130_N_' . $file,
+                true
+            );
+            
+            $data[] = array(
+                self::image_create($input, $options)->resize(100, 100, true),
+                dirname(__FILE__) . '/samples/resize/100x100_C_' . $file,
+                true
+            );
+            
+            $data[] = array(
+                self::image_create($input, $options)->resize(130, 100, true),
+                dirname(__FILE__) . '/samples/resize/130x100_C_' . $file,
+                true
+            );
+            
+            $data[] = array(
+                self::image_create($input, $options)->resize(100, 130, true),
+                dirname(__FILE__) . '/samples/resize/100x130_C_' . $file,
+                true
+            );
+        }
+        return $data;
     }
     
-
+    /**
+     * @dataProvider dataResizeFunctions
+     */
+    public function testResizeFunctions($img, $file, $equal)
+    {   
+        $this->assertSame($equal, self::compare_imgobj_file($img, $file, 0.15));
+    }
     
-
+    
+    public function dataInvalidResize()
+    {
+        return array(
+            array(0, 0, false),
+            array(0, 0, true),
+            array(5, 0, true),
+            array(0, 5, true),            
+        );
+        
+    }
+    
+    /**
+     * @dataProvider dataInvalidResize
+     * @expectedException InvalidArgumentException
+     */
+    public function testInvalidResizeArguments($w, $h, $crop)
+    {
+        $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.gif');
+        $img->resize($w, $h, $crop);
+    }
 }
 ?>

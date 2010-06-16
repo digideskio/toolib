@@ -177,57 +177,85 @@ class Image
 
     //! Resize image with constant aspect ratio
     /**
-     * @param $width The desired width of thumbnail or 0 if you want to follow aspect
-     *  ratio of original image.
-     * @param $height The desired height of thumbnail or 0 if you want to follow aspect
-     *  ratio of original image.
+     * @param $maxwidth
+     *  - <b> \> 0</b>: The desired maximum new width
+     *  - <b> = 0</b>: If you dont want to add a width constrain.
+     *  .
+     * @param $maxheight
+     *  - <b> \> 0</b>: The desired maximum new height.
+     *  - <b> = 0</b>: If you dont want to add a height constrain.
+     *  .
+     * @param $crop: If enabled the image will be cropped to cover all the box before resizing.
+     *  This parameter can only be used if you add both dimension constrains.
+     * @remarks You have to set at least one dimension constrain.
      * @return The same instance ($this) of Image.
      */
-    public function resize($width, $height)
+    public function resize($maxwidth, $maxheight, $crop = false)
     {
         $this->open_image();
         
-        $orig_img = $this->image;
-        $orig_cwidth = $orig_width = $this->meta['width'];
-        $orig_cheight = $orig_height = $this->meta['height'];
-        $orig_ratio = $orig_width / $orig_height;
-
-        // Calculate other side of dynamic thumbs
-        $thumb_width = (($width == 0)?$height * $orig_ratio:$width);
-        $thumb_height = (($height == 0)?$width / $orig_ratio:$height);
+        if (($maxwidth == 0) && ($maxheight == 0))
+            throw new InvalidArgumentException('You have to set at least one dimension constrain.');
             
-        $thumb_img = $this->create_new_image($thumb_width, $thumb_height);
-        $thumb_ratio = $thumb_width / $thumb_height;
-
-        // Calculate crop area if ratio is different
+        if ($crop)
+            if (($maxwidth == 0) || ($maxheight == 0))
+                throw new InvalidArgumentException('To enable cropping you have to set both dimension constrains.');
+            
+        $orig_width = $this->meta['width'];
+        $orig_height = $this->meta['height'];
+        $orig_ratio = $orig_width / $orig_height;
         $orig_x = $orig_y = 0;
-        if ($thumb_ratio > $orig_ratio)
+        $orig_cwidth = $orig_width;
+        $orig_cheight = $orig_height;
+
+        // Calculate dimensions
+        $width = (($maxwidth == 0)?$maxheight * $orig_ratio:$maxwidth);
+        $height = (($maxheight == 0)?$maxwidth / $orig_ratio:$maxheight);
+        $resized_ratio = $width / $height;
+
+        
+        if ($crop)
         {
-            $orig_cheight = $orig_cwidth /  $thumb_ratio;
-            $orig_y = ($orig_height - $orig_cheight) /2;
+            // Calculate crop area if ratio is different.
+            if ($resized_ratio > $orig_ratio)
+            {
+                $orig_cheight = $orig_cwidth /  $resized_ratio;
+                $orig_y = ($orig_height - $orig_cheight) /2;
+            }
+            else
+            {
+                $orig_cwidth = $orig_cheight *  $resized_ratio;
+                $orig_x = ($orig_width - $orig_cwidth) /2;
+            }
         }
         else
         {
-            $orig_cwidth = $orig_cheight *  $thumb_ratio;
-            $orig_x = ($orig_width - $orig_cwidth) /2;
+            // Fix boundries if desired box is not suited.
+            if ($resized_ratio < $orig_ratio)
+                $height = $width / $orig_ratio;
+            else
+                $width = $height * $orig_ratio;
         }
+        
+            
+        $resized = $this->create_new_image($width, $height);
 
-        // Calculate original crop area for retaining aspect ratio
+        // Copy resized image to a new one.
         imagecopyresampled(
-            $thumb_img,     //  Dst image
-            $orig_img,      //  Source image
+            $resized,       //  Dst image
+            $this->image,   //  Source image
             0,              //  Dst_x
             0,              //  Dst_y
             $orig_x,        //  Src_x,
             $orig_y,        //  Src_y,
-            $thumb_width,   //  Dst_width
-            $thumb_height,  //  Dst_height
+            $width,         //  Dst_width
+            $height,        //  Dst_height
             $orig_cwidth,   //  Src_width
             $orig_cheight   //  Src_height
         );
         
         // Save information
-        $this->update_image($thumb_img);
+        $this->update_image($resized);
         return $this;
     }
     
@@ -313,6 +341,12 @@ class Image
     }
     
     //! Crop part of image.
+    /**
+     * @param $left The left-most pixel that crop operation will start.
+     * @param $top The top-most pixel that crop operation will start.
+     * @param $width The new width of cropped image.
+     * @param $height The new height of cropped image.
+     */
     public function crop($left, $top, $width, $height)
     {
         $this->open_image();
