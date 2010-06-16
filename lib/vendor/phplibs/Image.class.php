@@ -24,10 +24,13 @@
 class Image
 {
     //! The filename of the photo
-    private $filename;
+    private $filename = null;
 
     //! The path in file system
-    private $filepath;
+    private $filepath = null;
+    
+    //! Image data
+    private $image_data = null;
     
     //! Image handler
     private $image = null;
@@ -53,7 +56,8 @@ class Image
     {
         // Append default options
         $this->options = array_merge(array(
-            'input' => 'file'
+            'input' => 'file',
+            'matte_color' => null,
         ), $options);
         
         if ($this->options['input'] === 'file')
@@ -61,6 +65,15 @@ class Image
             $this->filepath = $input;
             $this->filename = basename($this->filepath);
         }
+        else
+            $this->image_data = $input;
+    }
+    
+    //! Clean up destructor
+    public function __destruct()
+    {
+        if ($this->image !== null)
+            imagedestroy($this->image);
     }
 
     //! Load meta data from file
@@ -74,6 +87,7 @@ class Image
         {
             $this->meta['type'] = 'string';
             $this->open_image();
+            return;
         }
             
         // File info
@@ -107,27 +121,46 @@ class Image
         else if ($this->meta['type'] === 'gif')
             $this->image = imagecreatefromgif($this->filepath);
         else if ($this->meta['type'] === 'string')
-            $this->update_image(imagecreatefromstring($this->filepath));
+            $this->update_image(imagecreatefromstring($this->image_data));
     }
     
     //! Update image with a new instance
     private function update_image($handler)
     {
+        // Free previous image
+        if ($this->image)
+            imagedestroy($this->image);
+        // Update to new one
         $this->image = $handler;
         $this->meta['width'] = imagesx($this->image);
         $this->meta['height'] = imagesy($this->image);
     }
     
-    //! Get the file system path of this photo
-    public function get_filesystem_path()
+    //! Create a new image based on this one
+    private function create_new_image($width, $height)
     {
-        return $this->filepath;
+        $img = imagecreatetruecolor($width, $height);
+        imagealphablending($img, false);
+        if ($this->meta['type'] == 'gif')
+        {
+            $trans_color = imagecolorsforindex($this->image, imagecolortransparent($this->image));
+            $trans_index = imagecolorallocatealpha(
+                $img,
+                $trans_color['red'],
+                $trans_color['green'], 
+                $trans_color['blue'],
+                $trans_color['alpha']
+            );
+            imagecolortransparent ( $img, $trans_index ); 
+        }
+        return $img;
     }
-
-    //! Get the filename of the photo
-    public function get_filename()
+    
+    //! Get gd resource handle
+    public function gd_handle()
     {
-        return $this->filename;
+        $this->open_image();
+        return $this->image;
     }
     
     //! Get image meta information
@@ -167,9 +200,7 @@ class Image
         $thumb_width = (($width == 0)?$height * $orig_ratio:$width);
         $thumb_height = (($height == 0)?$width / $orig_ratio:$height);
             
-        $thumb_img = imagecreatetruecolor($thumb_width, $thumb_height);
-        imagealphablending($thumb_img, false);
-        imagesavealpha($thumb_img, true);
+        $thumb_img = $this->create_new_image($thumb_width, $thumb_height);
         $thumb_ratio = $thumb_width / $thumb_height;
 
         // Calculate crop area if ratio is different
@@ -196,7 +227,7 @@ class Image
             $thumb_width,   //  Dst_width
             $thumb_height,  //  Dst_height
             $orig_cwidth,   //  Src_width
-            $orig_cheight   // Src_height
+            $orig_cheight   //  Src_height
         );
         
         // Save information
@@ -209,7 +240,7 @@ class Image
      * @param $direction The direction to flip image
      *  - @b hor: Flip image horizontally.
      *  - @b ver: Flip image vertically.
-     *  - @b both:  Flip image in both directions.
+     *  - @b both: Flip image in both directions.
      *  .
      * @return The same instance ($this) of Image.
      */
@@ -241,8 +272,7 @@ class Image
             throw new InvalidArgumentException("Invalid Image::flip() direction \"{$direction}\"!");
         }
         
-        $flipped = imagecreatetruecolor($this->meta['width'], $this->meta['height']);
-        imagealphablending($flipped, false);
+        $flipped = $this->create_new_image($this->meta['width'], $this->meta['height']);
         
         imagecopyresampled($flipped,
             $this->image,
@@ -260,16 +290,8 @@ class Image
         return $this;
     }
     
-    //! Dump this image to output
-    /**
-     * @param $imagetype The type of image to create.
-     *  - @b null: Use same image type as the original
-     *  - @b IMAGETYPE_JPEG: JPEG compression
-     *  - @b IMAGETYPE_PNG: PNG compression
-     *  - @b IMAGETYPE_GIF': GIF compression
-     *  .
-     */
-    public function dump($imagetype = null, $dump_headers = true)
+    //! Generate image output
+    private function generate_output($imagetype, $dump_headers, $to_file = null)
     {
         $this->open_image();
         
@@ -278,7 +300,8 @@ class Image
             throw new InvalidArgumentException("Invalid image type \"${imagetype}\"!");
 
         if ($imagetype == null)
-        {   if ($this->meta['type'] === 'string')
+        {
+            if ($this->meta['type'] === 'string')
                 $imagetype = IMAGETYPE_PNG;
             else if ($this->meta['type'] === 'png')
                 $imagetype = IMAGETYPE_PNG;
@@ -294,14 +317,31 @@ class Image
 
         // Dump headers
         if ($imagetype === IMAGETYPE_JPEG)
-            imagejpeg($this->image);
+            imagejpeg($this->image, $to_file);
         else if ($imagetype === IMAGETYPE_PNG)
         {
             imagesavealpha($this->image, true);
-            imagepng($this->image);
+            imagepng($this->image, $to_file);
         }
         else if ($imagetype === IMAGETYPE_GIF)
-            imagegif($this->image);
+        {
+            imagesavealpha($this->image, true);
+            imagegif($this->image, $to_file);
+        }
+    }
+    
+    //! Dump this image to output
+    /**
+     * @param $imagetype The type of image to create.
+     *  - @b null: Use same image type as the original
+     *  - @b IMAGETYPE_JPEG: JPEG compression
+     *  - @b IMAGETYPE_PNG: PNG compression
+     *  - @b IMAGETYPE_GIF': GIF compression
+     *  .
+     */
+    public function dump($imagetype = null, $dump_headers = true)
+    {
+        return $this->generate_output($imagetype, $dump_headers);
     }
     
     //! Save this image to a file
@@ -310,12 +350,7 @@ class Image
      */
     public function save($filename, $imagetype = null)
     {
-        ob_start();
-        $this->dump($imagetype, false);
-        $data = ob_get_contents();
-        ob_end_clean();
-        file_put_contents($filename, $data);
-        return true;
+        return $this->generate_output($imagetype, false, $filename);
     }
 }
 

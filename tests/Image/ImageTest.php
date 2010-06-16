@@ -52,9 +52,8 @@ class ImageTest extends PHPUnit_Framework_TestCase
             if (preg_match_all('/\((?P<factor>[\d\.]+)\)/', $reply, $matches))
             {
                 $factor = (float)$matches['factor'][0];
-                if ($factor < 0.01)
-                    $equal = true;
-   
+                if ($factor < 0.02)
+                    $equal = true;   
             }
         }
 
@@ -65,7 +64,9 @@ class ImageTest extends PHPUnit_Framework_TestCase
     {
         $tmpfile = tempnam(sys_get_temp_dir(), 'phplibs-imagetest-');
         $img->save($tmpfile);
-        return self::compare_image_files($tmpfile, $file);
+        $response = self::compare_image_files($tmpfile, $file);
+        unlink($tmpfile);
+        return $response;
     }
     
     static public function image_create($input, $options = array())
@@ -92,33 +93,48 @@ class ImageTest extends PHPUnit_Framework_TestCase
     {
         $this->assertSame($equal, self::compare_image_files($file1, $file2));
         $this->assertSame($equal, self::compare_imgobj_file(new Image(dirname(__FILE__) . '/samples/' . $file1), $file2));
+        $this->assertSame($equal, self::compare_imgobj_file(new Image(
+            file_get_contents(dirname(__FILE__) . '/samples/' . $file1), array('input' => 'data'))
+            , $file2
+        ));
     }
     
     public function originalFiles()
     {
-        return array('orig_250x250.png', 'orig_500x250.png');
+        $files = array();
+        
+        foreach(array('orig_250x250.png', 'orig_500x250.png', 'orig_500x250.gif', 'orig_250x250.jpg') as $file)
+        {
+            $files[] = array($file, dirname(__FILE__) . '/samples/'. $file, array());
+            $files[] = array($file, file_get_contents(dirname(__FILE__) . '/samples/' . $file), array('input' => 'data'));
+        }
+
+        return $files;
     }
     
     public function dataFlipFunctions()
     {
         $data = array();
-        
-        foreach ($this->originalFiles() as $file)
+        foreach($this->originalFiles() as $image)
         {
+            $file = $image[0];
+            $input = $image[1];
+            $options = $image[2];
+            
             $data[] = array(
-                self::image_create(dirname(__FILE__) . '/samples/' . $file)->flip('hor'),
+                self::image_create($input, $options)->flip('hor'),
                 dirname(__FILE__) . '/samples/flip/hor_' . $file,
                 true
             );
             
             $data[] = array(
-                self::image_create(dirname(__FILE__) . '/samples/' . $file)->flip('ver'),
+                self::image_create($input, $options)->flip('ver'),
                 dirname(__FILE__) . '/samples/flip/ver_' . $file,
                 true
             );
             
             $data[] = array(
-                self::image_create(dirname(__FILE__) . '/samples/' . $file)->flip('both'),
+                self::image_create($input, $options)->flip('both'),
                 dirname(__FILE__) . '/samples/flip/both_' . $file,
                 true
             );
@@ -130,7 +146,7 @@ class ImageTest extends PHPUnit_Framework_TestCase
      * @dataProvider dataFlipFunctions
      */
     public function testFlipFunctions($img, $file, $equal)
-    {
+    {   
         $this->assertSame($equal, self::compare_imgobj_file($img, $file));
     }
 }
