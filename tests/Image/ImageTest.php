@@ -63,7 +63,7 @@ class ImageTest extends PHPUnit_Framework_TestCase
     static public function compare_imgobj_file(Image $img, $file)
     {
         $tmpfile = tempnam(sys_get_temp_dir(), 'phplibs-imagetest-');
-        $img->save($tmpfile);
+        $img->save($tmpfile, array('quality' => 100));
         $response = self::compare_image_files($tmpfile, $file);
         unlink($tmpfile);
         return $response;
@@ -108,7 +108,6 @@ class ImageTest extends PHPUnit_Framework_TestCase
             $files[] = array($file, dirname(__FILE__) . '/samples/'. $file, array());
             $files[] = array($file, file_get_contents(dirname(__FILE__) . '/samples/' . $file), array('input' => 'data'));
         }
-
         return $files;
     }
     

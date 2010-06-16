@@ -151,7 +151,7 @@ class Image
                 $trans_color['blue'],
                 $trans_color['alpha']
             );
-            imagecolortransparent ( $img, $trans_index ); 
+            imagecolortransparent($img, $trans_index);
         }
         return $img;
     }
@@ -274,7 +274,8 @@ class Image
         
         $flipped = $this->create_new_image($this->meta['width'], $this->meta['height']);
         
-        imagecopyresampled($flipped,
+        imagecopyresampled(
+            $flipped,
             $this->image,
             0,
             0,
@@ -291,11 +292,23 @@ class Image
     }
     
     //! Generate image output
-    private function generate_output($imagetype, $dump_headers, $to_file = null)
+    private function generate_output($options = array(), $dump_headers, $to_file = null)
     {
         $this->open_image();
         
+        // Normalize options
+        $options = array_merge(array(
+            'quality' => null,
+            'format' => null
+        ), $options);
+        if ($options['quality'] !== null)
+        {
+            $options['quality'] = ($options['quality']>100?100:$options['quality']);
+            $options['quality'] = ($options['quality']<0?0:$options['quality']);
+        }
+        
         // Decide output image type
+        $imagetype = $options['format'];
         if (!in_array($imagetype, array(IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, null), true))
             throw new InvalidArgumentException("Invalid image type \"${imagetype}\"!");
 
@@ -317,9 +330,14 @@ class Image
 
         // Dump headers
         if ($imagetype === IMAGETYPE_JPEG)
-            imagejpeg($this->image, $to_file);
+        {
+            $quality = ($options['quality'] === null?75:$options['quality']);
+            imagejpeg($this->image, $to_file, $quality);
+        }
         else if ($imagetype === IMAGETYPE_PNG)
         {
+            $quality = ($options['quality'] === null?100:$options['quality']);
+            $quality = round((100 - $quality) * 0.09);
             imagesavealpha($this->image, true);
             imagepng($this->image, $to_file);
         }
@@ -332,25 +350,28 @@ class Image
     
     //! Dump this image to output
     /**
-     * @param $imagetype The type of image to create.
-     *  - @b null: Use same image type as the original
-     *  - @b IMAGETYPE_JPEG: JPEG compression
-     *  - @b IMAGETYPE_PNG: PNG compression
-     *  - @b IMAGETYPE_GIF': GIF compression
-     *  .
+     * @param $options An associative array with options:
+     *
+     *  - @b format [Default = null]: The format of image to create.
+     *      - @b null: Use same image type as the original
+     *      - @b IMAGETYPE_JPEG: JPEG compression
+     *      - @b IMAGETYPE_PNG: PNG compression
+     *      - @b IMAGETYPE_GIF': GIF compression
+     *      .
+     *  - @b quality [Default = null] The quality of compression from @b 0 (full comp) to @b 100 (no comp).
      */
-    public function dump($imagetype = null, $dump_headers = true)
+    public function dump($options = array(), $dump_headers = true)
     {
-        return $this->generate_output($imagetype, $dump_headers);
+        return $this->generate_output($options, $dump_headers);
     }
     
     //! Save this image to a file
     /**
      * @return true on success.
      */
-    public function save($filename, $imagetype = null)
+    public function save($filename, $options = array())
     {
-        return $this->generate_output($imagetype, false, $filename);
+        return $this->generate_output($options, false, $filename);
     }
 }
 
