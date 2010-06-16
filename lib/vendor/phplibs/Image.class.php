@@ -20,12 +20,9 @@
  */
  
  
-//! Image handler
+//! Image manipulation and conversion
 class Image
 {
-    //! The filename of the photo
-    private $filename = null;
-
     //! The path in file system
     private $filepath = null;
     
@@ -63,7 +60,6 @@ class Image
         if ($this->options['input'] === 'file')
         {
             $this->filepath = $input;
-            $this->filename = basename($this->filepath);
         }
         else
             $this->image_data = $input;
@@ -332,33 +328,34 @@ class Image
         if ($imagetype === IMAGETYPE_JPEG)
         {
             $quality = ($options['quality'] === null?75:$options['quality']);
-            imagejpeg($this->image, $to_file, $quality);
+            $res = imagejpeg($this->image, $to_file, $quality);
         }
         else if ($imagetype === IMAGETYPE_PNG)
         {
             $quality = ($options['quality'] === null?100:$options['quality']);
             $quality = round((100 - $quality) * 0.09);
             imagesavealpha($this->image, true);
-            imagepng($this->image, $to_file);
+            $res = imagepng($this->image, $to_file);
         }
         else if ($imagetype === IMAGETYPE_GIF)
         {
             imagesavealpha($this->image, true);
-            imagegif($this->image, $to_file);
+            $res = imagegif($this->image, $to_file);
         }
+        return $res;
     }
     
     //! Dump this image to output
     /**
      * @param $options An associative array with options:
-     *
      *  - @b format [Default = null]: The format of image to create.
      *      - @b null: Use same image type as the original
      *      - @b IMAGETYPE_JPEG: JPEG compression
      *      - @b IMAGETYPE_PNG: PNG compression
      *      - @b IMAGETYPE_GIF': GIF compression
      *      .
-     *  - @b quality [Default = null] The quality of compression from @b 0 (full comp) to @b 100 (no comp).
+     *  - @b quality [Default = null]: The quality of compression from @b 0 (full comp) to @b 100 (no comp).
+     *  .
      */
     public function dump($options = array(), $dump_headers = true)
     {
@@ -367,11 +364,33 @@ class Image
     
     //! Save this image to a file
     /**
-     * @return true on success.
+     * @param $filename The file to save image.
+     * @param $options Options to pass output generator. For details
+     *  look at dump() $options argument.
+     * @return 
+     *  - @b true on success.
+     *  - @b false on error.
+     *  .
      */
     public function save($filename, $options = array())
     {
         return $this->generate_output($options, false, $filename);
+    }
+    
+    //! Save image to string
+    /**
+     * @param $options Options to pass output generator. For details
+     *  look at dump() $options argument.
+     * @return @b string with the data of image.
+     */
+    public function data($options = array())
+    {
+  		$data = null;
+		ob_start();
+		$this->dump($options, false);
+		$data = ob_get_contents();
+		ob_end_clean();
+		return $data;
     }
 }
 

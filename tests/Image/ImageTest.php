@@ -99,6 +99,23 @@ class ImageTest extends PHPUnit_Framework_TestCase
         ));
     }
     
+    public function testWriteFunctions()
+    {
+        $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.png');
+        $tmpfile = tempnam(sys_get_temp_dir(), 'phplibs-imagetest-');
+        $img->save($tmpfile);
+        
+        $this->assertEquals(file_get_contents($tmpfile), $img->data());
+        unlink($tmpfile);
+        
+        ob_start();
+        $img->dump(array(), false);
+        $output = ob_get_contents();
+        ob_end_clean();
+        
+        $this->assertEquals($output, $img->data());
+    }
+    
     public function originalFiles()
     {
         $files = array();
