@@ -40,8 +40,8 @@ class Image
     
     //! Construct an image object
     /**
-     * @param $input The image file path or raw data of the image. If you are
-     *  providing raw data set option 'input' => @b 'data'.
+     * @param $input The image file path or content data of the image. If you are
+     *  providing data set option 'input' => @b 'data'.
      * @param $options An associative array of options to be passed at image.
      *  - @b 'input': Set the type of input. Acceptable values are:
      *      -@b 'file': The input is a path to a filename.
@@ -54,7 +54,6 @@ class Image
         // Append default options
         $this->options = array_merge(array(
             'input' => 'file',
-            'matte_color' => null,
         ), $options);
         
         if ($this->options['input'] === 'file')
@@ -126,6 +125,7 @@ class Image
         // Free previous image
         if ($this->image)
             imagedestroy($this->image);
+
         // Update to new one
         $this->image = $handler;
         $this->meta['width'] = imagesx($this->image);
@@ -287,6 +287,67 @@ class Image
         return $this;
     }
     
+    //! Rotate image clockwise N degrees.
+    /**
+     * @param $degrees The angle of rotation measured in degrees in a clockwise direction.
+     * @return The same instance ($this) of Image.
+     */
+    public function rotate($degrees)
+    {
+        $this->open_image();
+        $img = imagerotate($this->image, - $degrees, imagecolortransparent($this->image));
+        if ($this->meta['type'] == 'gif')
+        {
+            $trans_color = imagecolorsforindex($this->image, imagecolortransparent($this->image));
+            $trans_index = imagecolorallocatealpha(
+                $img,
+                $trans_color['red'],
+                $trans_color['green'], 
+                $trans_color['blue'],
+                $trans_color['alpha']
+            );
+            imagecolortransparent($img, $trans_index);
+        }
+        $this->update_image($img);
+        return $this;
+    }
+    
+    //! Crop part of image.
+    public function crop($left, $top, $width, $height)
+    {
+        $this->open_image();
+        
+        // Check parameters
+        if (($left < 0)  || ($left >= $this->meta['width']))
+            throw new InvalidArgumentException('$left has a value out of image boundries');
+
+        if (($top < 0)  || ($top >= $this->meta['height']))
+            throw new InvalidArgumentException('$top has a value out of image boundries');
+
+        if (($width <= 0)  || (($left + $width) > $this->meta['width']))
+            throw new InvalidArgumentException('$width has a value out of image boundries');
+
+        if (($height <= 0)  || (($top + $height) > $this->meta['height']))
+            throw new InvalidArgumentException('$height has a value out of image boundries');
+            
+        $cropped = $this->create_new_image($width, $height);
+        imagecopyresampled(
+            $cropped,
+            $this->image,
+            0,
+            0,
+            $left,
+            $top,
+            $width,
+            $height,
+            $width,
+            $height
+        );
+        
+        $this->update_image($cropped);
+        return $this;
+    }
+    
     //! Generate image output
     private function generate_output($options = array(), $dump_headers, $to_file = null)
     {
@@ -356,6 +417,7 @@ class Image
      *      .
      *  - @b quality [Default = null]: The quality of compression from @b 0 (full comp) to @b 100 (no comp).
      *  .
+     * @see save(), data()
      */
     public function dump($options = array(), $dump_headers = true)
     {
@@ -371,6 +433,7 @@ class Image
      *  - @b true on success.
      *  - @b false on error.
      *  .
+     * @see data(), dump()
      */
     public function save($filename, $options = array())
     {
@@ -382,6 +445,7 @@ class Image
      * @param $options Options to pass output generator. For details
      *  look at dump() $options argument.
      * @return @b string with the data of image.
+     * @see save(), dump()
      */
     public function data($options = array())
     {

@@ -122,8 +122,8 @@ class ImageTest extends PHPUnit_Framework_TestCase
         
         foreach(array('orig_250x250.png', 'orig_500x250.png', 'orig_500x250.gif', 'orig_250x250.jpg') as $file)
         {
-            $files[] = array($file, dirname(__FILE__) . '/samples/'. $file, array());
-            $files[] = array($file, file_get_contents(dirname(__FILE__) . '/samples/' . $file), array('input' => 'data'));
+           $files[] = array($file, dirname(__FILE__) . '/samples/'. $file, array());
+           $files[] = array($file, file_get_contents(dirname(__FILE__) . '/samples/' . $file), array('input' => 'data'));
         }
         return $files;
     }
@@ -165,5 +165,129 @@ class ImageTest extends PHPUnit_Framework_TestCase
     {   
         $this->assertSame($equal, self::compare_imgobj_file($img, $file));
     }
+    
+    //! Provide rotate functions
+    public function dataRotateFunctions()
+    {
+        $data = array();
+        foreach($this->originalFiles() as $image)
+        {
+            $file = $image[0];
+            $input = $image[1];
+            $options = $image[2];
+            
+            foreach(array('90', '180', '270') as $rotate)
+                $data[] = array(
+                    self::image_create($input, $options)->rotate($rotate),
+                    dirname(__FILE__) . "/samples/rotate/{$rotate}_$file",
+                    true
+                );
+        }
+        return $data;
+    }
+    
+    /**
+     * @dataProvider dataRotateFunctions
+     */
+    public function testRotateFunctions($img, $file, $equal)
+    {   
+        $this->assertSame($equal, self::compare_imgobj_file($img, $file));
+    }
+    
+    public function dataCropValidBoundries()
+    {
+        return array(
+            array(0, 0, 500, 250),
+            array(1, 1, 499, 249),
+            array(499, 249, 1, 1),
+            array(50, 50, 450, 200),
+        );
+    }
+    
+    /**
+     * @dataProvider dataCropValidBoundries
+     */
+    public function testCropValidBoundries($left, $top, $width, $height)
+    {
+        $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.gif');
+        $img->crop($left, $top, $width, $height);
+        $this->assertEquals($img->get_meta_info('height'), $height);
+        $this->assertEquals($img->get_meta_info('width'), $width);
+    }
+    
+    
+    public function dataCropInvalidBoundries()
+    {
+        return array(
+            array(0, 0, 501, 250),
+            array(0, 0, 500, 251),
+            array(-1, 0, 500, 250),
+            array(0, -1, 500, 250),
+            array(50, 50, 451, 200),
+            array(50, 50, 450, 201),
+            array(50, 50, 0, 0),
+            array(500, 250, 0, 0),
+        );
+    }
+    
+    /**
+     * @dataProvider dataCropInvalidBoundries
+     * @expectedException InvalidArgumentException
+     */
+    public function testCropInvalidBoundries($left, $top, $width, $height)
+    {
+        $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.gif');
+        $img->crop($left, $top, $width, $height);
+        $this->assertEquals($img->get_meta_info('height'), $height);
+        $this->assertEquals($img->get_meta_info('width'), $width);
+    }
+
+    public function dataCropFunctions()
+    {
+        $data = array();
+        foreach($this->originalFiles() as $image)
+        {
+            $file = $image[0];
+            $input = $image[1];
+            $options = $image[2];
+            
+            if (strstr($file, '500'))
+                $data[] = array(
+                    self::image_create($input, $options)->crop(235, 50, 115, 145),
+                    dirname(__FILE__) . '/samples/crop/235_50_115_145_' . $file,
+                    true
+                );
+            else
+                $data[] = array(
+                    self::image_create($input, $options)->crop(20, 30, 115, 145),
+                    dirname(__FILE__) . '/samples/crop/20_30_115_145_' . $file,
+                    true
+                );
+        }
+        return $data;
+    }
+    
+    /**
+     * @dataProvider dataCropFunctions
+     */
+    public function testCropFunctions($img, $file, $equal)
+    {   
+        $this->assertSame($equal, self::compare_imgobj_file($img, $file));
+    }
+    
+    public function testCurrent()
+    {
+        $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.gif');
+        $img->crop(10, 10 , 100, 100);
+        $img->save(dirname(__FILE__) . '/test.gif');
+        
+        $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.png');
+        $img->crop(10, 10 , 100, 100);
+        $img->save(dirname(__FILE__) . '/test.png');
+    }
+    
+
+    
+
 }
 ?>
