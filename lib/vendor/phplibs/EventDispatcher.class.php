@@ -114,7 +114,8 @@ class EventDispatcher
      * @param $event_names An array with all events that will be declared
      */
     public function __construct($event_names = array())
-    {   foreach($event_names as $e)
+    {   
+        foreach($event_names as $e)
             self::declare_event($e);
     }
     
@@ -124,7 +125,8 @@ class EventDispatcher
      * @return @b true if it was declared otherwise @b false
      */
     public function declare_event($event_name)
-    {   // Must be a valid value
+    {   
+        // Must be a valid value
         if (empty($event_name))
             return false;
             
@@ -159,7 +161,8 @@ class EventDispatcher
      * @return @b true if it has listener otherwise @b false
      */
     public function has_listener($event_name, $callable)
-    {   // Check global listeners
+    {   
+        // Check global listeners
         if ($event_name === NULL)
             return (array_search($callable, $this->global_listeners, true) !== false);
 
@@ -176,7 +179,8 @@ class EventDispatcher
      * @return @b Array with callbacks or @b NULL if event is unknown.
      */
     public function get_listeners($event_name)
-    {   // Check for global listeners
+    {   
+        // Check for global listeners
         if ($event_name === NULL)
             return $this->global_listeners;
 
@@ -193,10 +197,12 @@ class EventDispatcher
      * @return @b true if it was connected succesfully or @b false on any error.
      */
     public function connect($event_name, $callable)
-    {   // Check if it wants to connect to global listeners
+    {   
+        // Check if it wants to connect to global listeners
         if ($event_name === NULL)
         {   if (array_search($callable, $this->global_listeners, true) === false)
-            {   $this->global_listeners[] = $callable;
+            {   
+                $this->global_listeners[] = $callable;
                 return true;
             }
             return false;
@@ -227,7 +233,8 @@ class EventDispatcher
         {   $cb_key = array_search($callable, $this->global_listeners, true);
 
             if ($cb_key !== false)
-            {   unset($this->global_listeners[$cb_key]);
+            {   
+                unset($this->global_listeners[$cb_key]);
                 $this->global_listeners = array_values($this->global_listeners);
                 return true;
             }
@@ -256,7 +263,8 @@ class EventDispatcher
      * @throws InvalidArgumentException if the $event_name is not valid
      */
     public function notify($event_name, $arguments = array())
-    {   if (! $this->has_event($event_name))
+    {   
+        if (! $this->has_event($event_name))
             throw new InvalidArgumentException("Cannot notify unknown ${event_name}");
 
         // Create event object
@@ -264,13 +272,15 @@ class EventDispatcher
         
         // Call event listeners
         foreach($this->event_listeners[$event_name] as $callback)
-        {   call_user_func($callback, $e);
+        {
+            call_user_func($callback, $e);
             $e->processed = true;   // Mark it as processed
         }
         
         // Call global listeners
         foreach($this->global_listeners as $callback)
-        {   call_user_func($callback, $e);
+        {
+            call_user_func($callback, $e);
             $e->processed = true;   // Mark it as processed
         }
 
@@ -285,7 +295,8 @@ class EventDispatcher
      * @throws InvalidArgumentException if the $event_name is not valid
      */
     public function notify_until($event_name, $arguments = array())
-    {   if (! $this->has_event($event_name))
+    {   
+        if (! $this->has_event($event_name))
             throw new InvalidArgumentException("Cannot notify_until unknown ${event_name}");
 
         // Create event object
@@ -294,14 +305,16 @@ class EventDispatcher
         // Call event listeners
         foreach($this->event_listeners[$event_name] as $callback)
         	if (call_user_func($callback, $e) !== NULL)
-            {	$e->processed = true;   // Mark it as processed
+            {	
+                $e->processed = true;   // Mark it as processed
 				return $e;
 			}
         
         // Call global listeners
         foreach($this->global_listeners as $callback)
 			if (call_user_func($callback, $e) !== NULL)
-            {	$e->processed = true;   // Mark it as processed
+            {	
+                $e->processed = true;   // Mark it as processed
 				return $e;
 			}
 
@@ -317,7 +330,8 @@ class EventDispatcher
      * @throws InvalidArgumentException if the $event_name is not valid
      */
     public function filter($event_name, & $value, $arguments = array())
-    {   if (! $this->has_event($event_name))
+    {   
+        if (! $this->has_event($event_name))
             throw new InvalidArgumentException("Cannot filter unknown ${event_name}");
 
         // Create event object
@@ -326,13 +340,15 @@ class EventDispatcher
         
         // Call event listeners
         foreach($this->event_listeners[$event_name] as $callback)
-        {   call_user_func($callback, $e);
+        {   
+            call_user_func($callback, $e);
             $e->processed = true;   // Mark it as processed
         }
         
         // Call global listeners
         foreach($this->global_listeners as $callback)
-        {   call_user_func($callback, $e);
+        {   
+            call_user_func($callback, $e);
             $e->processed = true;   // Mark it as processed
         }
 

@@ -184,7 +184,7 @@ class Net_HTTP_Cookie
     }
 
     //! Open a cookie received through web server
-    public function open($name)
+    public static function open($name)
     {
         if (!isset($_COOKIE[$name]))
             return false;

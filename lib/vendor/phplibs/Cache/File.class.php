@@ -57,12 +57,16 @@ class Cache_File extends Cache
 	}
 	
 	public function set($key, $value, $ttl = 0)
-	{	if (($fh = fopen($this->filename_by_key($key),'w+')) === false)
+	{
+	    if (($fh = @fopen($this->filename_by_key($key),'w+')) === false)
 			return false; 
 		
 		// Lock file
 		if (flock($fh, LOCK_EX) === false)
-		{	fclose($fh);	return false;	}
+		{
+		    fclose($fh);
+		    return false;
+		}
 		
 		// Write data
 		fwrite($fh, serialize(array(
@@ -76,26 +80,31 @@ class Cache_File extends Cache
 	}
 	
 	public function set_multi($values, $ttl = 0)
-	{	foreach($values as $key => $value)
+	{
+	    foreach($values as $key => $value)
 			$this->set($key, $value, $ttl);
 	    return true;
 	}
 	
 	public function add($key, $value, $ttl = 0)
-	{	if (file_exists($this->filename_by_key($key)))
+	{
+	    if (file_exists($this->filename_by_key($key)))
 			return false;
 		return $this->set($key, $value, $ttl);
 	}
 	
 	public function get($key, & $succeded)
-	{	if (($fh = @fopen(($fname = $this->filename_by_key($key)),'r')) === false)
-		{	$succeded = false;
+	{
+	    if (($fh = @fopen(($fname = $this->filename_by_key($key)),'r')) === false)
+		{
+		    $succeded = false;
 			return false;
 		}
 		
 		// Lock file
 		if (flock($fh, LOCK_SH) === false)
-		{	fclose($fh);
+		{
+		    fclose($fh);
 			$succeded = false;
 			return false;
 		}
@@ -106,14 +115,16 @@ class Cache_File extends Cache
 		
 		// Unserialize data
 		if (($data = @unserialize($data)) === FALSE)
-		{	unlink($fname);
+		{
+		    unlink($fname);
 			$succeded = false;
 			return false;
 		}
 		
 		// Check expired
 		if (($data['expires'] !== 0) && ($data['expires'] < time()))
-		{	unlink($fname);
+		{
+		    unlink($fname);
 			$succeded = false;
 			return false;
 		}
@@ -123,7 +134,8 @@ class Cache_File extends Cache
 	}
 
 	public function get_multi($keys)
-	{	$result = array();
+	{
+	    $result = array();
 		foreach($keys as $key)
 		{	$value = $this->get($key, $succ);
 			if ($succ === TRUE)
@@ -133,11 +145,13 @@ class Cache_File extends Cache
 	}
 	
 	public function delete($key)
-	{	return @unlink($this->filename_by_key($key));
+	{
+	    return @unlink($this->filename_by_key($key));
 	}
 	
 	public function delete_all()
-	{	if (($dh = opendir($this->directory)) === FALSE)
+	{
+	    if (($dh = opendir($this->directory)) === FALSE)
 			return false;
 			
 		while((($entry = readdir($dh)) !== FALSE))

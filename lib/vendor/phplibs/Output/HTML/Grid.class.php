@@ -191,7 +191,7 @@ class Output_HTML_Grid
     // Render column captions only
     private function render_column_captions()
     {	// Render Headers
-		$tr = tag('tr class="ui-headers"');
+		$thead = tag('thead', $tr = tag('tr class="ui-headers"'));
 		foreach($this->columns as $col_id => $c)
 		{	$tr->append($th = tag('th', $c['caption']));
 		
@@ -206,7 +206,7 @@ class Output_HTML_Grid
 			foreach($c['htmlattribs'] as $n => $v)
 				$th->attr($n, $v);
 		}
-		return $tr;
+		return $thead;
     }
     
     // Render page controls
