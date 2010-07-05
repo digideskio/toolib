@@ -59,7 +59,7 @@ class Authn_Session_Cache implements Authn_Session
 
         // Create a new sessionid
         // Uniqid() without $entropy = true is just an alias for mircoseconds.
-        // rand() is an direct call to system's libc rand implementation preseeded.
+        // rand() is a direct call to system's libc rand implementation preseeded.
         // mt_rand() is a better random generator that will be prefixed to uniqid
         // sha1() just hides clues about returned values of mt_rand() and uniquid()
         // however it does not protect you if mt_rand() and uniqid() are time dependant.

@@ -27,14 +27,14 @@ class Config
 
     //! Check if an option exists
     public static function exists($name)
-    {	if (!isset(self::$options[$name]))
-            return false;
-        return true;
+    {
+        return isset(self::$options[$name]);
     }
 
     //! Return null if the option is not found or the value of it
     public static function get($name)
-    {	if (!self::exists($name))
+    {
+        if (!self::exists($name))
             return NULL;
         return self::$options[$name];
     }
@@ -47,7 +47,8 @@ class Config
     
     //! Add a new option. Option must not exists
     public static function add($name, $value)
-    {	if (self::exists($name))
+    {
+        if (self::exists($name))
             return NULL;
         return self::$options[$name] = $value;
     }
