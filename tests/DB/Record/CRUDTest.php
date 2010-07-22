@@ -329,7 +329,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 
     public function testCreate()
     {
-        // Create single pk record
+        // Create single pk-ai record
         $f = Forum::create(array('title' => 'my title'));
         $this->assertType('Forum',  $f);
         $this->assertEquals($f->title, 'my title');
@@ -340,6 +340,19 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
         $this->assertType('Forum',  $f2);
         $this->assertEquals($f2->title, 'my title');
         $this->assertEquals($f2->id, $f->id);
+        
+        // Create single pk-ai with user defined pk
+        $f = Forum::create(array('id' => '55', 'title' => 'my title'));
+        $this->assertType('Forum',  $f);
+        $this->assertEquals($f->title, 'my title');
+        $this->assertType('integer', $f->id);
+        $this->assertEquals(55, $f->id);
+        
+        // Open created
+        $f2 = Forum::open($f->id);
+        $this->assertType('Forum',  $f2);
+        $this->assertEquals($f2->title, 'my title');
+        $this->assertEquals($f2->id, 55);
 
         // Create with default values
         $f = Forum::create();

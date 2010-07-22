@@ -345,7 +345,6 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('', $m->db_field_data('id', false));
         $this->assertEquals('', $m->db_field_data('id', null));
         $this->assertSame(null, $m->db_field_data('id', null));
-        var_dump($m->db_field_data('id', null));
 
         // Datetime external -> db
         $this->assertEquals(null, $m->db_field_data('date', null)); // Null is always null

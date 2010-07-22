@@ -85,6 +85,15 @@ function esc_html($text)
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
 
+//! Escape white space
+function esc_sp($str, $tab_width = '4', $nobreak = true)
+{
+    $esc_char = ($nobreak?'&nbsp;':'&ensp;');
+    $str = str_replace(' ', $esc_char, $str);
+    $str = mb_ereg_replace("\t", str_repeat($esc_char, $tab_width), $str);
+    return $str;
+}
+
 //! Escape javascript code
 function esc_js($str)
 {

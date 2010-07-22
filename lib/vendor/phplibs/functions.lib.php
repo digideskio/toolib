@@ -22,8 +22,8 @@
 
 // Sample a part of the text and return the result with three dots at the end (if needed)
 function text_sample($text, $length)
-{	$text_length = strlen($text);
-	
+{	
+    $text_length = strlen($text);
 	if ($text_length < $length)
 		return $text;
 		
@@ -36,12 +36,14 @@ function text_sample($text, $length)
  * is removed.
  */
 function preg_matches_remove_unamed($matches)
-{   $fmatches = $matches; // Filtered array
+{
+    $fmatches = $matches; // Filtered array
     $idx_count = 0;
     foreach($matches as $idx => $match)
     {
         if ($idx !== $idx_count)
-        {   unset($fmatches[$idx_count]);
+        {
+            unset($fmatches[$idx_count]);
             continue;
         }
         $idx_count++;
@@ -58,12 +60,23 @@ if (!function_exists('get_called_class'))
 		and there are cases that will not work.
 	*/
 	function get_called_class()
-	{	$bt = debug_backtrace();
+	{	
+	    $bt = debug_backtrace();
 		$lines = file($bt[1]['file']);
-		preg_match('/([a-zA-Z0-9\_]+)::'.$bt[1]['function'].'/',
-		           $lines[$bt[1]['line']-1],
-		           $matches);
-		return $matches[1];
+		$cur_line = $bt[1]['line'] - 1;
+		while($cur_line > 0)
+		{
+		    if (strpos($lines[$cur_line], '::' . $bt[1]['function']) === False)
+		    {   
+		        $cur_line -= 1;
+		        continue;
+		    }
+		    preg_match('/([a-zA-Z0-9\_]+)::'.$bt[1]['function'].'/',
+		               $lines[$cur_line],
+		               $matches);
+		    return $matches[1];
+		}
+		return null;
 	}
 }
 
@@ -86,6 +99,19 @@ if ( !function_exists('sys_get_temp_dir')) {
 		return null;
 	}
 }
+
+if ( !function_exists('gzdecode')) {
+    function gzdecode($data)
+    {
+        $temp_fname = tempnam(sys_get_temp_dir(), 'ff');
+        @file_put_contents($temp_fname, $data);
+        ob_start();
+        readgzfile($temp_fname);
+        $data = ob_get_clean();
+        unlink($temp_fname);
+        return $data;
+    }
+}
  
 function get_static_var($class_name, $var_name)
 {
@@ -97,7 +123,8 @@ function get_static_var($class_name, $var_name)
 }
 
 function isset_static_var($class_name, $var_name)
-{   /* Too much noise
+{
+    /* Too much noise
 	if (version_compare(PHP_VERSION, '5.3.0', '>='))
 		error_log('isset_static_var() should not be used with PHP >= 5.3 as there is native support.!');
     */  

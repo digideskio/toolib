@@ -171,8 +171,8 @@ class DB_Record
 
 	//! Declare 1-to-many relationship
 	static public function one_to_many($many_model_name, $one_rel_name, $many_rel_name)
-	{	$model_name = get_called_class();
-
+	{
+	    $model_name = get_called_class();
 	    self::$dynamic_relationships[$model_name][$many_rel_name] = 
 	        array('type' => 'many', 'foreign_model' => $many_model_name);
 
@@ -183,8 +183,8 @@ class DB_Record
 
 	//! Declare 1-to-many relationship
 	static public function many_to_many($foreign_model_name, $bridge_model_name, $foreign_rel_name, $local_rel_name)
-	{	$model_name = get_called_class();
-
+	{
+	    $model_name = get_called_class();
 	    self::$dynamic_relationships[$model_name][$local_rel_name] = array(
 	        'type' => 'bridge',
 	        'foreign_model' => $foreign_model_name,
@@ -335,7 +335,8 @@ class DB_Record
 	 *  - @b false on any kind of error.
 	 */
 	static public function create($args = array(), $model_name = NULL)
-	{	if ($model_name === NULL)
+	{
+	    if ($model_name === NULL)
 			$model_name = get_called_class();
 
 	    // Initialize model
@@ -355,10 +356,10 @@ class DB_Record
 		$values = array();
 		foreach($model->fields(true) as $field_name => $field)
 		{	
-		    if ($field['ai'])
-				continue;	// We cannot set values for ai fields
 			if (isset($args[$field_name]))
 				$values[$field_name] = $model->db_field_data($field_name, $args[$field_name]);
+		    else if ($field['ai'])
+				continue;	// There is no default values for AI fields
 			else if ($field['default'] != FALSE)
 				$values[$field_name] = $model->db_field_data($field_name, $field['default']);
 			else if ($field['pk'])
@@ -380,7 +381,8 @@ class DB_Record
 	
 		// Fill autoincrement fields
 		if (count($model->ai_fields()) > 0)
-		{	$ai = $model->ai_fields(false);
+		{
+		    $ai = $model->ai_fields(false);
 			$values[$ai[0]] = DB_Conn::last_insert_id();
 		}
 		
