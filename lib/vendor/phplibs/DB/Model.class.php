@@ -318,7 +318,8 @@ class DB_Model
 		else if ($field['type'] === 'datetime')
 		{
 		    $utc_time = new DateTime($db_data, new DateTimeZone(self::$database_time_zone));
-			return $utc_time->setTimeZone(new DateTimeZone(date_default_timezone_get()));
+			$utc_time->setTimeZone(new DateTimeZone(date_default_timezone_get()));
+			return $utc_time;
         }
 
 		// Unknown type return same

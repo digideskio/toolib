@@ -473,7 +473,7 @@ class DB_Conn
         $bnd_res = array_fill(0, $stmt->field_count, NULL);
         $bnd_param = array();
         foreach($bnd_res as $k => &$bnd)
-        $bnd_param[] = & $bnd;
+        	$bnd_param[] = & $bnd;
         unset($bnd);
         $stmt->store_result();
         call_user_func_array(array($stmt, 'bind_result'), $bnd_param);

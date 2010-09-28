@@ -241,18 +241,20 @@ class Output_HTML_Grid
 		// First button
 		$span = etag('span class="ui-grid-first"', 'First');		
 		if ($firstpage != false)
-			$span->attr('onclick', '$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+			$span->attr('onclick', '$(\'form#' . $this->grid_id . ' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
 				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'1\');' .
-				' $(\'form#' . $this->grid_id . '\').submit();');
+				' $(\'form#' . $this->grid_id . '\').submit();')
+		    ->add_class('ui-grid-active');
 		else
 			$span->add_class('ui-grid-inactive');
-		etag('span html_escape_off', ' &#8226;');
+		etag('span html_escape_off', ' &#8226; ');
 		
 		$span = etag('span class="ui-grid-previous"', 'Previous');
 		if ($previouspage != false)
-			$span->attr('onclick', '$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+			$span->attr('onclick', '$(\'form#' . $this->grid_id . ' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
 				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $previouspage .'\');' .
-				' $(\'form#' . $this->grid_id . '\').submit();');
+				' $(\'form#' . $this->grid_id . '\').submit();')
+		    ->add_class('ui-grid-active');
 		else
 			$span->add_class('ui-grid-inactive');
 		etag('span html_escape_off', ' &#8226; ');
@@ -260,9 +262,10 @@ class Output_HTML_Grid
 		// Next button
 		$span = etag('span class="ui-grid-next"', 'Next');
 		if ($nextpage != false)
-			$span->attr('onclick','$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
+			$span->attr('onclick','$(\'form#' . $this->grid_id . ' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
 				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $nextpage . '\');' .
-				' $(\'form#' . $this->grid_id . '\').submit();');
+				' $(\'form#' . $this->grid_id . '\').submit();')
+		    ->add_class('ui-grid-active');				
 		else
 			$span->add_class('ui-grid-inactive');
 		etag('span html_escape_off', ' &#8226; ');
@@ -271,7 +274,8 @@ class Output_HTML_Grid
 		if ($lastpage != false)
 			$span->attr('onclick','$(\'form#' . $this->grid_id . 	' input[name=libgrid_backend_action]\').val(\'changepage\'); ' .
 				' $(\'form#' . $this->grid_id . ' input[name=libgrid_backend_startrow]\').val(\'' . $lastpage . '\');' .
-				' $(\'form#' . $this->grid_id . '\').submit();');
+				' $(\'form#' . $this->grid_id . '\').submit();')
+		    ->add_class('ui-grid-active');
 		else
 			$span->add_class('ui-grid-inactive');		
 		

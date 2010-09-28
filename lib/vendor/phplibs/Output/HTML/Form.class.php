@@ -49,6 +49,9 @@ require_once dirname(__FILE__) . '/../html.lib.php';
  *   - @b on_nopost():\n
  *       Called when the form was requested using GET and no data where posted from the user.
  *       (When user see the form for the first time)
+ *   - @b on_postrender():\n
+ *       Called after the generation of the form. The first argument of the function is the
+ *       DOM tree of the generated html code.
  *   .
  *
  *   @par Example
@@ -230,14 +233,14 @@ class Output_HTML_Form
             you set it false you can render the form using render() function of the created object at any
             place in your page.
         .\n\n
-    @p Example:
+    @par Example:
     @code
     Output_HTML_Form::__construct(
         array(... fields ...),
         array('title' => 'My Duper Form', 'buttons' => array('ok' => array('display' => 'Ok'))
     );
     @endcode \n\n
-    @p Another example with @b renderonconstruct set to @b false:
+    @par Another example with @b renderonconstruct set to @b false:
     @code
 
     class MyForm extends Form
@@ -479,7 +482,7 @@ class Output_HTML_Form
     public function field_values()
     {	$values = array();
 		foreach($this->fields as $fname => $field)
-			$values[$fname] = $field['value'];
+			$values[$fname] = (isset($field['value'])?$field['value']:null);
 		return $values;
     }
     
@@ -684,6 +687,11 @@ class Output_HTML_Form
 			etag('input', $but_parm['htmlattribs']);
         }
         Output_HTMLTag::pop_parent(2);
+        
+        // Call user function for post-render changes
+        if (method_exists($this, 'on_postrender'))
+            $this->on_postrender($div);
+
 		return $div;
     }
     

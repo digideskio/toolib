@@ -56,7 +56,8 @@ class DB_Record
 			return $md;
 
 		$fields = get_static_var($model_name, 'fields');
-		$table = get_static_var($model_name, 'table');
+		$table = (property_exists($model_name, 'table')?get_static_var($model_name, 'table'):
+		    call_user_func(array($model_name,'get_table')));
 		$rels = (isset_static_var($model_name, 'relationships')
 			?get_static_var($model_name, 'relationships')
 			:array()
@@ -83,7 +84,8 @@ class DB_Record
 	 * this class.
      */
 	static public function raw_query($model_name = NULL)
-	{	if ($model_name === NULL)
+	{
+	    if ($model_name === NULL)
 			$model_name = get_called_class();
 		
 		$model = self::init_model($model_name);
@@ -99,7 +101,8 @@ class DB_Record
 	 *  initialized in select mode that will return caller objects.
 	 */
 	static public function open_query($model_name = NULL)
-	{	if ($model_name === NULL)
+	{
+	    if ($model_name === NULL)
 			$model_name = get_called_class();
 		
 		$model = self::init_model($model_name);
@@ -135,7 +138,8 @@ class DB_Record
 	 * @return EventDispatcher for this model
 	 */
     static public function events($model_name = NULL)
-    {   if ($model_name === NULL)
+    {
+        if ($model_name === NULL)
             $model_name = get_called_class();
 
         if (!isset(self::$event_dispatchers[$model_name]))
@@ -157,14 +161,16 @@ class DB_Record
 
     //! Notify an event listener
     static private function notify_event($model_name, $event_name, $args)
-    {   if (!isset(self::$event_dispatchers[$model_name]))
+    {
+        if (!isset(self::$event_dispatchers[$model_name]))
             return false;
         return self::$event_dispatchers[$model_name]->notify($event_name, $args);
     }
 
     //! Filter through an event listener
     static private function filter_event($model_name, $event_name, & $value, $args)
-    {   if (!isset(self::$event_dispatchers[$model_name]))
+    {
+        if (!isset(self::$event_dispatchers[$model_name]))
             return false;
         return self::$event_dispatchers[$model_name]->filter($event_name, $value, $args);
     }
@@ -223,7 +229,8 @@ class DB_Record
 	 * @endcode
 	*/
 	public static function open($primary_keys, $model_name = NULL)
-	{	//benchmark::checkpoint('pre-get_called');
+	{
+	    //benchmark::checkpoint('pre-get_called');
 		if ($model_name === NULL)
 			$model_name = get_called_class();
 
@@ -289,7 +296,8 @@ class DB_Record
 	 * @endcode
 	 */
 	public static function open_all($model_name = NULL)
-	{	if ($model_name === NULL)
+	{
+	    if ($model_name === NULL)
 			$model_name = get_called_class();
 
 		// Initialize model
@@ -310,7 +318,8 @@ class DB_Record
 	
 	//! Count records of model
 	static public function count($model_name = NULL)
-	{	if ($model_name === NULL)
+	{
+	    if ($model_name === NULL)
 			$model_name = get_called_class();
 
 		// Initialize model
@@ -438,7 +447,8 @@ class DB_Record
 	 * @param $sql_data Data to fill the $fields_data given in assoc array using @i sqlfield as key
 	 */
 	final public function __construct(& $model, $sql_data = NULL)
-	{	$this->model = & $model;
+	{
+	    $this->model = & $model;
 	
 		// Populate fields data
 		foreach($model->fields(true) as $field_name => $field)
@@ -593,7 +603,7 @@ class DB_Record
 	 * @see __set()
 	 */
 	public function __get($name)
-	{	//benchmark::checkpoint('__get - start', $name);
+	{
 		if ($this->model->has_field($name))
 		{	// Check for data
 			return $this->model->user_field_data(

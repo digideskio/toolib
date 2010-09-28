@@ -100,17 +100,11 @@ require_once(dirname(__FILE__) . '/../functions.lib.php');
  */
 class Output_HTMLDoc
 {
-    //! Javascript references
-    private $js_refs = array();
-
-    //! Link external references
-    private $link_refs = array();
-
-    //! Extra meta tags
-    private $extra_meta = array();
-
     //! Contents of body
     private $body;
+    
+    //! Contents of head
+    private $head;
 
     //! Character set of body content
     public $char_set = 'utf-8';
@@ -121,11 +115,19 @@ class Output_HTMLDoc
     public function __construct()
     {
         $this->body = new Output_HTMLTag('body');
+        $this->head = new Output_HTMLTag('head');
     }
 
+    //! Get body Output_HTMLTag
     public function get_body()
     {
         return $this->body;
+    }
+    
+    //! Get head Output_HTMLTag
+    public function get_head()
+    {
+        return $this->head;
     }
     
     //! Add a external reference entry
@@ -138,12 +140,12 @@ class Output_HTMLDoc
      *		attribute value.\n
      */
     public function add_link_ref($href, $type, $rel, $extra_html_attribs = array())
-    {	$link_el = $extra_html_attribs;
+    {	
+        $link_el = $extra_html_attribs;
     	$link_el['href'] = $href;
     	$link_el['type'] = $type;
     	$link_el['rel'] = $rel;
-    	$this->link_refs[] = $link_el;
-    	return true;
+    	$this->head->append(tag('link', $link_el));
     }	
     
     //! Add a new meta data entry
@@ -161,7 +163,7 @@ class Output_HTMLDoc
     {
     	$meta_el = $extra_html_attribs;
     	$meta_el['content'] = $content;
-    	$this->extra_meta[] = $meta_el;
+        $this->head->append(tag('meta', $meta_el));
     }
     
     //! Add a favicon of this webpage
@@ -185,13 +187,13 @@ class Output_HTMLDoc
 	//! Add a javascript reference
 	public function add_ref_js($script)
 	{
-	    //$this->js_refs[] = sprintf('<script src="%s" type="text/javascript"></script>', $script);	    
-	    $this->js_refs[] = $script;
+        $this->head->append(tag('script type="text/javascript"',  array('src' => $script)));
 	}
 	
 	//! Add a style sheet reference
 	public function add_ref_css($script)
-	{	return $this->add_link_ref($script, "text/css", "stylesheet");
+	{
+	    return $this->add_link_ref($script, "text/css", "stylesheet");
 	}
 
     //! Append data in the body content
@@ -213,31 +215,19 @@ class Output_HTMLDoc
 	        $r = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><html>';
         
         // HEAD
-        $r .= '<head>';
-        //$r .= tag('head',
+        $this->head->append(tag('title', $this->title));
+        
 	        // Character set
 	    if ($is_xhtml)
-	    	$r .= tag('meta', array('http-equiv' => 'Content-type',
-	    	    'content' => 'application/xhtml+xml;charset=' . $this->char_set));
+	    	$this->head->append(tag('meta', array('http-equiv' => 'Content-type',
+	    	    'content' => 'application/xhtml+xml;charset=' . $this->char_set)));
 	    else
-	    	$r .= tag('meta', array('http-equiv' => 'Content-type',
-	    	    'content' => 'text/html;charset=' . $this->char_set));
+	    	$this->head->append(tag('meta', array('http-equiv' => 'Content-type',
+	    	    'content' => 'text/html;charset=' . $this->char_set)));
 
-		// Extra meta data
-		foreach($this->extra_meta as $meta_attrs)
-			$r .= tag('meta', $meta_attrs);
-		
-		// Link external references
-        foreach ($this->link_refs as $link_attrs)
-        	$r .= tag ('link', $link_attrs);
-        
-        // Javascript exteeernal references
-        foreach ($this->js_refs as $js_ref)
-			$r .= tag('script type="text/javascript"',  array('src' => $js_ref));            
+	    $r .= (string) $this->head;
   
         // Title
-        $r .= tag('title', $this->title);
-        $r .= '</head>';
         $r .= (string)$this->body;
         $r .= '</html>';
         return $r;

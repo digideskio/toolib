@@ -63,7 +63,7 @@ class Registry extends ArrayObject
      * @param $name The name of the entry
      * @param $value The value of the entry
      */
-    public function set($name, $value)
+    public static function set($name, $value)
     {
         self::get_instance()->offsetSet($name, $value);
     }
