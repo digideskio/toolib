@@ -52,7 +52,7 @@ class Record_Query_SQLInsertTest extends PHPUnit_Framework_TestCase
         $mq = Thread::raw_query();
         $mq->insert(Thread::model()->fields())
             ->values_array(array(1, 2, 'title', '2002-10-01'));
-        $this->assertEquals('INSERT INTO `threads` (`id`, `forum_id`, `title`, `datetime`) ' .
+        $this->assertEquals('INSERT INTO `threads` (`thread_id`, `forum_id`, `title`, `datetime`) ' .
             'VALUES (?, ?, ?, ?)', $mq->sql());
 
         $mq = Thread::raw_query();
@@ -60,7 +60,7 @@ class Record_Query_SQLInsertTest extends PHPUnit_Framework_TestCase
             ->values_array(array(1))
             ->values(5)
             ->values(16);
-        $this->assertEquals('INSERT INTO `threads` (`id`) ' .
+        $this->assertEquals('INSERT INTO `threads` (`thread_id`) ' .
             'VALUES (?) (?) (?)', $mq->sql());
             
         $mq = Thread::raw_query();
@@ -70,7 +70,7 @@ class Record_Query_SQLInsertTest extends PHPUnit_Framework_TestCase
             ->values(16)
             ->order_by(20)  // Order must not take effect  
             ->limit(2);     // Limit must not take effect
-        $this->assertEquals('INSERT INTO `threads` (`id`) ' .
+        $this->assertEquals('INSERT INTO `threads` (`thread_id`) ' .
             'VALUES (?) (?) (?)', $mq->sql());
     }
     

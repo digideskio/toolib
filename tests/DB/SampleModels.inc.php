@@ -37,7 +37,7 @@ class Thread extends DB_Record
     static public $table = 'threads';
 
     static public $fields = array(
-        'id' => array('pk' => true, 'ai' => true),
+        'id' => array('sqlfield' => 'thread_id', 'pk' => true, 'ai' => true),
         'forum_id' => array('fk' => 'Forum'),
         'title',
         'datetime' => array('type' => 'datetime')
@@ -88,4 +88,8 @@ class Group_Members extends DB_Record
         'groupname' => array('pk' => true, 'fk' => 'Group')
     );
 }
+
+Thread::one_to_many('Forum', 'forum', 'threads');
+Post::one_to_many('Thread', 'thread', 'posts');
+User::many_to_many('Group', 'Group_Members', 'users', 'groups');
 ?>

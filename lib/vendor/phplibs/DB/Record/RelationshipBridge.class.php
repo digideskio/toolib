@@ -63,7 +63,8 @@ class DB_Record_RelationshipBridge
     }
 
     public function add($record)
-    {   $keys = $record->key();
+    {   
+    	$keys = $record->key();
         $params = array(
             $this->rel_params['bridge2local_field'] => $this->rel_params['local_bridge_value'],
             $this->rel_params['bridge2foreign_field'] => $keys[0]
@@ -72,7 +73,8 @@ class DB_Record_RelationshipBridge
     }
 
     public function remove($record)
-    {   $keys = $record->key();
+    {   
+    	$keys = $record->key();
         $params = array(
             $this->rel_params['bridge2local_field'] => $this->rel_params['local_bridge_value'],
             $this->rel_params['bridge2foreign_field'] => $keys[0]
@@ -85,11 +87,15 @@ class DB_Record_RelationshipBridge
 
 	//! Get all records of this relationship
 	public function all()
-	{	return $this->query->execute();	}
+	{	
+		return $this->query->execute();
+	}
 
     //! Perform a subquery on this relationship
 	public function subquery()
-	{	return $this->query;	}
+	{
+		return $this->query;
+	}
 }
 
 ?>

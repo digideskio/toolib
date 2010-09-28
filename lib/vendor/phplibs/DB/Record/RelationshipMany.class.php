@@ -35,7 +35,8 @@ class DB_Record_RelationshipMany
     
     //! Construct relationship handler
 	public function __construct($local_model, $foreign_model_name, $field_value)
-	{	// Construct query object
+	{	
+		// Construct query object
 	    $foreign_model = DB_Record::model($foreign_model_name);
 
 	    // Save parameters
@@ -50,15 +51,20 @@ class DB_Record_RelationshipMany
 
 	//! Get all records of this relationship
 	public function all()
-	{	return $this->query->execute();	}
+	{	
+		return $this->query->execute();
+	}
 
 	//! Perform a subquery on this relationship
 	public function subquery()
-	{	return $this->query;	}
+	{
+		return $this->query;
+	}
 
 	//! Get one only member with a specific primary key
 	public function get($primary_key)
-	{   $pks = $this->rel_params['foreign_model']->pk_fields();
+	{
+		$pks = $this->rel_params['foreign_model']->pk_fields();
 	    $res = $this->subquery()->where("{$pks[0]} = ?")->execute($primary_key);
 	    if (count($res) > 0)
 	        return $res[0];

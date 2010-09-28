@@ -99,11 +99,11 @@ class SampleSchema
 
             DB_Conn::query('
                 CREATE TABLE `threads` (
-                    id INT auto_increment,
+                    thread_id INT auto_increment,
                     forum_id INT NOT NULL,
                     title varchar(255),
                     `datetime` DATETIME,
-                    PRIMARY KEY(id),
+                    PRIMARY KEY(thread_id),
                     FOREIGN KEY(forum_id) REFERENCES `forums`(`id`)
                 );
             ');
@@ -117,7 +117,7 @@ class SampleSchema
                     poster varchar(30),
                     date DATETIME,
                     PRIMARY KEY(id),
-                    FOREIGN KEY(thread_id) REFERENCES `threads`(`id`)
+                    FOREIGN KEY(thread_id) REFERENCES `threads`(`thread_id`)
                 );
             ');
 

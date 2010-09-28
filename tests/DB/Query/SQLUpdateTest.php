@@ -52,13 +52,13 @@ class Record_Query_SQLUpdateTest extends PHPUnit_Framework_TestCase
         $mq = Thread::raw_query();
         $mq->update()
             ->set('id');
-        $this->assertEquals('UPDATE `threads` SET `id` = ?', $mq->sql());
+        $this->assertEquals('UPDATE `threads` SET `thread_id` = ?', $mq->sql());
 
         $mq = Thread::raw_query();
         $mq->update()
             ->set('id')
             ->set('title', 'new title');
-        $this->assertEquals('UPDATE `threads` SET `id` = ?, `title` = ?', $mq->sql());
+        $this->assertEquals('UPDATE `threads` SET `thread_id` = ?, `title` = ?', $mq->sql());
         
         $mq = Post::raw_query();
         $mq->update()

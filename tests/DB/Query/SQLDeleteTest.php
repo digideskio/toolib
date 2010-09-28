@@ -52,12 +52,12 @@ class Record_Query_SQLDeleteTest extends PHPUnit_Framework_TestCase
         $mq = Thread::raw_query();
         $mq->delete()
             ->where('id = ?');
-        $this->assertEquals('DELETE FROM `threads` WHERE `id` = ?', $mq->sql());
+        $this->assertEquals('DELETE FROM `threads` WHERE `thread_id` = ?', $mq->sql());
         
         $mq = Thread::raw_query();
         $mq->delete()
             ->where('id = ?');
-        $this->assertEquals('DELETE FROM `threads` WHERE `id` = ?', $mq->sql());
+        $this->assertEquals('DELETE FROM `threads` WHERE `thread_id` = ?', $mq->sql());
         
         $mq = Post::raw_query();
         $mq->delete()

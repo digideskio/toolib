@@ -571,7 +571,8 @@ class DB_Record
 
 	//! Get the key of this record
 	public function key($assoc = false)
-	{	$values = array();
+	{	
+		$values = array();
 
 		if ($assoc)
 			foreach($this->model->pk_fields() as $pk)
@@ -701,7 +702,8 @@ class DB_Record
 
 	//! Validate if a field is set
 	public function __isset($name)
-	{   if (($this->model->has_field($name))
+	{   
+		if (($this->model->has_field($name))
 		    ||  ($this->model->has_relationship($name)))
 		    return true;
 		return false;
@@ -715,7 +717,8 @@ class DB_Record
 	
 	//! Unserilization implementation
 	public function __wakeup()
-	{	// Initialize static
+	{	
+		// Initialize static
 		$this->model = self::init_model(get_class($this));
 	}
 }
