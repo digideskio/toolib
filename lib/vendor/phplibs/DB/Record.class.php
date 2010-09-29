@@ -116,7 +116,8 @@ class DB_Record
 	 * @return DB_Model informational object.
 	 */
 	static public function model($model_name = NULL)
-	{	if ($model_name === NULL)
+	{	
+		if ($model_name === NULL)
 			$model_name = get_called_class();
 
 		return self::init_model($model_name);
@@ -196,7 +197,6 @@ class DB_Record
 	        'foreign_model' => $foreign_model_name,
 	        'bridge_model' => $bridge_model_name
 	    );
-
 
 	    self::$dynamic_relationships[$foreign_model_name][$foreign_rel_name] = array(
 	        'type' => 'bridge',
@@ -606,7 +606,8 @@ class DB_Record
 	public function __get($name)
 	{
 		if ($this->model->has_field($name))
-		{	// Check for data
+		{	
+			// Check for data
 			return $this->model->user_field_data(
 				$name,
 				$this->fields_data[$name]
@@ -614,7 +615,8 @@ class DB_Record
 		}
 		
 		if ($this->model->has_relationship($name))
-		{	$rel = $this->model->relationship_info($name);
+		{	
+			$rel = $this->model->relationship_info($name);
 			
 			if ($rel['type'] === 'one')
 			{
@@ -624,7 +626,8 @@ class DB_Record
 				);
 			}
 			if ($rel['type'] === 'many')
-			{	$pks = $this->key();
+			{	
+				$pks = $this->key();
 				return new DB_Record_RelationshipMany(
 			        $this->model,
 					$rel['foreign_model'],
@@ -632,7 +635,8 @@ class DB_Record
 			}
 
 			if ($rel['type'] === 'bridge')
-			{   $pks = $this->key();
+			{ 
+				$pks = $this->key();
 			    return new DB_Record_RelationshipBridge(
 			        $this->model,
 			        $rel['bridge_model'],

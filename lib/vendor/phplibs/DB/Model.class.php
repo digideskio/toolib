@@ -20,7 +20,10 @@
  */
 
 
-//! The object holding all the model info
+/**
+ * Repository for model information
+ *
+ */
 class DB_Model
 {
 	//! An array with all models
@@ -230,6 +233,7 @@ class DB_Model
 
 	//! Find the foreign key that references to a foreign model
 	/**
+	 * 
 	 * @param $model The model that fk references to.
 	 * @param $field_info Set @b true to request field info otherwise only names.
 	 * @return
@@ -240,7 +244,8 @@ class DB_Model
 	public function fk_field_for($model, $field_info = false)
 	{  
 	    foreach($this->meta_data['fk'] as $fk)
-	    {   if ($fk['fk'] === $model)
+	    {
+	    	if ($fk['fk'] === $model)
 	            if ($field_info)
 	                return $fk;
 	            else

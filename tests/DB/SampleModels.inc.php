@@ -89,7 +89,7 @@ class Group_Members extends DB_Record
     );
 }
 
-Thread::one_to_many('Forum', 'forum', 'threads');
-Post::one_to_many('Thread', 'thread', 'posts');
+Forum::one_to_many('Thread', 'forum', 'threads');
+Thread::one_to_many('Post', 'thread', 'posts');
 User::many_to_many('Group', 'Group_Members', 'users', 'groups');
 ?>
