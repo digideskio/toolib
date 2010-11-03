@@ -22,5 +22,21 @@
 
 //! An operation was done without an established connection
 class NotConnectedException extends RuntimeException {};
-
+class WebActionException extends RuntimeException {
+	public function __construct($message = null, $code = null, $previous = null)
+	{
+		error_log("[Error $code] $message");
+		parent::__construct($message, $code, $previous);	
+	}
+};
+class Exception404 extends WebActionException{
+	public function __construct($message = null, $code = '404', $previous = null){
+		parent::__construct($message, $code, $previous);
+	}
+};
+class Exception500 extends WebActionException {
+	public function __construct($message = null, $code = '500', $previous = null){
+		parent::__construct($message, $code, $previous);
+	}
+};
 ?>

@@ -389,6 +389,17 @@ class Output_HTML_Form
 				}
 			    else
 			    {
+				    if (isset($field['regcheck']))
+		            {
+		            	$field['valid'] = true;
+		                if (preg_match($field['regcheck'], $_FILES[$k]['name']) == 0)
+		                {   
+		                	$field['valid'] = false;
+		                    if (isset($field['onerror']))
+		                        $field['error'] = $field['onerror'];
+		                }
+		            }
+			    	
 				    // Get file data
 				    $fdata = file_get_contents($_FILES[$k]['tmp_name']);
 				
@@ -397,6 +408,8 @@ class Output_HTML_Form
 					    'size' => $_FILES[$k]['size'],
 					    'data' => $fdata
 				    );
+				    
+				    continue;
 				}
 			}
 			else if ($field['type'] == 'checkbox')
