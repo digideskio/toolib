@@ -30,7 +30,7 @@ require_once dirname(__FILE__) . '/web/layouts.php';
  * then you should it here.
  */
 // Deploy checks
-if (Config::get('site.deploy_checks'))
+if (Registry::get('site.deploy_checks'))
 {
     if (is_writable(dirname(__FILE__) . '/config.inc.php'))
     {

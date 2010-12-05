@@ -31,7 +31,7 @@ etag('h3', 'Installation process');
 // Make checks for writable files
 if (! is_writable($fn_config))
 {
-    etag('div class="error" nl_escape_on', 'Cannot continue installing ' . Config::get('site.title') .'
+    etag('div class="error" nl_escape_on', 'Cannot continue installing ' . Registry::get('site.title') .'
         The configuration file "config.inc.php" must be writable, you can change
         permissions and retry installation.');
     exit;

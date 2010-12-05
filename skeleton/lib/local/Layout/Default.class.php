@@ -50,12 +50,12 @@ class Layout_Default extends Layout
     {   
         $this->activate();
         $doc = $this->get_document();    
-        $this->get_document()->title = Config::get('site.title');
+        $this->get_document()->title = Registry::get('site.title');
         $this->get_document()->add_ref_css(surl('/static/css/default.css'));
         
         etag('div id="wrapper"')->push_parent();
         etag('div id="header"',
-            tag('h1', Config::get('site.title')),
+            tag('h1', Registry::get('site.title')),
             tag('div id="main-menu"')
         );
         etag('div id="main"',
@@ -66,10 +66,10 @@ class Layout_Default extends Layout
             tag('a', 'PHPlibs', array('href' => 'http://phplibs.kmfa.net')),' skeleton'
         );
         
-        if (Config::get('site.google_analytics'))
+        if (Registry::get('site.google_analytics'))
             etag('script type="text/javascript" html_escape_off',
             " var _gaq = _gaq || [];
-              _gaq.push(['_setAccount', '" . Config::get('site.google_analytics') ."']);
+              _gaq.push(['_setAccount', '" . Registry::get('site.google_analytics') ."']);
               _gaq.push(['_trackPageview']);
 
               (function() {

@@ -83,21 +83,21 @@ class UI_InstallationForm extends Output_HTML_Form
     
     public function on_valid($values)
     {
-        Config::set('db.host', $values['db-host']);
-        Config::set('db.user', $values['db-user']);
-        Config::set('db.pass', $values['db-pass']);
-        Config::set('db.schema', $values['db-schema']);
-        Config::set('site.google_analytics', $values['site-ga']);
-        Config::set('site.deploy_checks', $values['deploy-checks']);
+        Registry::set('db.host', $values['db-host']);
+        Registry::set('db.user', $values['db-user']);
+        Registry::set('db.pass', $values['db-pass']);
+        Registry::set('db.schema', $values['db-schema']);
+        Registry::set('site.google_analytics', $values['site-ga']);
+        Registry::set('site.deploy_checks', $values['deploy-checks']);
         
         // Timezone
         if (isset($this->tzones[$values['timezone']]))
-            Config::set('site.timezone', $this->tzones[$values['timezone']]);
+            Registry::set('site.timezone', $this->tzones[$values['timezone']]);
             
         $data = "<?php\n// File generated with /install\n";
         	
-        foreach(Config::get_all() as $name => $value)
-            $data .= sprintf("\nConfig::set('%s', '%s');\n",
+        foreach(Registry::get_all() as $name => $value)
+            $data .= sprintf("\nRegistry::set('%s', '%s');\n",
                 addslashes($name),
                 addslashes($value));
         $data .= "\n?>";
@@ -105,7 +105,7 @@ class UI_InstallationForm extends Output_HTML_Form
 
         // Reload configuration
         require $this->config_file;
-        DB_Conn::connect(Config::get('db.host'), Config::get('db.user'), Config::get('db.pass'), Config::get('db.schema'));
+        DB_Conn::connect(Registry::get('db.host'), Registry::get('db.user'), Registry::get('db.pass'), Registry::get('db.schema'));
 
         if ($values['db-build'])
         {

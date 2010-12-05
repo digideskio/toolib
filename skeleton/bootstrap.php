@@ -45,14 +45,14 @@ require_once dirname(__FILE__) . '/lib/vendor/phplibs/Output/html.lib.php';
 require_once dirname(__FILE__) . '/config.inc.php';
 
 // Database connection
-DB_Conn::connect(Config::get('db.host'), Config::get('db.user'), Config::get('db.pass'), Config::get('db.schema'), true);
+DB_Conn::connect(Registry::get('db.host'), Registry::get('db.user'), Registry::get('db.pass'), Registry::get('db.schema'), true);
 DB_Conn::query('SET NAMES utf8;');
 DB_Conn::query("SET time_zone='+0:00';");
 DB_Conn::events()->connect('error',
     create_function('$e', ' error_log( $e->arguments["message"]); '));
 
 // PHP TimeZone
-date_default_timezone_set(Config::get('site.timezone'));
+date_default_timezone_set(Registry::get('site.timezone'));
 
 // PHP Session
 session_start();
