@@ -104,7 +104,7 @@ class Authn_Backend_DB implements Authn_Backend
 
         // Hash-salt function
         if ($this->options['hash_function'] !== NULL)
-            $new_password = call_user_func($this->options['hash_function'], $new_password);
+            $new_password = call_user_func($this->options['hash_function'], $new_password, $user);
 
         $user->{$this->options['field_password']} = $new_password;
         return $user->save();

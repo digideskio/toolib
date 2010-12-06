@@ -101,7 +101,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
                 ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',
-            'hash_function' => 'md5'
+            'hash_function' => create_function('$pass, $record','return md5($pass);')
         ));
 
         $res = $auth->authenticate('user1', 'false password');
@@ -123,7 +123,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
                 ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',
-            'hash_function' => 'sha1'
+            'hash_function' => create_function('$pass, $record','return sha1($pass);')
         ));
 
         $res = $auth->authenticate('user1', 'false password');
@@ -193,7 +193,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
                     ->where('username = ?'),
                 'field_username' => 'username',
                 'field_password' => 'password',
-                'hash_function' => 'md5'
+                'hash_function' => create_function('$pass, $record','return md5($pass);')
             ));
 
         $res = $auth->authenticate($username, $password);
@@ -214,7 +214,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
                     ->where('username = ?'),
                 'field_username' => 'username',
                 'field_password' => 'password',
-                'hash_function' => 'sha1'
+                'hash_function' => create_function('$pass, $record','return sha1($pass);')
             ));
 
         $res = $auth->authenticate($username, $password);
@@ -264,7 +264,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
                     ->where('username = ?'),
                 'field_username' => 'username',
                 'field_password' => 'password',
-                'hash_function' => 'md5',
+                'hash_function' => create_function('$pass, $record','return md5($pass);')
             ));
         $res = $auth->authenticate($username, $password);
         if (!$enabled)
@@ -341,7 +341,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
                     ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',
-            'hash_function' => 'md5'
+            'hash_function' => create_function('$pass, $record','return md5($pass);')
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
@@ -370,7 +370,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
                     ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',
-            'hash_function' => 'sha1'
+            'hash_function' => create_function('$pass, $record','return sha1($pass);')
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
