@@ -585,11 +585,13 @@ class Output_HTML_Form
 
         if (isset($this->options['title']))
         	etag('span class="title"',  $this->options['title']);
-            
+        
+        
         // Render all fields
+        etag('ul class="fields"')->push_parent();
         foreach($this->fields as $id => $field)
         {
-            etag('dt')->add_class('type-' . $field['type'])->push_parent();
+            etag('li')->add_class('type-' . $field['type'])->push_parent();
 
             // Line type
             if ($field['type'] == 'line')
@@ -678,6 +680,7 @@ class Output_HTML_Form
             	etag('span class="ui-form-hint"', $field['hint']);
             Output_HTMLTag::pop_parent();
         }
+        Output_HTMLTag::pop_parent();
         
         // Render buttons
         etag('div class="buttons"')->push_parent();
