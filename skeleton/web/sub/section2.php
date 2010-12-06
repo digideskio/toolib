@@ -28,4 +28,5 @@ echo 'Section 2 deliberally adds a dynamic menu button that points nowhere!';
 etag('br');
 echo 'You can edit section2 in file ';
 etag('strong', __FILE__);
+
 ?>

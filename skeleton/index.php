@@ -71,7 +71,9 @@ Stupid::add_rule('include_sub',
     array('type' => 'func', 'func' => 'is_valid_sub')
 );
 
-Stupid::set_default_action(create_function('', 'require(dirname(__FILE__) . "/web/not_found.php");'));
-Stupid::chain_reaction();
-
-?>
+Stupid::set_default_action(create_function('', ' throw new Exception404(); '));
+try {
+	Stupid::chain_reaction();
+} catch(Exception404 $e) {
+	require(dirname(__FILE__). '/web/not_found.php');
+}
