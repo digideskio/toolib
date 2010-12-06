@@ -183,9 +183,12 @@ class SampleSchema
                 'INSERT INTO posts (thread_id, posted_text, poster, date) VALUES (2, ?, \'long\', NOW())');
             $big_post = str_repeat('1234567890', 100000);
             $null = null;
-            $stmt->bind_param('b', $null);
-            $stmt->send_long_data(0, $big_post);
-            $stmt->execute();
+            if (!$stmt->bind_param('s', $null))
+            	die($stmt->error);
+            if (!$stmt->send_long_data(0, $big_post))
+            	die($stmt->error);
+            if (!$stmt->execute())
+            	die($stmt->error);
             $stmt->close();
             
             DB_Conn::get_link()->autocommit(true);
@@ -204,4 +207,4 @@ class SampleSchema
 
         }
 }
-?>
+

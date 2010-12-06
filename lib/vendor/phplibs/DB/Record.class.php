@@ -97,7 +97,7 @@ class DB_Record
 	/**
 	 * Perfrom a @b select query on this model and get an
 	 * of objects of the caller model.
-	 * @return @b DB_ModelQuery instance for the caller model
+	 * @return DB_ModelQuery instance for the caller model
 	 *  initialized in select mode that will return caller objects.
 	 */
 	static public function open_query($model_name = NULL)

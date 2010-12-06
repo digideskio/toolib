@@ -74,6 +74,12 @@ function html_human_fsize($size, $postfix = 'ytes')
     return ceil($size/1073741824) . ' GB' . $postfix;
 }
 
+/**
+ * 
+ * Enter description here ...
+ * @param DateTime $dt
+ * @return Output_DateFormat The resulting formater
+ */
 function date_exformat($dt)
 {
     return new Output_DateFormat($dt);

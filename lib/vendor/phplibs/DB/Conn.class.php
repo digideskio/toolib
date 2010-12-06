@@ -48,7 +48,7 @@ class DB_Conn
     static private $events = NULL;
 
     //! Packet size when sending binary packets
-    static public $binary_packet_size = 32768;
+    static private $max_packet_allowed = NULL;
 
     //! Get the events dispatcher of DB_Conn
     /**
@@ -91,6 +91,7 @@ class DB_Conn
     static public function connect($server, $user, $pass, $schema, $delayed_preparation = true)
     {   
         self::$delayed_preparation = $delayed_preparation;
+        self::$max_packet_allowed = NULL;
 
         // Create events dispatcher if it does not exist
         self::events();
@@ -125,7 +126,8 @@ class DB_Conn
     static public function disconnect()
     {   
         if (self::$dbconn !== NULL)
-        {   self::events()->notify('disconnected');
+        {
+        	self::events()->notify('disconnected');
             self::$dbconn = NULL;
         }
         return true;
@@ -141,6 +143,19 @@ class DB_Conn
         return (self::$dbconn !== NULL);
     }
 
+    //! Get the max_packet_allowed for this connection
+    /**
+     * @return integer The max_allowed_packet that is asked from te server.
+     */
+    static public function get_max_allowed_packet()
+    {
+    	if (self::$max_packet_allowed !== null)
+    		return self::$max_packet_allowed;
+    	
+    	$res = self::query_fetch_all('SELECT @@max_allowed_packet');
+    	return self::$max_packet_allowed = $res[0][0]; 
+    }
+    
     //! Change the default character set of the connection
     /**
     * @param $charset The default charset to be used for this connection
@@ -162,6 +177,7 @@ class DB_Conn
     //! Get the mysqli connection object
     /**
     * @throws NotConnectedException if DB_Conn is not connected
+    * @return mysqli Object of the link used for tihs connection.
     */
     static public function get_link()
     {   
@@ -253,7 +269,8 @@ class DB_Conn
 
         // Check if the key is free
         if (isset(self::$stmts[$key]))
-        {   self::raise_error('There is already a statement prepared with this key "' . $key . '".');
+        {
+        	self::raise_error('There is already a statement prepared with this key "' . $key . '".');
             return false;
         }
     
@@ -310,7 +327,8 @@ class DB_Conn
     *  - @b false on any error
     */
     static public function multi_prepare($statements)
-    {   if (self::$dbconn === null)
+    {
+    	if (self::$dbconn === null)
             throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         foreach($statements as $key => $query)
@@ -385,8 +403,7 @@ class DB_Conn
     * 	it defaults to string type.
     * @return It will return false on fail or the statement handler to fetch data.
     * @note If you are executing statement that contains a binary parameter (marked with "b") the data are
-    *	send in chunks with maximum size $binary_packet_size . Modifiyng this public variable may change
-    *	significantly the performance of this query.
+    *	send in chunks.
     * @throws NotConnectedException if DB_Conn is not connected
     */
     static public function execute($key, $param_data = NULL, $param_types = NULL)
@@ -409,23 +426,46 @@ class DB_Conn
         // Bind parameters if it is needed
         if (($param_data !== NULL) && (count($param_data) !== 0))
         {
+        	$null = null;
             $params = array('');
+            $norm_types = array();	//< Normalized types
             foreach($param_data as $index => $data)
-            {	// Normalize type
-                $params[0] .= (isset($param_types[$index]))?$param_types[$index]:'s';
-                $params[] = & $param_data[$index];
+            {	
+            	// Normalize type
+            	$norm_types[$index] = (isset($param_types[$index]))?$param_types[$index]:'s';
+            	if (($norm_types[$index] == 'b') && (strlen($param_data[$index]) < self::get_max_allowed_packet()))
+            		 $norm_types[$index] = 's';
+                
+            	$params[0] .= $norm_types[$index];
+                if ($norm_types[$index] != 'b')
+                	$params[] = & $param_data[$index];
+                else
+                    $params[] = & $null;
             }
+            
             // Bind parameters
-            call_user_func_array(array(self::$stmts[$key]['handler'], 'bind_param'), $params);
+            if (!call_user_func_array(array(self::$stmts[$key]['handler'], 'bind_param'), $params))
+            {
+            	self::raise_error('Cannot bind params to prepared statement "' . $key . '". ' . self::$stmts[$key]['handler']->error);
+            	return false;
+            }
             	
             // Send blob data
             if ($param_types !== NULL)
             {
-                foreach($param_types as $pos => $type)
-                if ($type == 'b')
-                {	
-                    foreach(str_split($param_data[$pos], self::$binary_packet_size) as $data )
-                        self::$stmts[$key]['handler']->send_long_data($pos, $data);
+                foreach($norm_types as $pos => $type)
+                {
+	                if ($norm_types[$pos] == 'b')
+	                {	
+	                    foreach(str_split($param_data[$pos], self::get_max_allowed_packet()-5) as $data )
+	                    {                    
+	                        if (!self::$stmts[$key]['handler']->send_long_data($pos, $data))
+	                        {
+	                        	self::raise_error('Cannot send long data to prepared statement "' . $key . '". ' . self::$stmts[$key]['handler']->error);
+	                        	return false;
+	                        }
+	                    }
+	                }
                 }
             }
         }

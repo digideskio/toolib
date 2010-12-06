@@ -180,7 +180,7 @@ class Output_HTML_Form
     <b> The supported field parameters are: </b>
         - display: The text that will be displayed at the left of the input
         - type: [Default=text] The type of input control. Currently implemented are
-            ('text', 'textarea', 'password', 'dropbox', 'radio', 'checkbox', 'line', 'file', 'custom')
+            ('text', 'textarea', 'password', 'dropbox', 'radio', 'checkbox', 'line', 'file', 'hidden', 'custom')
         - optionlist: [Default=array()]
             An array with all the value options that will be displayed at this control.
             This is only needed for types that have mandatory options like (dropbox, radio).
@@ -607,6 +607,7 @@ class Output_HTML_Form
             switch($field['type'])
             {
             case 'text':
+            case 'hidden':
             case 'password':
                 $attrs = array_merge($field['htmlattribs'], array('name' => $id, 'type' => $field['type']));
                 if (($field['usepost']) && isset($field['value'])) 
@@ -665,7 +666,7 @@ class Output_HTML_Form
                 break;
             case 'file':
             	etag('input type="file"', array('name' => $id), $field['htmlattribs']);
-                break;
+                break;            
             case 'custom':
             	etag('span html_escape_off', $field['value']);
                 break;

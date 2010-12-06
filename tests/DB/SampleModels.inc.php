@@ -92,4 +92,3 @@ class Group_Members extends DB_Record
 Forum::one_to_many('Thread', 'forum', 'threads');
 Thread::one_to_many('Post', 'thread', 'posts');
 User::many_to_many('Group', 'Group_Members', 'users', 'groups');
-?>

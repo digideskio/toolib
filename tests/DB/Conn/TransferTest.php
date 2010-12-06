@@ -90,14 +90,16 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
         $data = DB_Conn::query_fetch_all('SELECT * from forums LIMIT 1');
         $this->assertType('array', $data);
         $this->assertEquals(count($data), 1);
-        $this->assertEquals($data, array(
-        array(
-        0 => '1',
-                'id' => '1',
-        1 => 'The first',
-                'title' => 'The first'
+        $this->assertEquals($data, 
+        	array(
+        		array(
+        			0 => '1',
+            		'id' => '1',
+        			1 => 'The first',
+            		'title' => 'The first'
                 )
-                ));
+			)
+		);
     }
 
     public function testExecuteNoParamFetch()
@@ -174,50 +176,9 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
         ));
     }
 
-    public function testQueryFetchBlob()
-    {   
-        $big_post = str_repeat('1234567890', 100000);
-        $data = DB_Conn::query_fetch_all('SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
-        $this->assertType('array', $data);
-        $this->assertEquals(count($data), 1);
-        $this->assertEquals($data, array(
-            array(
-                0 => '7',
-                'id' => '7',
-                1 => '2',
-                'thread_id' => '2',
-                2 => $big_post,
-                'posted_text' => $big_post,
-                3 => 'long',
-                'poster' => 'long'
-            )
-        ));
-    }
-
-    public function testExecuteFetchBlob()
-    {   
-        $big_post = str_repeat('1234567890', 100000);
-        DB_Conn::prepare('test', 'SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
-        $data = DB_Conn::execute_fetch_all('test');
-        $this->assertType('array', $data);
-        $this->assertEquals(count($data), 1);
-        $this->assertEquals($data, array(
-            array(
-                0 => '7',
-                'id' => '7',
-                1 => '2',
-                'thread_id' => '2',
-                2 => $big_post,
-                'posted_text' => $big_post,
-                3 => 'long',
-                'poster' => 'long'
-            )
-        ));
-    }
-
     public function testExecutePushBlob()
     {
-        $big_post = str_repeat('1234567890', 100000);
+        $big_post = str_repeat('1234567890', 1000000);
 
         DB_Conn::prepare('test', 'INSERT posts (thread_id, posted_text, poster) VALUES (?,?,?)');
         $res = DB_Conn::execute('test', array(3, 'boob', 'poster'));
@@ -230,5 +191,58 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
         $res = DB_Conn::query_fetch_all("SELECT * FROM posts WHERE id ='{$last_id}'");
         $this->assertEquals($res[0]['posted_text'], $big_post);
     }
+    
+    /**
+     * @depends testExecutePushBlob
+     */
+    public function testQueryFetchBlob()
+    {   
+        $big_post = str_repeat('1234567890', 100000);
+        $data = DB_Conn::query_fetch_all('SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
+        $this->assertType('array', $data);
+        $this->assertEquals(1, count($data));
+        $this->assertEquals(
+        	array(
+	            array(
+	                0 => '7',
+	                'id' => '7',
+	                1 => '2',
+	                'thread_id' => '2',
+	                2 => $big_post,
+	                'posted_text' => $big_post,
+	                3 => 'long',
+	                'poster' => 'long'
+	            )
+        	),
+        	$data
+        );
+    }
+
+    /**
+     * @depends testExecutePushBlob
+     */
+    public function testExecuteFetchBlob()
+    {   
+        $big_post = str_repeat('1234567890', 100000);
+        DB_Conn::prepare('test', 'SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
+        $data = DB_Conn::execute_fetch_all('test');
+        $this->assertType('array', $data);
+        $this->assertEquals(1, count($data));
+        $this->assertEquals(
+	        array(
+	            array(
+	                0 => '7',
+	                'id' => '7',
+	                1 => '2',
+	                'thread_id' => '2',
+	                2 => $big_post,
+	                'posted_text' => $big_post,
+	                3 => 'long',
+	                'poster' => 'long'
+	            )
+	        ),
+	        $data
+	    );
+    }
+
 }
-?>

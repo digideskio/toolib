@@ -111,11 +111,18 @@ class Output_HTMLDoc
 
     //! Title of html page
     public $title = '';
+    
+    //! Namespaces of this document
+    public $ns = array();
 
+    /**
+     * Construct an empty Document
+     */
     public function __construct()
     {
         $this->body = new Output_HTMLTag('body');
         $this->head = new Output_HTMLTag('head');
+        $this->ns[''] = 'http://www.w3.org/1999/xhtml';
     }
 
     //! Get body Output_HTMLTag
@@ -207,13 +214,19 @@ class Output_HTMLDoc
     {   $is_xhtml = (Output_HTMLTag::$default_render_mode == 'xhtml');
     	
     	// DocType
-    	if ($is_xhtml)
-	        $r = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"' .
-    	    	' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' .
-        		'<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" >';
-	    else
+    	if ($is_xhtml) {
+	        $r = '<!DOCTYPE html>' .
+        		'<html xml:lang="en" ';
+	        foreach($this->ns as $ns => $url) {
+	        	if (empty($ns))
+	        		$r .= 'xmlns="' . $url . '" ';
+	        	else
+	        		$r .= 'xmlns:' . $ns . '="' . $url . '" ';
+	        }
+        	$r .= 'lang="en" >';
+    	} else {
 	        $r = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><html>';
-        
+    	}
         // HEAD
         $this->head->append(tag('title', $this->title));
         
