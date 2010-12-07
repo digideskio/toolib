@@ -31,7 +31,13 @@ div.ui-form .title {
 	font-weight: bold;
 }
 
-div.ui-form dt {
+div.ui-form ul{
+	list-style-type: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+div.ui-form ul li {
 	margin-bottom: 10px;
 }
 
