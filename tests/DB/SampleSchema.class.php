@@ -32,14 +32,15 @@ class SampleSchema
         'schema' => 'phplibs-unittest'
         );
 
-        static public function connect($delayed = true)
+        static public function connect($delayed_prep = true, $delayed_conn = false)
         {
             return DB_Conn::connect(
             self::$conn_params['host'],
             self::$conn_params['username'],
             self::$conn_params['password'],
             self::$conn_params['schema'],
-            $delayed
+            $delayed_prep,
+            $delayed_conn
             );
         }
 
@@ -188,7 +189,7 @@ class SampleSchema
             if (!$stmt->send_long_data(0, $big_post))
             	die($stmt->error);
             if (!$stmt->execute())
-            	die($stmt->error);
+            	;//die($stmt->error);
             $stmt->close();
             
             DB_Conn::get_link()->autocommit(true);

@@ -25,15 +25,17 @@ require_once(dirname(__FILE__) . '/../Exceptions.lib.php');
 
 //! Interact with the connection to database
 /**
- * An easy way to organize prepared staments and execute them
- * with centralized error handling. It also supports optional
- * delayed preparation until a statement is run for the first
- * time.
+ * An easy way to organize prepared statements and execute them
+ * with centralized error handling. It support optional delayed connection
+ * and/or delayed prepation to increase overall perfromance.
  */
 class DB_Conn
 {
     //! Connection handler
-    static private $dbconn;
+    static private $dbconn = null;
+    
+    //! Connection options
+    static private $connection_options = null;
 
     //! The array with all statemenets
     static private $stmts;
@@ -41,14 +43,20 @@ class DB_Conn
     //! Set error handler function
     static private $error_handler_func;
 
-    //! delayed preparation
+    //! Delayed preparation flag
     static private $delayed_preparation;
+    
+    //! Delayed connection flag
+    static private $delayed_connection;
 
     //! Events dispatcher
-    static private $events = NULL;
+    static private $events = null;
 
     //! Packet size when sending binary packets
-    static private $max_packet_allowed = NULL;
+    static private $max_packet_allowed = null;
+    
+    //! Queries that must be run after connection
+    static private $initialization_queries = null;
 
     //! Get the events dispatcher of DB_Conn
     /**
@@ -65,7 +73,7 @@ class DB_Conn
     */
     static public function events()
     {   
-        if (self::$events === NULL)
+        if (self::$events === null)
             self::$events = new EventDispatcher(array(
 	        	'connected',
 	        	'disconnected',
@@ -85,13 +93,16 @@ class DB_Conn
     * @param $user The user to use for authentication.
     * @param $pass The password that will be used for authentication.
     * @param $schema The schema to use as default for this connection.
-    * @param $delayed_preparation A flag if delayed preparation should be used to
+    * @param $delayed_preparation Flag if delayed preparation should be used to
+    *   improve performance.
+    * @param $delayed_connection Flag if delayed connection should be used to
     *   improve performance.
     */
-    static public function connect($server, $user, $pass, $schema, $delayed_preparation = true)
+    static public function connect($server, $user, $pass, $schema, $delayed_preparation = true, $delayed_connection = false)
     {   
         self::$delayed_preparation = $delayed_preparation;
-        self::$max_packet_allowed = NULL;
+        self::$delayed_connection = $delayed_connection;
+        self::$max_packet_allowed = null;                
 
         // Create events dispatcher if it does not exist
         self::events();
@@ -99,25 +110,71 @@ class DB_Conn
         // Disconnect
         self::disconnect();
     
-        // Database connection (server, user, password, schema)
-        self::$dbconn = new mysqli($server, $user, $pass, $schema);
+        // Prepare conection
+        self::$connection_options = array(
+        	'host' => $server,
+        	'username' => $user,
+        	'password' => $pass,
+        	'schema' => $schema
+        );
+        self::$initialization_queries = array();
+        
+        // Connect if it is needed
+        if (!self::$delayed_connection)
+        	return self::assure_connect();
+
+        // For delayed connection we assume ok
+        return true;
+    }
+    
+    //! Execute queries that initialize connection
+    /**
+     * The execution of this querie may be postponed until the actual
+     * connection is done. It is used for queries that initialize
+     * connection, like setting up time_zone, character set. etc.
+     * @param $query The query that will be executed by the server.
+     * @return boolean - @b false If there was any error.
+     *  - @b true If everything went ok. 
+     */
+    static public function initialization_query($query)
+    {
+    	// If there is connection execute it
+    	if (self::$dbconn !== null)
+    		return self::query($query);
+    	// or push it to stack
+    	self::$initialization_queries[] = $query;
+    	return true;
+    }
+    
+    static private function assure_connect()
+    {
+    	if (is_object(self::$dbconn))
+    		return true;	// We are connected
+    	if (self::$connection_options === null)
+    		return false;	// We are not on (pre)connection state.
+    		
+    	// Try to connect
+    	self::$dbconn = new mysqli(
+    		self::$connection_options['host'], 
+    		self::$connection_options['username'], 
+    		self::$connection_options['password'],
+    		self::$connection_options['schema']
+    	);
         if (self::$dbconn->connect_error)
         {
             self::raise_error('Error connecting to database. ' . self::$dbconn->connect_error);
-            self::$dbconn = NULL;
+            self::$dbconn = null;
+            self::$connection_options = null;
             return false;
         }
-    
-        // Create the array of statemenets
         self::$stmts = array();
-        self::$events->notify('connected', array(
-                'host' => $server,
-                'username' => $user,
-                'password' => $pass,
-                'schema' => $schema
-        ));
+        self::$events->notify('connected', self::$connection_options);
+        
+        // Execute initialization queries
+        foreach(self::$initialization_queries as $query)
+        	self::query($query);
         return true;
-    }
+    } 
 
     //! Disconnect db connection
     /**
@@ -125,10 +182,11 @@ class DB_Conn
     */
     static public function disconnect()
     {   
-        if (self::$dbconn !== NULL)
+    	self::$connection_options = null;
+        if (self::$dbconn !== null)
         {
+        	self::$dbconn = null;            
         	self::events()->notify('disconnected');
-            self::$dbconn = NULL;
         }
         return true;
     }
@@ -140,7 +198,7 @@ class DB_Conn
     */
     static public function is_connected()
     {   
-        return (self::$dbconn !== NULL);
+        return (self::$dbconn !== null);
     }
 
     //! Get the max_packet_allowed for this connection
@@ -158,13 +216,14 @@ class DB_Conn
     
     //! Change the default character set of the connection
     /**
-    * @param $charset The default charset to be used for this connection
-    * @throws NotConnectedException if DB_Conn is not connected
-    */
+     * @param $charset The default charset to be used for this connection
+     * @throws NotConnectedException if DB_Conn is not connected
+     */
     static public function set_charset($charset)
     {   
         if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+        	if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         if (!self::$dbconn->set_charset($charset))
         {
@@ -176,26 +235,28 @@ class DB_Conn
 
     //! Get the mysqli connection object
     /**
-    * @throws NotConnectedException if DB_Conn is not connected
-    * @return mysqli Object of the link used for tihs connection.
-    */
+     * @throws NotConnectedException if DB_Conn is not connected
+     * @return mysqli Object of the link used for tihs connection.
+     */
     static public function get_link()
     {   
         if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+        	if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         return self::$dbconn;
     }
 
     //! Escape a string for mysql usage
     /**
-    * @param $str The string to be escaped.
-    * @throws NotConnectedException if DB_Conn is not connected
-    */
+     * @param $str The string to be escaped.
+     * @throws NotConnectedException if DB_Conn is not connected
+     */
     static public function escape_string($str)
     {	
         if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+        	if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         return self::$dbconn->real_escape_string($str);
     }
@@ -208,7 +269,8 @@ class DB_Conn
     static public function last_insert_id()
     {   
         if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+        	if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         return self::$dbconn->insert_id;
     }
@@ -245,7 +307,8 @@ class DB_Conn
     static public function is_key_used($key)
     {   
         if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+        	if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
         return isset(self::$stmts[$key]);
     }
 
@@ -265,7 +328,8 @@ class DB_Conn
     static public function prepare($key, $query)
     {   
         if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+        	if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         // Check if the key is free
         if (isset(self::$stmts[$key]))
@@ -297,7 +361,8 @@ class DB_Conn
     static public function release($key)
     {   
         if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+        	if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         // Check if the key is free
         if (!isset(self::$stmts[$key]))
@@ -329,7 +394,8 @@ class DB_Conn
     static public function multi_prepare($statements)
     {
     	if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+    		if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         foreach($statements as $key => $query)
             if (!self::prepare($key, $query))
@@ -340,7 +406,8 @@ class DB_Conn
 
     //! Raise an error
     static private function raise_error($msg)
-    {	// Notify about the error
+    {	
+    	// Notify about the error
         self::$events->notify('error', array('message' => $msg));
 
         // Log it as notice
@@ -357,7 +424,8 @@ class DB_Conn
     static public function query($query)
     {   
         if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+        	if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         // Query db connection
         if (!$res = self::$dbconn->query($query))
@@ -368,7 +436,6 @@ class DB_Conn
     
         // Command executed
         self::$events->notify('query', array('query' => $query));
-    
         return $res;
     }
 
@@ -406,10 +473,11 @@ class DB_Conn
     *	send in chunks.
     * @throws NotConnectedException if DB_Conn is not connected
     */
-    static public function execute($key, $param_data = NULL, $param_types = NULL)
+    static public function execute($key, $param_data = null, $param_types = null)
     {	
         if (self::$dbconn === null)
-            throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
+        	if (!self::assure_connect())
+            	throw new NotConnectedException('DB_Conn::' . __FUNCTION__ . '() demands established connection!');
 
         // Check if statement exist
         if (!isset(self::$stmts[$key]))
@@ -424,7 +492,7 @@ class DB_Conn
             return false;
     
         // Bind parameters if it is needed
-        if (($param_data !== NULL) && (count($param_data) !== 0))
+        if (($param_data !== null) && (count($param_data) !== 0))
         {
         	$null = null;
             $params = array('');
@@ -451,7 +519,7 @@ class DB_Conn
             }
             	
             // Send blob data
-            if ($param_types !== NULL)
+            if ($param_types !== null)
             {
                 foreach($norm_types as $pos => $type)
                 {
@@ -489,7 +557,7 @@ class DB_Conn
     * @return It will return false on fail or an array with all results.
     * @throws NotConnectedException if DB_Conn is not connected
     */
-    static public function & execute_fetch_all($key, $param_data = NULL, $param_types = NULL)
+    static public function & execute_fetch_all($key, $param_data = null, $param_types = null)
     {
         if (! ($stmt = self::execute($key, $param_data, $param_types)))
         {	
@@ -504,13 +572,13 @@ class DB_Conn
         }
 
         // Get the name of fields
-        if (($result = $stmt->result_metadata()) === NULL)
+        if (($result = $stmt->result_metadata()) === null)
             return array();	// This query has no result set
         $fields = $result->fetch_fields();
         $result->close();
 
         // Bind results on each cell of bnd_res array
-        $bnd_res = array_fill(0, $stmt->field_count, NULL);
+        $bnd_res = array_fill(0, $stmt->field_count, null);
         $bnd_param = array();
         foreach($bnd_res as $k => &$bnd)
         	$bnd_param[] = & $bnd;

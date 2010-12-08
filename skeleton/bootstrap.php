@@ -45,9 +45,16 @@ require_once dirname(__FILE__) . '/lib/vendor/phplibs/Output/html.lib.php';
 require_once dirname(__FILE__) . '/config.inc.php';
 
 // Database connection
-DB_Conn::connect(Registry::get('db.host'), Registry::get('db.user'), Registry::get('db.pass'), Registry::get('db.schema'), true);
-DB_Conn::query('SET NAMES utf8;');
-DB_Conn::query("SET time_zone='+0:00';");
+DB_Conn::connect(
+	Registry::get('db.host'),
+	Registry::get('db.user'),
+	Registry::get('db.pass'),
+	Registry::get('db.schema'),
+	true,		// Delayed statements preparation
+	true		// Delayed connection
+);
+DB_Conn::initialization_query('SET NAMES utf8;');
+DB_Conn::initialization_query("SET time_zone='+0:00';");
 DB_Conn::events()->connect('error',
     create_function('$e', ' error_log( $e->arguments["message"]); '));
 
