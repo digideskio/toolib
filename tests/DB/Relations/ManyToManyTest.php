@@ -25,7 +25,7 @@ require_once dirname(__FILE__) .  '/../../path.inc.php';
 require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
 require_once dirname(__FILE__) .  '/../SampleModels.inc.php';
 
-class Record_ManyToManyTest extends PHPUnit_Framework_TestCase
+class Relations_ManyToManyTest extends PHPUnit_Framework_TestCase
 {
 
 	public static function setUpBeforeClass()
@@ -129,7 +129,8 @@ class Record_ManyToManyTest extends PHPUnit_Framework_TestCase
 	public function testAddMethod()
 	{
 		// Add one new user in group1
-		$this->assertType('Group_Members', $gm = Group::open('group1')->users->add(User::open('user5')));
+		$user5 = User::open('user5');
+		$this->assertType('Group_Members', $gm = Group::open('group1')->users->add($user5));
 		
 		// Check membership
 		$users = Group::open('group1')->users->subquery()
@@ -140,8 +141,8 @@ class Record_ManyToManyTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($users[2]->username, 'user3');
 		$this->assertEquals($users[3]->username, 'user5');
 		
-		// Add an already existing (An error will be popped)
-		@$this->assertFalse($gm = Group::open('group1')->users->add(User::open('user1')));
+		// Add an already existing (An error will be popped)		
+		@$this->assertFalse($gm = Group::open('group1')->users->add($user5));
 		
 		// Check membership
 		$users = Group::open('group1')->users->subquery()
@@ -160,7 +161,8 @@ class Record_ManyToManyTest extends PHPUnit_Framework_TestCase
 	public function testRemoveMethod()
 	{
 		// Remove a record froum group1
-		$this->assertTrue(Group::open('group1')->users->remove(User::open('user1')));
+		$user1 = User::open('user1');
+		$this->assertTrue(Group::open('group1')->users->remove($user1));
 		
 		// Check membership
 		$users = Group::open('group1')->users->subquery()
@@ -171,7 +173,7 @@ class Record_ManyToManyTest extends PHPUnit_Framework_TestCase
 		
 		
 		// Remove a non- existing (An error will be popped)
-		$this->assertFalse(Group::open('group1')->users->remove(User::open('user1')));
+		$this->assertFalse(Group::open('group1')->users->remove($user1));
 		
 		// Check membership
 		$users = Group::open('group1')->users->subquery()
@@ -185,4 +187,3 @@ class Record_ManyToManyTest extends PHPUnit_Framework_TestCase
 		SampleSchema::build();		
 	}
 }
-?>

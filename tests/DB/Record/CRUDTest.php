@@ -340,51 +340,51 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		// Create single pk-ai record
 		$f = Forum::create(array('title' => 'my title'));
 		$this->assertType('Forum',  $f);
-		$this->assertEquals($f->title, 'my title');
+		$this->assertEquals('my title', $f->title);
 		$this->assertType('integer', $f->id);
 
-		// Open created
+		// Open created		
 		$f2 = Forum::open($f->id);
 		$this->assertType('Forum',  $f2);
-		$this->assertEquals($f2->title, 'my title');
+		$this->assertEquals('my title', $f2->title);
 		$this->assertEquals($f2->id, $f->id);
 
 		// Create single pk-ai with user defined pk
 		$f = Forum::create(array('id' => '55', 'title' => 'my title'));
 		$this->assertType('Forum',  $f);
-		$this->assertEquals($f->title, 'my title');
+		$this->assertEquals('my title', $f->title);
 		$this->assertType('integer', $f->id);
 		$this->assertEquals(55, $f->id);
 
 		// Open created
 		$f2 = Forum::open($f->id);
 		$this->assertType('Forum',  $f2);
-		$this->assertEquals($f2->title, 'my title');
-		$this->assertEquals($f2->id, 55);
+		$this->assertEquals('my title', $f2->title);
+		$this->assertEquals(55, $f2->id);
 
 		// Create with default values
 		$f = Forum::create();
 		$this->assertType('Forum',  $f);
-		$this->assertEquals($f->title, 'noname');
+		$this->assertEquals('noname', $f->title);
 		$this->assertType('integer', $f->id);
 
 		// Open created
 		$f2 = Forum::open($f->id);
 		$this->assertType('Forum',  $f2);
-		$this->assertEquals($f2->title, 'noname');
+		$this->assertEquals('noname', $f2->title);
 		$this->assertEquals($f2->id, $f->id);
 
 		// Create multi pk record
 		$gm = Group_Members::create(array('username' => 'user3' , 'groupname' => 'group4'));
 		$this->assertType('Group_Members',  $gm);
-		$this->assertEquals($gm->username, 'user3');
-		$this->assertEquals($gm->groupname, 'group4');
+		$this->assertEquals('user3', $gm->username);
+		$this->assertEquals('group4', $gm->groupname);
 
 		// Open record
 		$gm = Group_Members::open(array('username' => 'user3' , 'groupname' => 'group4'));
 		$this->assertType('Group_Members',  $gm);
-		$this->assertEquals($gm->username, 'user3');
-		$this->assertEquals($gm->groupname, 'group4');
+		$this->assertEquals('user3', $gm->username);
+		$this->assertEquals('group4', $gm->groupname);
 
 		// Creating with the same pk must fail
 		$gm = @Group_Members::create(array('username' => 'user3' , 'groupname' => 'group4'));
@@ -395,4 +395,3 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		SampleSchema::build();
 	}
 }
-?>

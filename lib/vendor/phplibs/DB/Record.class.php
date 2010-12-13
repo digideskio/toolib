@@ -230,7 +230,6 @@ class DB_Record
 	*/
 	public static function open($primary_keys, $model_name = NULL)
 	{
-	    //benchmark::checkpoint('pre-get_called');
 		if ($model_name === NULL)
 			$model_name = get_called_class();
 
@@ -261,7 +260,8 @@ class DB_Record
 		$q = self::open_query($model_name);
 		$select_args = array();
 		foreach($pk_fields as $pk_name)
-		{	$q->where('? = p.' .$pk_name);
+		{
+			$q->where('? = p.' .$pk_name);
 			$select_args[] = $primary_keys[$pk_name];
 		}
 
