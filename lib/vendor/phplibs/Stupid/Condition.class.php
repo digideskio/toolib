@@ -19,7 +19,7 @@
  *  
  */
 
-
+require_once(dirname(__FILE__) . '/../functions.lib.php');
 require_once(dirname(__FILE__) . '/Condition/Authentication.class.php');
 require_once(dirname(__FILE__) . '/Condition/Authorization.class.php');
 require_once(dirname(__FILE__) . '/Condition/Func.class.php');

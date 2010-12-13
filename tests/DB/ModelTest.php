@@ -323,8 +323,9 @@ class ModelTest extends PHPUnit_Framework_TestCase
 
         // Datetime db -> external
         $this->assertNull($m->user_field_data('date', null));  // Null is always null
-        $this->assertEquals(date_create('2002-10-10', new DateTimeZone('UTC'))
-            ->setTimeZone(new DateTimeZone(date_default_timezone_get())),
+        $expected_tm = date_create('2002-10-10', new DateTimeZone('UTC'));
+        $expected_tm->setTimeZone(new DateTimeZone(date_default_timezone_get()));
+        $this->assertEquals($expected_tm,
             $m->user_field_data('date', '2002-10-10')
         );
         $this->assertEquals(date_create('@123', new DateTimeZone('UTC'))
