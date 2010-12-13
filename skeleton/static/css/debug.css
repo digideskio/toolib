@@ -144,6 +144,16 @@ div.ui-form.ui-installation dt{
     margin-bottom: 15px;
 }
 
+div.ui-form ul{
+	list-style-type: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+div.ui-form ul li {
+	margin-bottom: 10px;
+}
+
 .ui-form-hint {
     display: block;
     color: gray;

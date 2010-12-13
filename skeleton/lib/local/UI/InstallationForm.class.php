@@ -54,9 +54,7 @@ class UI_InstallationForm extends Output_HTML_Form
                 'onerror' => 'Select a valid time zone'),
             'deploy-checks' => array('display' => 'Check for remaining development files.',
                 'type' => 'checkbox', 'hint' => 'It warn if /install folder exists or if configuration files are writable',
-                'value' => true),
-			'site-ga' => array('display' => 'Google Analytics Web Property ID',
-			    'hint' => 'If you want to track this site with google analytics add your id here.'),
+                'value' => true)
         ),
         array('title' => '', 'css' => array('ui-form', 'ui-installation'),
 		    'buttons' => array(
@@ -87,7 +85,6 @@ class UI_InstallationForm extends Output_HTML_Form
         Registry::set('db.user', $values['db-user']);
         Registry::set('db.pass', $values['db-pass']);
         Registry::set('db.schema', $values['db-schema']);
-        Registry::set('site.google_analytics', $values['site-ga']);
         Registry::set('site.deploy_checks', $values['deploy-checks']);
         
         // Timezone
@@ -96,7 +93,7 @@ class UI_InstallationForm extends Output_HTML_Form
             
         $data = "<?php\n// File generated with /install\n";
         	
-        foreach(Registry::get_all() as $name => $value)
+        foreach(Registry::get_instance() as $name => $value)
             $data .= sprintf("\nRegistry::set('%s', '%s');\n",
                 addslashes($name),
                 addslashes($value));
@@ -132,4 +129,3 @@ class UI_InstallationForm extends Output_HTML_Form
             );
     }
 }
-?>
