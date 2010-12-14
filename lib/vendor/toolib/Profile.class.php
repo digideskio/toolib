@@ -72,7 +72,8 @@ class Profile
 	* @endcode
 	*/
 	public static function checkpoint($name, $variable_data = NULL)
-	{	self::$passes[] = array('checkpoint' => $name,
+	{
+		self::$passes[] = array('checkpoint' => $name,
 			'time_real' =>  microtime(true),
 			'mem_total' => memory_get_usage(), 
 			'data' => $variable_data); 
@@ -120,20 +121,20 @@ class Profile
 	* @endcode
 	*/
 	public static function elapsed($from, $to, $index = -1)
-	{	$result = array();
+	{
+		$result = array();
 
 	    $searching = $from;
 	    $from_time = 0;
-	    foreach(self::$passes as $pass)
-	    {	if ($pass['checkpoint'] != $searching)
-	        continue;
+	    foreach(self::$passes as $pass) {
+	    	if ($pass['checkpoint'] != $searching)
+	        	continue;
 
-	        if ($searching == $from)
-	        {	$from_time = $pass['time_real'];
+	        if ($searching == $from) {
+	        	$from_time = $pass['time_real'];
 	            $searching = $to;
-	        }
-	        else
-	        {	$result[] = ($pass['time_real'] - $from_time);
+	        } else {
+	        	$result[] = ($pass['time_real'] - $from_time);
 	            $searching = $from;
 	        }
 	    }
@@ -230,39 +231,39 @@ class Profile
 	public static function passes($show_only = NULL, $exclude = NULL)
 	{
         // Calculate show_only filter
-        if (is_array($show_only))
-        {	$filtered = array();
+        if (is_array($show_only)) {
+        	$filtered = array();
             foreach(self::$passes as $pass)
                 if (in_array($pass['checkpoint'], $show_only))
                     $filtered[]= $pass;
                     $passes = $filtered;
+        } else {
+        	$passes = self::$passes;
         }
-        else
-            $passes = self::$passes;
 
         // Calculate exclude filter
-        if (is_array($exclude))
-        {	$filtered = array();
+        if (is_array($exclude)) {
+        	$filtered = array();
             foreach($passes as $pass)
                 if (in_array($pass['checkpoint'], $exclude))
                     $filtered[]= $pass;
                     $passes = $filtered;
         }
 
-        if (! empty($passes))
-        {	$start_time = self::$passes[0]['time_real'];
+        if (! empty($passes)) {
+        	$start_time = self::$passes[0]['time_real'];
             $previous_time = $passes[0]['time_real'];
             $previous_memory = $passes[0]['mem_total'];
             $average = 0;
             $maximum = 0;
+        } else {
+        	return;
         }
-        else
-            return;
 			
 		// Calculate time delta and memory delta
 		$previous_mem = 0;
-		foreach($passes as & $pass)
-		{	$pass['time_prog'] =  $pass['time_real'] - $start_time;
+		foreach($passes as & $pass) {
+			$pass['time_prog'] =  $pass['time_real'] - $start_time;
 		    $pass['time_delta'] =  $pass['time_real'] - $previous_time;
 		    $previous_time = $pass['time_real'];
 		    $average += $pass['time_delta'];
@@ -276,8 +277,8 @@ class Profile
 		$average /= count($passes);
 
 		// Calculate statistics
-		foreach($passes as & $pass)
-		{	$pass['time_delta_peak'] =  $pass['time_delta'] > $average?($pass['time_delta'] - $average) / ($maximum - $average):0;
+		foreach($passes as & $pass) {
+			$pass['time_delta_peak'] =  $pass['time_delta'] > $average?($pass['time_delta'] - $average) / ($maximum - $average):0;
 		}
 		unset($pass);
 		return $passes;
@@ -300,8 +301,8 @@ class Profile
 
 	    // Render html table
 	    echo '<table class="profile_dump_table" style="color: black; background: white;" border="1"><tr><th>Checkpoint <th>Variable <th>Program Time <th> Time Delta <th> Total Memory <th> Memory Delta' . "\n";
-	    foreach($passes as $pass)
-	    {	if ($pass['time_delta_peak'] > 0.9)
+	    foreach($passes as $pass) {
+	    	if ($pass['time_delta_peak'] > 0.9)
 	            $color = '#ff0000';
 	        else if ($pass['time_delta_peak'] > 0.8)
 	            $color = '#dd3300';
@@ -341,13 +342,14 @@ class Profile
 	* @see html_dump()
 	*/
 	public static function csv_dump($delimiter = ",", $show_only = NULL, $exclude = NULL)
-	{	$passes = self::passes($show_only, $exclude);
+	{
+		$passes = self::passes($show_only, $exclude);
 
 	    // Render dump
 	    echo 'Checkpoint' . $delimiter . 'Variable' . $delimiter . 'Program Time ' . $delimiter . ' Time Delta'
 	    . $delimiter . ' Program Memory' . $delimiter . ' Memory Delta' ."\n";
-	    foreach($passes as $pass)
-	    {	printf("%s%s%s%s%5.5f%s%5.5f%s%s B%s%s B\n",
+	    foreach($passes as $pass) {
+	    	printf("%s%s%s%s%5.5f%s%5.5f%s%s B%s%s B\n",
 	        $pass['checkpoint'],
 	        $delimiter,
 	        print_r($pass['data'], true),
@@ -364,4 +366,3 @@ class Profile
 	    echo "\n";
 	}
 }
-?>

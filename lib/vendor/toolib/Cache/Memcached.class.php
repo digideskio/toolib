@@ -19,42 +19,50 @@
  *  
  */
 
+namespace toolib\Cache;
 
-require_once(dirname(__FILE__) . '/../Cache.class.php');
+require_once(__DIR__ . '/../Cache.class.php');
 
 //! Implementation using PECL/Memcached interface
-class Cache_Memcached extends Cache
+class Memcached extends \toolib\Cache
 {
 	//! Memcached object
 	public $memc;
 	
 	//! Construct a new memcached caching engine.
 	/**
-	 * @param $host The ip/dns of memcached server.
-	 * @param $port The listening port of server.
+	 * @param string $host The ip/dns of memcached server.
+	 * @param integer $port The listening port of server.
 	 */	 
 	public function __construct($host, $port = 11211)
 	{
-	    $this->memc = new Memcached();
+	    $this->memc = new \Memcached();
 		if ($this->memc->addServer($host, $port) === FALSE)
 			throw new RuntimeException("Cannot connect to memcached server $host:$port");	
 	}
 	
 	public function add($key, $value, $ttl = 0)
-	{	return $this->memc->add($key, $value, $ttl);	}
+	{
+		return $this->memc->add($key, $value, $ttl);
+	}
 	
 
 	public function set($key, $value, $ttl = 0)
-	{	return $this->memc->set($key, $value, $ttl);	}
+	{
+		return $this->memc->set($key, $value, $ttl);
+	}
 	
-	public function set_multi($values, $ttl = 0)
-	{	return $this->memc->setMulti($values, $ttl);	}
+	public function setMulti($values, $ttl = 0)
+	{
+		return $this->memc->setMulti($values, $ttl);
+	}
 	
 	public function get($key, & $succeded)
 	{	
-		if ((($obj = $this->memc->get($key)) !== FALSE) ||
-				($this->memc->getResultCode() == Memcached::RES_SUCCESS))
-		{	$succeded = TRUE;
+		if ((($obj = $this->memc->get($key)) !== FALSE)
+			|| ($this->memc->getResultCode() == \Memcached::RES_SUCCESS))
+		{
+			$succeded = TRUE;
 			return $obj;
 		}
 		
@@ -62,14 +70,18 @@ class Cache_Memcached extends Cache
 		return FALSE;
 	}
 	
-	public function get_multi($keys)
-	{	return $this->memc->getMulti($keys);	}
+	public function getMulti($keys)
+	{
+		return $this->memc->getMulti($keys);
+	}
 	
 	public function delete($key)
-	{	return $this->memc->delete($key);	}
+	{
+		return $this->memc->delete($key);
+	}
 	
-	public function delete_all()
-	{	return $this->memc->flush();	}
+	public function deleteAll()
+	{
+		return $this->memc->flush();
+	}
 }
-
-?>

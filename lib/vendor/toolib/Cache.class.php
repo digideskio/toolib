@@ -19,6 +19,7 @@
  *  
  */
 
+namespace toolib;
 
 require_once(dirname(__FILE__) . '/./functions.lib.php');
 
@@ -28,10 +29,10 @@ require_once(dirname(__FILE__) . '/./functions.lib.php');
  * and populate all abstract methods.
  * 
  * Cache module ships with the following caching engine implementations
- * - Cache_Apc
- * - Cache_Memcached
- * - Cache_File
- * - Cache_Sqlite
+ * - Apc
+ * - Memcached
+ * - File
+ * - Sqlite
  * .
  * @author sque
  */
@@ -40,12 +41,12 @@ abstract class Cache
 	//! Set an entry in cache database
 	/**
 	 * Add or replace the value of a key in cache database
-	 * @param $key Unique identifier of the cache entry
+	 * @param string $key Unique identifier of the cache entry
 	 * @param $value Value of cache entry
-	 * @param $ttl Maximum time, in seconds, that this entry will be valid
-	 * @return
-	 * - @b TRUE if value was stored succesfully.
-	 * - @b FALSE on any kind of error.
+	 * @param integer $ttl Maximum time, in seconds, that this entry will be valid
+	 * @return boolean
+	 * - @b true if value was stored succesfully.
+	 * - @b false on any kind of error.
 	 */
 	abstract public function set($key, $value, $ttl = 0);
 	
@@ -55,36 +56,37 @@ abstract class Cache
 	 * the same time. Some engines (like memcached) supports
 	 * acceleration of this action. For the rest of the engines
 	 * it will be emulated, without a significant performance penalty.
-	 * @param $values Associative array of key-value pairs to
+	 * @param array $values Associative array of key-value pairs to
 	 *  be stored in cache db.
-	 * @param $ttl Maximum time, in seconds, that all these entry will be valid
-	 * @return
-	 * - @b TRUE if all values were stored succesfully.
-	 * - @b FALSE on any kind of error.
+	 * @param integer $ttl Maximum time, in seconds, that all these entry will be valid
+	 * @return boolean
+	 * - @b true if all values were stored succesfully.
+	 * - @b false on any kind of error.
 	 */
-	abstract public function set_multi($values, $ttl = 0);
+	abstract public function setMulti($values, $ttl = 0);
 	
 	//! Add new entry in cache database
 	/**
 	 * Add a @b new value in database. This function will fail if
 	 * there is already an entry with the same key. 
-	 * @param $key Unique identifier of the cache entry
+	 * @param string $key Unique identifier of the cache entry
 	 * @param $value Value of cache entry.
-	 * @param $ttl Maximum time, in seconds, that this entry will be valid
-	 * @return
-	 * - @b TRUE if value was stored succesfully.
-	 * - @b FALSE on any kind of error.
+	 * @param integer $ttl Maximum time, in seconds, that this entry will be valid
+	 * @return boolean
+	 * - @b true if value was stored succesfully.
+	 * - @b false on any kind of error.
 	 */
 	abstract public function add($key, $value, $ttl = 0);
 	
 	//! Read an entry from cache database
 	/**
 	 * Retrieve an entry from cache db based on its key.
-	 * @param $key Unique identifier of the cache entry
-	 * @param $succeded By reference variable to store
-	 * the result status of the function. @b True will be
-	 * stored in case of success or @b false on any error. 
-	 * @return The value of the entry in database or @b FALSE
+	 * @param string $key Unique identifier of the cache entry
+	 * @param [out] boolean $succeded By reference variable to store
+	 * the result status of the function.
+	 *  - @b true will be stored in case of success.
+	 *  - @b false on any error. 
+	 * @return The value of the entry in database or @b false
 	 * if entry was not found.
 	 * 
 	 * @note Return value is not always the safest way to check if the
@@ -100,19 +102,19 @@ abstract class Cache
 	 * the same time. Some engines (like memcached) supports
 	 * acceleration of this action. For the rest of the engines
 	 * it will be emulated, without a significant performance penalty.
-	 * @param $keys Simple array with the keys of entries that will be read.
-	 * @return Associative array with all the keys that were retrieved
+	 * @param array $keys Simple array with the keys of entries that will be read.
+	 * @return array Associative array with all the keys that were retrieved
 	 * succesfully. Those that failed will be omited from the return result. 
 	 */
-	abstract public function get_multi($keys);
+	abstract public function getMulti($keys);
 	
 	//! Delete an entry from cache database
 	/**
 	 * Delete an entry based on its key.
-	 * @param $key Unique identifier of the cache entry
-	 * @return
-	 * - @b TRUE if entry was found and deleted
-	 * - @b FALSE on any kind of error
+	 * @param string $key Unique identifier of the cache entry
+	 * @return boolean
+	 * - @b true if entry was found and deleted
+	 * - @b false on any kind of error
 	 * .
 	 */
 	abstract public function delete($key);
@@ -121,14 +123,12 @@ abstract class Cache
 	/**
 	 * It will delete all entries from the cache.
 	 * database.
-	 * @return
-	 * - @b TRUE on success whetever was the number of deleted entries.
-	 * - @b FALSE on error.
+	 * @return boolean
+	 * - @b true on success whetever was the number of deleted entries.
+	 * - @b false on error.
 	 * 
 	 * @note This function will delete @b ALL entries, even
 	 * those that were not created by you.
 	 */
-	abstract public function delete_all();
+	abstract public function deleteAll();
 }
-
-?>

@@ -19,9 +19,8 @@
  *  
  */
 
-
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/./path.inc.php';
+require_once __DIR__ .  '/path.inc.php';
+use toolib\Registry;
 
 class RegistryTest extends PHPUnit_Framework_TestCase
 {
@@ -139,19 +138,19 @@ class RegistryTest extends PHPUnit_Framework_TestCase
     
     public function testStatic()
     {
-        $this->assertType('Registry', Registry::get_instance());
-        $this->assertEquals(0, count(Registry::get_instance()));
+        $this->assertType('toolib\Registry', Registry::getInstance());
+        $this->assertEquals(0, count(Registry::getInstance()));
         
         // Set
         Registry::set('entry1', 'value1');
-        $this->assertEquals(1, count(Registry::get_instance()));
+        $this->assertEquals(1, count(Registry::getInstance()));
         $this->assertEquals('value1', Registry::get('entry1'));
         Registry::set('entry1', 'valuenew1');
-        $this->assertEquals(1, count(Registry::get_instance()));
+        $this->assertEquals(1, count(Registry::getInstance()));
         $this->assertEquals('valuenew1', Registry::get('entry1'));
         
         Registry::set('entry2', 'value2');
-        $this->assertEquals(2, count(Registry::get_instance()));
+        $this->assertEquals(2, count(Registry::getInstance()));
         $this->assertEquals('value2', Registry::get('entry2'));
         
         // Get empty

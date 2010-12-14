@@ -19,15 +19,19 @@
  *  
  */
 
+namespace toolib;
 
 //! A registry of entries through application life cycle
-class Registry extends ArrayObject
+class Registry extends \ArrayObject
 {
     //! Variable to hold global instance
     protected static $instance = null;
     
     //! Get global static registry
-    public static function get_instance()
+    /**
+     * @return toolib\Registry The singleton instance of Registry.
+     */
+    public static function getInstance()
     {
         if (self::$instance === null)
             self::$instance = new Registry();
@@ -36,17 +40,17 @@ class Registry extends ArrayObject
 
     //! Check if there is an entry in global registry
     /**
-     * @param $name The name of the entry to check if exists.
-     * @return @b boolean If the entry was found.
+     * @param string $name The name of the entry to check if exists.
+     * @return boolean @b true if it is exists otherwise @b false.
      */
     public static function has($name)
     {
-        return self::get_instance()->offsetExists($name);
+        return self::getInstance()->offsetExists($name);
     }
     
     //! Get an entry from global registry
     /**
-     * @param $name The name of the entry.
+     * @param string $name The name of the entry.
      * @return
      *  - @b null If the entry does not exist.
      *  - @b mixed The value of the requested entry.
@@ -55,17 +59,16 @@ class Registry extends ArrayObject
     {
         if (!self::has($name))
             return null;
-        return self::get_instance()->offsetGet($name);
+        return self::getInstance()->offsetGet($name);
     }
     
     //! Set an entry in global registry
     /**
-     * @param $name The name of the entry
+     * @param string $name The name of the entry
      * @param $value The value of the entry
      */
     public static function set($name, $value)
     {
-        self::get_instance()->offsetSet($name, $value);
+        self::getInstance()->offsetSet($name, $value);
     }
 };
-?>

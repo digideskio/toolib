@@ -19,8 +19,8 @@
  *  
  */
 
-
-require_once dirname(__FILE__) .  '/../path.inc.php';
+use toolib\DB\Connection;
+require_once __DIR__ .  '/../path.inc.php';
 
 //! Create a Sample schema
 class SampleSchema
@@ -34,36 +34,36 @@ class SampleSchema
 
         static public function connect($delayed_prep = true, $delayed_conn = false)
         {
-            return DB_Conn::connect(
-            self::$conn_params['host'],
-            self::$conn_params['username'],
-            self::$conn_params['password'],
-            self::$conn_params['schema'],
-            $delayed_prep,
-            $delayed_conn
+            return Connection::connect(
+	            self::$conn_params['host'],
+	            self::$conn_params['username'],
+	            self::$conn_params['password'],
+	            self::$conn_params['schema'],
+	            $delayed_prep,
+	            $delayed_conn
             );
         }
 
         static public function build()
         {   
             self::destroy();
-            DB_Conn::connect(
+            Connection::connect(
                 self::$conn_params['host'],
                 self::$conn_params['username'],
                 self::$conn_params['password'],
                 'mysql'
             );
-            DB_Conn::query('CREATE DATABASE IF NOT EXISTS `' . self::$conn_params['schema']. '` ;');
-            DB_Conn::connect(
+            Connection::query('CREATE DATABASE IF NOT EXISTS `' . self::$conn_params['schema']. '` ;');
+            Connection::connect(
                 self::$conn_params['host'],
                 self::$conn_params['username'],
                 self::$conn_params['password'],
                 self::$conn_params['schema']
             );
-            DB_Conn::get_link()->autocommit(false);
+            Connection::get_link()->autocommit(false);
 
             // Create schema
-            DB_Conn::query('
+            Connection::query('
                 CREATE TABLE `users` (
                     username varchar(15),
                     password varchar(255),
@@ -72,7 +72,7 @@ class SampleSchema
                 );        
             ');
 
-            DB_Conn::query('
+            Connection::query('
                 CREATE TABLE `groups` (
                     groupname varchar(15),
                     enabled TINYINT DEFAULT 1,
@@ -80,7 +80,7 @@ class SampleSchema
                 );        
             ');
 
-            DB_Conn::query('
+            Connection::query('
                 CREATE TABLE `group_members` (
                     username varchar(15),
                     groupname varchar(15),
@@ -90,7 +90,7 @@ class SampleSchema
                 );        
             ');
 
-            DB_Conn::query('
+            Connection::query('
                 CREATE TABLE `forums` (
                     id INT auto_increment,
                     title varchar(255),
@@ -98,7 +98,7 @@ class SampleSchema
                 );
             ');
 
-            DB_Conn::query('
+            Connection::query('
                 CREATE TABLE `threads` (
                     thread_id INT auto_increment,
                     forum_id INT NOT NULL,
@@ -109,7 +109,7 @@ class SampleSchema
                 );
             ');
 
-            DB_Conn::query('
+            Connection::query('
                 CREATE TABLE `posts` (
                     id INT auto_increment,
                     thread_id INT NOT NULL,
@@ -122,7 +122,7 @@ class SampleSchema
                 );
             ');
 
-            DB_Conn::query("
+            Connection::query("
             INSERT INTO users (username) VALUES
                 ('admin'),
                 ('user1'),
@@ -133,7 +133,7 @@ class SampleSchema
                 ('user6');
             ");
 
-            DB_Conn::query("
+            Connection::query("
             INSERT INTO groups (groupname) VALUES
                 ('group1'),
                 ('group2'),
@@ -141,7 +141,7 @@ class SampleSchema
                 ('group4');
             ");
 
-            DB_Conn::query("
+            Connection::query("
             INSERT INTO group_members (groupname, username) VALUES
                 ('group1', 'user1'),
                 ('group1', 'user2'),
@@ -154,13 +154,13 @@ class SampleSchema
             ");
 
 
-            DB_Conn::query("
+            Connection::query("
             INSERT INTO forums (title) VALUES
                 ('The first'),
                 ('The second'),
                 ('The third');
             ");
-            DB_Conn::query("
+            Connection::query("
             INSERT INTO threads (forum_id, title, `datetime`) VALUES
                 (1, 'First thread', NOW()),
                 (1, 'Second thread', NOW()),
@@ -170,7 +170,7 @@ class SampleSchema
                 (3, 'First thread', NOW())
             ");
 
-            DB_Conn::query("
+            Connection::query("
             INSERT INTO posts (thread_id, posted_text, poster, date) VALUES
                 (1, 'Bla bla bla post', 'sebas', NOW()),
                 (1, 'Second post', 'sebas', NOW()),
@@ -180,7 +180,7 @@ class SampleSchema
                 (3, 'First post', 'sebas', NOW())
             ");
 
-            $stmt = DB_conn::get_link()->prepare(
+            $stmt = Connection::get_link()->prepare(
                 'INSERT INTO posts (thread_id, posted_text, poster, date) VALUES (2, ?, \'long\', NOW())');
             $big_post = str_repeat('1234567890', 100000);
             $null = null;
@@ -192,19 +192,19 @@ class SampleSchema
             	;//die($stmt->error);
             $stmt->close();
             
-            DB_Conn::get_link()->autocommit(true);
+            Connection::get_link()->autocommit(true);
         }
 
         static public function destroy()
         {
-            DB_Conn::connect(
+            Connection::connect(
                 self::$conn_params['host'],
                 self::$conn_params['username'],
                 self::$conn_params['password'],
                 'mysql'
             );
-            @DB_Conn::query('DROP DATABASE `' . self::$conn_params['schema']. '`;');
-            DB_Conn::disconnect();
+            @Connection::query('DROP DATABASE `' . self::$conn_params['schema']. '`;');
+            Connection::disconnect();
 
         }
 }

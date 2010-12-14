@@ -51,55 +51,6 @@ function preg_matches_remove_unamed($matches)
     return $fmatches;
 }
 
-/* Backport functions */
-if (!function_exists('get_called_class'))
-{	
-	//! This function has been added at php 5.3
-	/** 
-		Although this hack is working well, it is slow,
-		and there are cases that will not work.
-	*/
-	function get_called_class()
-	{	
-	    $bt = debug_backtrace();
-		$lines = file($bt[1]['file']);
-		$cur_line = $bt[1]['line'] - 1;
-		while($cur_line > 0)
-		{
-		    if (strpos($lines[$cur_line], '::' . $bt[1]['function']) === False)
-		    {   
-		        $cur_line -= 1;
-		        continue;
-		    }
-		    preg_match('/([a-zA-Z0-9\_]+)::'.$bt[1]['function'].'/',
-		               $lines[$cur_line],
-		               $matches);
-		    return $matches[1];
-		}
-		return null;
-	}
-}
-
-if ( !function_exists('sys_get_temp_dir')) {
-	function sys_get_temp_dir()
-	{
-		if( $temp=getenv('TMP') )
-			return $temp;
-		if( $temp=getenv('TEMP') )
-			return $temp;
-		if( $temp=getenv('TMPDIR') )
-			return $temp;
-
-		$temp=tempnam(__FILE__,'');
-		if (file_exists($temp))
-		{
-			unlink($temp);
-			return dirname($temp);
-		}
-		return null;
-	}
-}
-
 if ( !function_exists('gzdecode')) {
     function gzdecode($data)
     {
@@ -130,23 +81,3 @@ function get_upload_maxsize()
 
     return $val;
 }
-
-function get_static_var($class_name, $var_name)
-{
-    /*  Too much noise
-	if (version_compare(PHP_VERSION, '5.3.0', '>='))
-		error_log('get_static_var() should not be used with PHP >= 5.3 as there is native support.!');
-    */
-	return eval("return {$class_name}::\${$var_name};");
-}
-
-function isset_static_var($class_name, $var_name)
-{
-    /* Too much noise
-	if (version_compare(PHP_VERSION, '5.3.0', '>='))
-		error_log('isset_static_var() should not be used with PHP >= 5.3 as there is native support.!');
-    */  
-	return eval("return isset({$class_name}::\${$var_name});");
-}
-
-?>

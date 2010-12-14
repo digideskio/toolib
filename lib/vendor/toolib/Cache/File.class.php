@@ -19,11 +19,12 @@
  *  
  */
 
+namespace toolib\Cache;
 
-require_once(dirname(__FILE__) . '/../Cache.class.php');
+require_once(__DIR__ . '/../Cache.class.php');
 
 //! Implementation for filesystem caching
-class Cache_File extends Cache
+class File extends \toolib\Cache
 {
 	//! Directory to save cache files
 	private $directory;
@@ -38,11 +39,11 @@ class Cache_File extends Cache
 	
 	//! Construct a new file-based cache engine
 	/**
-	 * @param $directory
+	 * @param string $directory
 	 *  - A valid directory path to store cached objects.
 	 *  - @b null If you want to use system's temporary directory.
 	 *  .
-	 * @param $file_prefix
+	 * @param string $file_prefix
 	 *  A string to prefix all filenames to avoid colision with existing files.
 	 */
 	public function __construct($directory = NULL, $file_prefix = 'cache_file_')
@@ -62,8 +63,7 @@ class Cache_File extends Cache
 			return false; 
 		
 		// Lock file
-		if (flock($fh, LOCK_EX) === false)
-		{
+		if (flock($fh, LOCK_EX) === false) {
 		    fclose($fh);
 		    return false;
 		}
@@ -79,7 +79,7 @@ class Cache_File extends Cache
 		return true;
 	}
 	
-	public function set_multi($values, $ttl = 0)
+	public function setMulti($values, $ttl = 0)
 	{
 	    foreach($values as $key => $value)
 			$this->set($key, $value, $ttl);
@@ -95,21 +95,18 @@ class Cache_File extends Cache
 	
 	public function get($key, & $succeded)
 	{
-	    if (! is_file($fname = $this->filename_by_key($key)))
-		{
+	    if (! is_file($fname = $this->filename_by_key($key))) {
 		    $succeded = false;
 			return false;
 		}
 
-	    if (($fh = @fopen($fname,'r')) === false)
-		{
+	    if (($fh = @fopen($fname,'r')) === false) {
 		    $succeded = false;
 			return false;
 		}
 		
 		// Lock file
-		if (flock($fh, LOCK_SH) === false)
-		{
+		if (flock($fh, LOCK_SH) === false) {
 		    fclose($fh);
 			$succeded = false;
 			return false;
@@ -120,16 +117,14 @@ class Cache_File extends Cache
 		fclose($fh);
 		
 		// Unserialize data
-		if (($data = @unserialize($data)) === FALSE)
-		{
+		if (($data = @unserialize($data)) === FALSE) {
 		    unlink($fname);
 			$succeded = false;
 			return false;
 		}
 		
 		// Check expired
-		if (($data['expires'] !== 0) && ($data['expires'] < time()))
-		{
+		if (($data['expires'] !== 0) && ($data['expires'] < time())) {
 		    unlink($fname);
 			$succeded = false;
 			return false;
@@ -139,11 +134,11 @@ class Cache_File extends Cache
 		return $data['value'];
 	}
 
-	public function get_multi($keys)
+	public function getMulti($keys)
 	{
 	    $result = array();
-		foreach($keys as $key)
-		{	$value = $this->get($key, $succ);
+		foreach($keys as $key) {	
+			$value = $this->get($key, $succ);
 			if ($succ === TRUE)
 				$result[$key] = $value; 
 		}
@@ -158,13 +153,13 @@ class Cache_File extends Cache
 	    return @unlink($fname);
 	}
 	
-	public function delete_all()
+	public function deleteAll()
 	{
 	    if (($dh = opendir($this->directory)) === FALSE)
 			return false;
 			
-		while((($entry = readdir($dh)) !== FALSE))
-		{	if (!is_file($this->directory . '/' . $entry))
+		while((($entry = readdir($dh)) !== FALSE)) {
+			if (!is_file($this->directory . '/' . $entry))
 				continue;
 			
 			// Delete all files with that prefix
@@ -174,4 +169,3 @@ class Cache_File extends Cache
 		return true;		
 	}
 }
-?>
