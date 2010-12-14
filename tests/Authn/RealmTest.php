@@ -52,7 +52,7 @@ class Authn_RealmTest extends PHPUnit_Framework_TestCase
         Authn_SampleSchema::connect();
         self::$storage = new Authn_Session_Instance();
         self::$auth = new Authn_Backend_DB(array(
-            'query_user' => User_md5::open_query()
+            'query_user' => User_md5::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',

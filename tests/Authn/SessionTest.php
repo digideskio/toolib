@@ -29,7 +29,7 @@ class Authn_SessionTest extends PHPUnit_Framework_TestCase
     public function getBackend()
     {
         return new Authn_Backend_DB(array(
-            'query_user' => User_plain::open_query()
+            'query_user' => User_plain::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password'

@@ -19,8 +19,9 @@
  *  
  */
 
+namespace toolib\DB;
 
-class DB_ModelQueryCache
+class ModelQueryCache
 {
 	//! Query cache object per model
 	static private $query_cache_repo = array();
@@ -32,16 +33,22 @@ class DB_ModelQueryCache
 	static private $global_cache_ttl = 0; 
 	
 	//! Set global cache engine options
-	static public function set_global_query_cache($cache)
-	{	self::$global_cache_engine = $cache;	}
+	static public function setGlobalQueryCache($cache)
+	{
+		self::$global_cache_engine = $cache;
+	}
 	
 	//! Set the global cache engine ttl
-	static public function set_global_query_cache_ttl($ttl)
-	{	self::$global_cache_ttl = $ttl;		}
+	static public function setGlobalQueryCacheTtl($ttl)
+	{
+		self::$global_cache_ttl = $ttl;
+	}
 
 	//! Get cache engine
-	static public function get_global_query_cache($cache)
-	{	return self::$global_cache_engine;	}
+	static public function getGlobalQueryCache($cache)
+	{
+		return self::$global_cache_engine;
+	}
 	
 	//! Open a model's query cache
 	static public function open($model)
@@ -49,7 +56,7 @@ class DB_ModelQueryCache
 		if (isset(self::$query_cache_repo[$model->name()]))
 			return self::$query_cache_repo[$model->name()];
 		
-		return self::$query_cache_repo[$model->name()] = new DB_ModelQueryCache($model);
+		return self::$query_cache_repo[$model->name()] = new ModelQueryCache($model);
 	}
 
 	//! The model object
@@ -74,10 +81,10 @@ class DB_ModelQueryCache
 		
 		// Check model for query settings
 		if (eval("return isset({$model->name()}::\$query_cache_ttl);"))
-			$this->set_query_cache_ttl(get_static_var($model->name(), 'query_cache_ttl'));
+			$this->setQueryCacheTtl(get_static_var($model->name(), 'query_cache_ttl'));
 			
 		if (eval("return isset({$model->name()}::\$query_cache);"))
-			$this->set_query_cache(get_static_var($model->name(), 'query_cache'));
+			$this->setQueryCache(get_static_var($model->name(), 'query_cache'));
 	}
 	
 	//! Set model specific query cache
@@ -89,8 +96,10 @@ class DB_ModelQueryCache
 	 *  - @b Cache A new cache object that will be used for this model.
 	 *  .
 	 */
-	public function set_query_cache($cache)
-	{	$this->model_query_cache = $cache;	}
+	public function setQueryCache($cache)
+	{
+		$this->model_query_cache = $cache;
+	}
 	
 	//! Set model specific query cache ttl
 	/**
@@ -100,8 +109,10 @@ class DB_ModelQueryCache
 	 *  - @b INT A new ttl that will be used for this model.
 	 *  .
 	 */
-	public function set_query_cache_ttl($ttl)
-	{	$this->model_query_cache_ttl = $ttl;	}
+	public function setQueryCacheTtl($ttl)
+	{
+		$this->model_query_cache_ttl = $ttl;
+	}
 	
 	//! Calculate and return the effective cache for this model
 	/**
@@ -110,8 +121,9 @@ class DB_ModelQueryCache
 	 *  - @b Cache object that is set to be used for this model
 	 *  .
 	 */
-	public function get_effective_cache()
-	{	$this->recalculate_effective_cache();
+	public function getEffectiveCache()
+	{
+		$this->recalculateEffectiveCache();
 		return $this->model_effective_query_cache;
 	}
 	
@@ -121,14 +133,16 @@ class DB_ModelQueryCache
 	 * @return @b Int The effective ttl based on global options
 	 * and model's specific options.
 	 */
-	public function get_effective_cache_ttl()
-	{	$this->recalculate_effective_cache();
+	public function getEffectiveCacheTtl()
+	{
+		$this->recalculateEffectiveCache();
 		return $this->model_effective_query_cache_ttl;	
 	}
 
 	//! Recalculate effective cache
-	private function recalculate_effective_cache($force = false)
-	{	// Effective cache engine
+	private function recalculateEffectiveCache($force = false)
+	{
+		// Effective cache engine
 		if ($this->model_query_cache === NULL)
 			$this->model_effective_query_cache = self::$global_cache_engine;
 		else if ($this->model_query_cache === FALSE)
@@ -144,22 +158,22 @@ class DB_ModelQueryCache
 	}
 	
 	//! Get the invalidation tracker key
-	private function invalidation_tracker_key()
+	private function invalidationTrackerKey()
 	{
 		return 'QUERYCACHE[' . $this->model->name() . '][INVAL-TRACKER]';
 	}
 	
 	//! Generate the cache key
-	private function cache_key($query, & $args)
+	private function cacheKey($query, & $args)
 	{	
 		return 'QUERYCACHE[' . $this->model->name() .
 			'][QUERY]' . $query->hash() .
 			'(' . implode(',', $args) . ')';
 	}
 	
-	private function get_invalidation_tracker()
+	private function getInvalidationTracker()
 	{
-		$it_tracker = $this->model_effective_query_cache->get($this->invalidation_tracker_key(), $succ);
+		$it_tracker = $this->model_effective_query_cache->get($this->invalidationTrackerKey(), $succ);
 		if (!$succ)
 			$it_tracker = array(
 				'update',
@@ -172,18 +186,19 @@ class DB_ModelQueryCache
 		return $it_tracker;
 	}
 	
-	private function set_invalidation_tracker(&$tracker)
+	private function setInvalidationTracker(&$tracker)
 	{
-		return $this->model_effective_query_cache->set($this->invalidation_tracker_key(), $tracker);
+		return $this->model_effective_query_cache->set($this->invalidationTrackerKey(), $tracker);
 	}
 	
 	//! Process and store a select query
 	private function process_select_query($query, & $args, & $results)
-	{	$hints = $query->cache_hints();
+	{
+		$hints = $query->cacheHints();
 	    if (!$hints['cachable'])
 	        return false;       // This query is not cachable
 
-	    $cache_key = $this->cache_key($query, $args);
+	    $cache_key = $this->cacheKey($query, $args);
         
 		// Cache it
 		$invalidate_on = array(
@@ -201,23 +216,22 @@ class DB_ModelQueryCache
 			$this->model_effective_query_cache_ttl);
 				
 		// Save invalidators
-		$itracker = $this->get_invalidation_tracker();
+		$itracker = $this->getInvalidationTracker();
 		$itracker['update']['*'][] = $cache_key;
 		$itracker['delete']['*'][] = $cache_key;
 		$itracker['insert']['*'][] = $cache_key; 
-		$this->set_invalidation_tracker($itracker);
+		$this->setInvalidationTracker($itracker);
 	}
 	
 	//! Remove a query from the cache
-	private function invalidate_query(& $itracker, $query_key)
+	private function invalidateQuery(& $itracker, $query_key)
 	{	
 		// Get query invalidation_on ptrs
 		$inv_ptrs = $this->model_effective_query_cache->get($query_key.'[INVALIDATE_ON]', $succ);
 		if (!$succ) $inv_ptrs = array();
 		
 		// Remove other pointers before removing this query
-		foreach($inv_ptrs as $ptr)
-		{
+		foreach($inv_ptrs as $ptr) {
 			$key = array_search($query_key, $itracker[$ptr[0]][$ptr[1]], true);
 			unset($itracker[$ptr[0]][$ptr[1]][$key]);
 			
@@ -231,30 +245,32 @@ class DB_ModelQueryCache
 	}
 	
 	//! Process an invalidator query
-	private function process_invalidators_query($query, & $args)
-	{	$itracker = $this->get_invalidation_tracker();
+	private function processInvalidatorsQuery($query, & $args)
+	{
+		$itracker = $this->getInvalidationTracker();
 
 		// Search itrackers	
-		foreach($itracker[$query->type()]['*'] as $idx => $cache_key)
-		{	if ($cache_key != NULL)
-				$this->invalidate_query($itracker, $cache_key);	
+		foreach($itracker[$query->type()]['*'] as $idx => $cache_key) {
+			if ($cache_key != NULL)
+				$this->invalidateQuery($itracker, $cache_key);	
 		}
 		
 		// The key to cleanup unsets
-		if ($itracker['stats']['unsets'] > 100)
-		{	foreach(array('update', 'delete', 'insert') as  $action)
+		if ($itracker['stats']['unsets'] > 100) {
+			foreach(array('update', 'delete', 'insert') as  $action)
 				foreach($itracker[$action] as $update_rule => $ptrs )
 				$itracker[$action][$update_rule] = array_values($itracker[$action][$update_rule]);
 			$itracker['stats']['unsets'] = 0;
 		}
 		
 		// save tracker
-		$this->set_invalidation_tracker($itracker);
+		$this->setInvalidationTracker($itracker);
 	}
 	
 	//! Process a query
-	public function process_query($query, & $args, & $results)
-	{	if ($this->get_effective_cache() === NULL)
+	public function processQuery($query, & $args, & $results)
+	{
+		if ($this->getEffectiveCache() === NULL)
 			return false;
 		
 		// Select pushes data in cache
@@ -262,17 +278,18 @@ class DB_ModelQueryCache
 			return $this->process_select_query($query, $args, $results);
 			
 		// Others invalidates data in cache
-		return $this->process_invalidators_query($query, $args);
+		return $this->processInvalidatorsQuery($query, $args);
 	}
 	
 	//! Check cache for results
-	public function fetch_results($query, & $args, & $succ)
-	{	$succ = false;
-		if (($this->get_effective_cache()) === NULL)
+	public function fetchResults($query, & $args, & $succ)
+	{
+		$succ = false;
+		if (($this->getEffectiveCache()) === NULL)
 			return false;
 
 		$ret = $this->model_effective_query_cache
-			->get($this->cache_key($query, $args) . '[RESULTS]', $succ);
+			->get($this->cacheKey($query, $args) . '[RESULTS]', $succ);
 
 		if ($succ)
 			return $ret;
@@ -280,4 +297,3 @@ class DB_ModelQueryCache
 		return NULL;
 	}
 }
-?>

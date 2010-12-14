@@ -19,11 +19,11 @@
  *
  */
 
+require_once __DIR__ .  '/../../path.inc.php';
+require_once __DIR__ .  '/../SampleSchema.class.php';
+require_once __DIR__ .  '/../SampleModels.inc.php';
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../../path.inc.php';
-require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
-require_once dirname(__FILE__) .  '/../SampleModels.inc.php';
+use toolib\DB\Connection;
 
 class Record_CRUDTest extends PHPUnit_Framework_TestCase
 {
@@ -44,7 +44,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 	}
 	public function tearDown()
 	{
-		DB_Conn::disconnect();
+		Connection::disconnect();
 	}
 
 	public function check_last_event($type, $name, $check_last)
@@ -102,14 +102,14 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 	public function testOpenAll()
 	{
 		// Open all with single primary-key
-		$users = User::open_all();
+		$users = User::openAll();
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 7);
 		foreach($users as $u)
 		$this->assertType('User', $u);
 
 		// Open all with multi primary-key
-		$gms = Group_Members::open_all();
+		$gms = Group_Members::openAll();
 		$this->assertType('array', $gms);
 		$this->assertEquals(count($gms), 8);
 		foreach($gms as $gm)
@@ -119,9 +119,9 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 	public function testOpenQuery()
 	{
 		// Open query with single primary-key
-		$mq = User::open_query()
+		$mq = User::openQuery()
 		->limit(4);
-		$this->assertType('DB_ModelQuery',  $mq);
+		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute();
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 4);
@@ -129,7 +129,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertType('User', $u);
 
 		// Open all with multi primary-key
-		$mq = Group_Members::open_query()
+		$mq = Group_Members::openQuery()
 		->limit(3);
 		$gms = $mq->execute();
 		$this->assertType('array', $gms);
@@ -138,9 +138,9 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertType('Group_Members', $gm);
 
 		// Open query with parameters on single pk
-		$mq = User::open_query()
+		$mq = User::openQuery()
 		->where('username like ?');
-		$this->assertType('DB_ModelQuery',  $mq);
+		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute('user%');
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 6);
@@ -148,7 +148,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertType('User', $u);
 
 		// Open query with parameters on multi pk
-		$mq = Group_Members::open_query()
+		$mq = Group_Members::openQuery()
 		->where('username like ?');
 		$gms = $mq->execute('user%');
 		$this->assertType('array', $gms);
@@ -160,10 +160,10 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 	public function testOpenRawQuery()
 	{
 		// Raw query with single primary-key
-		$mq = User::raw_query()
+		$mq = User::rawQuery()
 		->select(User::model()->fields())
 		->limit(4);
-		$this->assertType('DB_ModelQuery',  $mq);
+		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute();
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 4);
@@ -174,7 +174,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		}
 
 		// Open all with multi primary-key
-		$mq = Group_Members::raw_query()
+		$mq = Group_Members::rawQuery()
 		->select(Group_Members::model()->fields())
 		->limit(3);
 		$gms = $mq->execute();
@@ -189,10 +189,10 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 
 
 		// Open query with parameters on single pk
-		$mq = User::raw_query()
+		$mq = User::rawQuery()
 		->select(User::model()->fields())
 		->where('username like ?');
-		$this->assertType('DB_ModelQuery',  $mq);
+		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute('user%');
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 6);
@@ -203,7 +203,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		}
 
 		// Open query with parameters on multi pk
-		$mq = Group_Members::raw_query()
+		$mq = Group_Members::rawQuery()
 		->select(Group_Members::model()->fields())
 		->where('username like ?');
 		$gms = $mq->execute('user%');

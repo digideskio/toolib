@@ -20,10 +20,11 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../../path.inc.php';
-require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
-require_once dirname(__FILE__) .  '/../SampleModels.inc.php';
+require_once __DIR__ .  '/../../path.inc.php';
+require_once __DIR__ .  '/../SampleSchema.class.php';
+require_once __DIR__ .  '/../SampleModels.inc.php';
+
+use toolib\DB\Connection;
 
 class Relations_ManyToManyTest extends PHPUnit_Framework_TestCase
 {
@@ -44,7 +45,7 @@ class Relations_ManyToManyTest extends PHPUnit_Framework_TestCase
 	}
 	public function tearDown()
 	{
-		DB_Conn::disconnect();
+		Connection::disconnect();
 	}
 
 	public function check_last_event($type, $name, $check_last)
@@ -110,7 +111,7 @@ class Relations_ManyToManyTest extends PHPUnit_Framework_TestCase
 		
 		// Order by (Reverse order)
 		$users = Group::open('group1')->users->subquery()
-			->order_by('username', 'DESC')
+			->orderBy('username', 'DESC')
 			->execute();
 		$this->assertEquals(count($users), 3);
 		$this->assertEquals($users[0]->username, 'user3');
@@ -120,7 +121,7 @@ class Relations_ManyToManyTest extends PHPUnit_Framework_TestCase
 		// Limit result
 		$users = Group::open('group1')->users->subquery()
 			->limit(1)
-			->order_by('username', 'DESC')
+			->orderBy('username', 'DESC')
 			->execute();
 		$this->assertEquals(count($users), 1);
 		$this->assertEquals($users[0]->username, 'user3');		

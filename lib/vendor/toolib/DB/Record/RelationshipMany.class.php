@@ -19,13 +19,15 @@
  *  
  */
 
+namespace toolib\DB\Record;
+use toolib\DB\Record;
 
 //! Object handling collection from 1-to-M relationship
 /**
  * This object is constructed when requesting a relationship from a DB_Record.
  * Check DBRecord for more information on how to construct it.
  */
-class DB_Record_RelationshipMany
+class RelationshipMany
 {
 	//! The constructed query
 	private $query;
@@ -37,16 +39,16 @@ class DB_Record_RelationshipMany
 	public function __construct($local_model, $foreign_model_name, $field_value)
 	{	
 		// Construct query object
-	    $foreign_model = DB_Record::model($foreign_model_name);
+	    $foreign_model = $foreign_model_name::model();
 
 	    // Save parameters
 	    $this->rel_params['local_model'] = $local_model;
 	    $this->rel_params['foreign_model'] = $foreign_model;
 	    $this->rel_params['field_value'] = $field_value;
 	    
-		$this->query = DB_Record::open_query($foreign_model_name)
-			->where($foreign_model->fk_field_for($local_model->name()) . ' = ?')
-			->push_exec_param($field_value);
+		$this->query = $foreign_model_name::openQuery()
+			->where($foreign_model->fkFieldFor($local_model->name()) . ' = ?')
+			->pushExecParam($field_value);
 	}
 
 	//! Get all records of this relationship
@@ -64,12 +66,10 @@ class DB_Record_RelationshipMany
 	//! Get one only member with a specific primary key
 	public function get($primary_key)
 	{
-		$pks = $this->rel_params['foreign_model']->pk_fields();
+		$pks = $this->rel_params['foreign_model']->pkFields();
 	    $res = $this->subquery()->where("{$pks[0]} = ?")->execute($primary_key);
 	    if (count($res) > 0)
 	        return $res[0];
 	    return NULL;
     }
 }
-
-?>

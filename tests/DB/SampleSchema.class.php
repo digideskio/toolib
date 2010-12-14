@@ -20,6 +20,7 @@
  */
 
 use toolib\DB\Connection;
+
 require_once __DIR__ .  '/../path.inc.php';
 
 //! Create a Sample schema
@@ -60,7 +61,7 @@ class SampleSchema
                 self::$conn_params['password'],
                 self::$conn_params['schema']
             );
-            Connection::get_link()->autocommit(false);
+            Connection::getLink()->autocommit(false);
 
             // Create schema
             Connection::query('
@@ -180,7 +181,7 @@ class SampleSchema
                 (3, 'First post', 'sebas', NOW())
             ");
 
-            $stmt = Connection::get_link()->prepare(
+            $stmt = Connection::getLink()->prepare(
                 'INSERT INTO posts (thread_id, posted_text, poster, date) VALUES (2, ?, \'long\', NOW())');
             $big_post = str_repeat('1234567890', 100000);
             $null = null;
@@ -192,7 +193,7 @@ class SampleSchema
             	;//die($stmt->error);
             $stmt->close();
             
-            Connection::get_link()->autocommit(true);
+            Connection::getLink()->autocommit(true);
         }
 
         static public function destroy()

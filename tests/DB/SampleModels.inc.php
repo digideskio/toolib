@@ -19,10 +19,10 @@
  *  
  */
 
+require_once __DIR__ .  '/../path.inc.php';
+use toolib\DB\Record;
 
-require_once dirname(__FILE__) .  '/../path.inc.php';
-
-class Forum extends DB_Record
+class Forum extends Record
 {
     static public $table = 'forums';
 
@@ -32,7 +32,7 @@ class Forum extends DB_Record
     );
 }
 
-class Thread extends DB_Record
+class Thread extends Record
 {
     static public $table = 'threads';
 
@@ -44,7 +44,7 @@ class Thread extends DB_Record
     );
 }
 
-class Post extends DB_Record
+class Post extends Record
 {
     static public $table = 'posts';
 
@@ -58,7 +58,7 @@ class Post extends DB_Record
     );
 }
 
-class User extends DB_Record
+class User extends Record
 {
     static public $table = 'users';
 
@@ -69,7 +69,7 @@ class User extends DB_Record
         );
 }
 
-class Group extends DB_Record
+class Group extends Record
 {
     static public $table = 'groups';
 
@@ -79,7 +79,7 @@ class Group extends DB_Record
         );
 }
 
-class Group_Members extends DB_Record
+class Group_Members extends Record
 {
     static public $table = 'group_members';
 
@@ -89,6 +89,6 @@ class Group_Members extends DB_Record
     );
 }
 
-Forum::one_to_many('Thread', 'forum', 'threads');
-Thread::one_to_many('Post', 'thread', 'posts');
-User::many_to_many('Group', 'Group_Members', 'users', 'groups');
+Forum::oneToMany('Thread', 'forum', 'threads');
+Thread::oneToMany('Post', 'thread', 'posts');
+User::manyToMany('Group', 'Group_Members', 'users', 'groups');

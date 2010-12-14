@@ -22,8 +22,8 @@
 namespace toolib;
 
 //! An operation was done without an established connection
-class NotConnectedException extends RuntimeException {};
-class WebActionException extends RuntimeException {
+class NotConnectedException extends \RuntimeException {};
+class WebActionException extends \RuntimeException {
 	public function __construct($message = null, $code = null)
 	{
 		error_log("[Error $code] $message");

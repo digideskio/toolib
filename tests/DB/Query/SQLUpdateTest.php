@@ -19,11 +19,11 @@
  *  
  */
 
+require_once __DIR__ .  '/../../path.inc.php';
+require_once __DIR__ .  '/../SampleSchema.class.php';
+require_once __DIR__ .  '/../SampleModels.inc.php';
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../../path.inc.php';
-require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
-require_once dirname(__FILE__) .  '/../SampleModels.inc.php';
+use toolib\DB\Connection;
 
 class Record_Query_SQLUpdateTest extends PHPUnit_Framework_TestCase
 {
@@ -44,44 +44,44 @@ class Record_Query_SQLUpdateTest extends PHPUnit_Framework_TestCase
     }
     public function tearDown()
     {
-        //DB_Conn::disconnect();
+        //Connection::disconnect();
     }
     
     public function testUpdate()
     {
-        $mq = Thread::raw_query();
+        $mq = Thread::rawQuery();
         $mq->update()
             ->set('id');
         $this->assertEquals('UPDATE `threads` SET `thread_id` = ?', $mq->sql());
 
-        $mq = Thread::raw_query();
+        $mq = Thread::rawQuery();
         $mq->update()
             ->set('id')
             ->set('title', 'new title');
         $this->assertEquals('UPDATE `threads` SET `thread_id` = ?, `title` = ?', $mq->sql());
         
-        $mq = Post::raw_query();
+        $mq = Post::rawQuery();
         $mq->update()
             ->set('post');
         $this->assertEquals('UPDATE `posts` SET `posted_text` = ?', $mq->sql());
         
-        $mq = Post::raw_query();
+        $mq = Post::rawQuery();
         $mq->update()
             ->set('post')
             ->limit(1);
         $this->assertEquals('UPDATE `posts` SET `posted_text` = ? LIMIT 1', $mq->sql());
 
-        $mq = Post::raw_query();
+        $mq = Post::rawQuery();
         $mq->update()
             ->set('post')
             ->limit(1, 14); // Drop offset in update as it is not valid
         $this->assertEquals('UPDATE `posts` SET `posted_text` = ? LIMIT 1', $mq->sql());
         
-        $mq = Post::raw_query();
+        $mq = Post::rawQuery();
         $mq->update()
             ->set('post')
             ->group_by('post')  // Drop group by post in update
-            ->order_by('id');
+            ->orderBy('id');
         $this->assertEquals('UPDATE `posts` SET `posted_text` = ? ORDER BY `id` ASC', $mq->sql());
 
     }
@@ -91,10 +91,9 @@ class Record_Query_SQLUpdateTest extends PHPUnit_Framework_TestCase
      */
     public function testInvalid1Insert()
     {
-        $mq = Post::raw_query();
+        $mq = Post::rawQuery();
         $mq->update()
             ->set('invalid_field');
         $this->assertEquals('UPDATE `posts` SET `posted_text` = ?', $mq->sql());
     }
 }
-?>

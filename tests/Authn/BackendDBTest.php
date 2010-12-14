@@ -54,7 +54,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testPlainReUse()
     {
         $auth = new Authn_Backend_DB(array(
-            'query_user' => User_plain::open_query()
+            'query_user' => User_plain::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password'
@@ -75,7 +75,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testPlainIdReUse()
     {
         $auth = new Authn_Backend_DB(array(
-            'query_user' => User_id::open_query()
+            'query_user' => User_id::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password'
@@ -97,7 +97,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testMd5User()
     {
         $auth = new Authn_Backend_DB(array(
-            'query_user' => User_md5::open_query()
+            'query_user' => User_md5::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',
@@ -119,7 +119,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testSha1User()
     {
         $auth = new Authn_Backend_DB(array(
-            'query_user' => User_sha1::open_query()
+            'query_user' => User_sha1::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',
@@ -146,7 +146,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         static $auth = NULL;
         if (!$auth)
         $auth = new Authn_Backend_DB(array(
-            'query_user' => User_plain::open_query()
+            'query_user' => User_plain::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',
@@ -168,7 +168,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $count +=  1;
         if (!$auth)
             $auth = new Authn_Backend_DB(array(
-                'query_user' => User_id::open_query()
+                'query_user' => User_id::openQuery()
                     ->where('username = ?'),
                 'field_username' => 'username',
                 'field_password' => 'password',
@@ -189,7 +189,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         static $auth = NULL;
         if (!$auth)
             $auth = new Authn_Backend_DB(array(
-                'query_user' => User_md5::open_query()
+                'query_user' => User_md5::openQuery()
                     ->where('username = ?'),
                 'field_username' => 'username',
                 'field_password' => 'password',
@@ -210,7 +210,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         static $auth = NULL;
         if (!$auth)
             $auth = new Authn_Backend_DB(array(
-                'query_user' => User_sha1::open_query()
+                'query_user' => User_sha1::openQuery()
                     ->where('username = ?'),
                 'field_username' => 'username',
                 'field_password' => 'password',
@@ -231,9 +231,9 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         static $auth = NULL;
         if (!$auth)
             $auth = new Authn_Backend_DB(array(
-                'query_user' => User_plain::open_query()
+                'query_user' => User_plain::openQuery()
                     ->where('enabled = ?')
-                    ->push_exec_param('1')
+                    ->pushExecParam('1')
                     ->where('username = ?'),
                 'field_username' => 'username',
                 'field_password' => 'password',
@@ -258,9 +258,9 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         static $auth = NULL;
         if (!$auth)
             $auth = new Authn_Backend_DB(array(
-                'query_user' => User_md5::open_query()
+                'query_user' => User_md5::openQuery()
                     ->where('enabled = ?')
-                    ->push_exec_param('1')
+                    ->pushExecParam('1')
                     ->where('username = ?'),
                 'field_username' => 'username',
                 'field_password' => 'password',
@@ -280,7 +280,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testResetPlainPwd()
     {
         $auth = new Authn_Backend_DB(array(
-            'query_user' => User_plain::open_query()
+            'query_user' => User_plain::openQuery()
                     ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password'
@@ -308,7 +308,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testResetPlainIdPwd()
     {
         $auth = new Authn_Backend_DB(array(
-            'query_user' => User_id::open_query()
+            'query_user' => User_id::openQuery()
                     ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password'
@@ -337,7 +337,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testResetMd5Pwd()
     {
         $auth = new Authn_Backend_DB(array(
-            'query_user' => User_md5::open_query()
+            'query_user' => User_md5::openQuery()
                     ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',
@@ -366,7 +366,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     public function testResetSha1Pwd()
     {
         $auth = new Authn_Backend_DB(array(
-            'query_user' => User_sha1::open_query()
+            'query_user' => User_sha1::openQuery()
                     ->where('username = ?'),
             'field_username' => 'username',
             'field_password' => 'password',

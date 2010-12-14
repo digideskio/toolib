@@ -19,11 +19,11 @@
  *  
  */
 
+require_once __DIR__ .  '/../../path.inc.php';
+require_once __DIR__ .  '/../SampleSchema.class.php';
+require_once __DIR__ .  '/../SampleModels.inc.php';
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../../path.inc.php';
-require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
-require_once dirname(__FILE__) .  '/../SampleModels.inc.php';
+use toolib\DB\Connection;
 
 class Record_Query_SQLGeneralTest extends PHPUnit_Framework_TestCase
 {
@@ -44,13 +44,13 @@ class Record_Query_SQLGeneralTest extends PHPUnit_Framework_TestCase
     }
     public function tearDown()
     {
-        DB_Conn::disconnect();
+        Connection::disconnect();
     }
 
     public function testDefaultModelQueryInfo()
     {
-        $mq = Forum::raw_query();
-        $this->assertType('DB_ModelQuery', $mq);
+        $mq = Forum::rawQuery();
+        $this->assertType('toolib\DB\ModelQuery', $mq);
         $this->assertEquals($mq->type(), null);
     }
     
@@ -59,7 +59,7 @@ class Record_Query_SQLGeneralTest extends PHPUnit_Framework_TestCase
      */
     public function testEmptyType()
     {
-        $mq = Forum::raw_query();
+        $mq = Forum::rawQuery();
         $mq->sql();
     }
     
@@ -69,51 +69,51 @@ class Record_Query_SQLGeneralTest extends PHPUnit_Framework_TestCase
         return array(
             // Same query diferent literal values
             array(  // SELECT
-                Thread::raw_query()
+                Thread::rawQuery()
                 ->select(Thread::model()->fields())
-                ->left_join('Post', 'id', 'thread_id')
+                ->leftJoin('Post', 'id', 'thread_id')
                 ->where('l.post like ?', 'not')
-                ->where_in('l.id', array(1,2,3,4,5), 'OR')
+                ->whereIn('l.id', array(1,2,3,4,5), 'OR')
                 ,
-                Thread::raw_query()
+                Thread::rawQuery()
                 ->select(Thread::model()->fields())
-                ->left_join('Post', 'id', 'thread_id')
+                ->leftJoin('Post', 'id', 'thread_id')
                 ->where('l.post like ?', 'not')
-                ->where_in('l.id', array('mak','mok','tr','gfd','asdf'), 'OR')
+                ->whereIn('l.id', array('mak','mok','tr','gfd','asdf'), 'OR')
             ),
             array(  // INSERT
-                Thread::raw_query()
+                Thread::rawQuery()
                 ->insert(Thread::model()->fields())
-                ->values_array(array(1,2,3,4))
+                ->valuesArray(array(1,2,3,4))
                 ->values('a','fd','sdf','sf')
                 ,
-                Thread::raw_query()
+                Thread::rawQuery()
                 ->insert(Thread::model()->fields())
                 ->values('a','fd','sdf','sf')
-                ->values_array(array('64356345','fd','sdf','sf'))
+                ->valuesArray(array('64356345','fd','sdf','sf'))
             ),
             array(  // UPDATE
-                Post::raw_query()
+                Post::rawQuery()
                 ->update()
                 ->set('post')
                 ,
-                Post::raw_query()
+                Post::rawQuery()
                 ->update()
                 ->set('post', 'asdfasdfasdf')
             ),
             // Same query different case in operators
             array(  // SELECT
-                Thread::raw_query()
+                Thread::rawQuery()
                 ->select(Thread::model()->fields())
-                ->left_join('Post', 'id', 'thread_id')
+                ->leftJoin('Post', 'id', 'thread_id')
                 ->where('l.post LiKe ?', 'NoT')
-                ->where_in('l.id', array(1,2,3,4,5), 'Or')
+                ->whereIn('l.id', array(1,2,3,4,5), 'Or')
                 ,
-                Thread::raw_query()
+                Thread::rawQuery()
                 ->select(Thread::model()->fields())
-                ->left_join('Post', 'id', 'thread_id')
+                ->leftJoin('Post', 'id', 'thread_id')
                 ->where('l.post LiKe ?', 'not')
-                ->where_in('l.id', array('mak','mok','tr','gfd','asdf'), 'OR')
+                ->whereIn('l.id', array('mak','mok','tr','gfd','asdf'), 'OR')
             ),
         );
     }
@@ -127,4 +127,4 @@ class Record_Query_SQLGeneralTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($a->hash(), $b->hash());
     }
 }
-?>
+

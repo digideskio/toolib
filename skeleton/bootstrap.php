@@ -72,8 +72,8 @@ if (!isset($_SESSION['initialized']))
 
 // Setup authentication
 $auth = new Authn_Backend_DB(array(
-    'query_user' => User::open_query()
-        ->where('enabled = ?')->push_exec_param(1)
+    'query_user' => User::openQuery()
+        ->where('enabled = ?')->pushExecParam(1)
         ->where('username = ?'),
     'field_username' => 'username',
     'field_password' => 'password',

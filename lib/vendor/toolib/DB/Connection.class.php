@@ -24,6 +24,8 @@ namespace toolib\DB;
 require_once __DIR__. '/../EventDispatcher.class.php';
 require_once __DIR__ . '/../Exceptions.lib.php';
 
+use toolib\NotConnectedException;
+
 //! Interact with the connection to database
 /**
  * An easy way to organize prepared statements and execute them
@@ -57,7 +59,7 @@ class Connection
     static private $max_packet_allowed = null;
     
     //! Queries that must be run after connection
-    static private $initialization_queries = null;
+    static private $initialization_queries = array();
 
     //! Get the events dispatcher of DB_Conn
     /**
@@ -71,12 +73,12 @@ class Connection
     *  - @b stmt.prepared: A requested statement was prepared.
     *  - @b stmt.executed: A prepared statement was executed.
     * .
-    * @return toolib\EventDispatcher The object with all events
+    * @return \toolib\EventDispatcher The object with all events
     */
     static public function events()
     {   
         if (self::$events === null)
-            self::$events = new toolib\EventDispatcher(array(
+            self::$events = new \toolib\EventDispatcher(array(
 	        	'connected',
 	        	'disconnected',
 	        	'error',
@@ -122,7 +124,6 @@ class Connection
         	'password' => $pass,
         	'schema' => $schema
         );
-        self::$initialization_queries = array();
         
         // Connect if it is needed
         if (!self::$delayed_connection)
@@ -145,8 +146,9 @@ class Connection
     static public function initializationQuery($query)
     {
     	// If there is connection execute it
-    	if (self::$dbconn !== null)
+    	if (is_object(self::$dbconn))
     		return self::query($query);
+
     	// or push it to stack
     	self::$initialization_queries[] = $query;
     	return true;
@@ -161,7 +163,7 @@ class Connection
     		return false;	// We are not on (pre)connection state.
     		
     	// Try to connect
-    	self::$dbconn = new mysqli(
+    	self::$dbconn = new \MySQLi(
     		self::$connection_options['host'], 
     		self::$connection_options['username'], 
     		self::$connection_options['password'],
@@ -180,6 +182,8 @@ class Connection
         // Execute initialization queries
         foreach(self::$initialization_queries as $query)
         	self::query($query);
+        self::$initialization_queries = array();
+        
         return true;
     } 
 

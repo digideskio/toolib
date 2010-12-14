@@ -20,11 +20,12 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../../path.inc.php';
-require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
+require_once __DIR__ .  '/../../path.inc.php';
+require_once __DIR__ .  '/../SampleSchema.class.php';
 
-class Conn_TransferTest extends PHPUnit_Framework_TestCase
+use toolib\DB\Connection;
+
+class Connection_TransferTest extends PHPUnit_Framework_TestCase
 {
     public static $events = array();
 
@@ -38,9 +39,9 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
         SampleSchema::build();
 
         // Connect listener
-        DB_Conn::events()->connect(
+        Connection::events()->connect(
         NULL,
-        array('Conn_TransferTest', 'push_event')
+        array('Connection_TransferTest', 'push_event')
         );
     }
 
@@ -53,14 +54,14 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
     {   
         SampleSchema::connect();
 
-        DB_Conn::prepare('insert-forum', 'INSERT INTO forums (titles) VALUES (?)');
-        DB_Conn::prepare('inser-post', 'INSERT INTO posts (titles) VALUES (?)');
+        Connection::prepare('insert-forum', 'INSERT INTO forums (titles) VALUES (?)');
+        Connection::prepare('inser-post', 'INSERT INTO posts (titles) VALUES (?)');
         // Clean up events
         self::$events = array();
     }
     public function tearDown()
     {
-        DB_Conn::disconnect();
+        Connection::disconnect();
     }
 
     public function check_last_event($type, $name, $check_last)
@@ -87,7 +88,7 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
 
     public function testQueryFetch()
     {
-        $data = DB_Conn::query_fetch_all('SELECT * from forums LIMIT 1');
+        $data = Connection::queryFetchAll('SELECT * from forums LIMIT 1');
         $this->assertType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, 
@@ -104,8 +105,8 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
 
     public function testExecuteNoParamFetch()
     {
-        DB_Conn::prepare('test', 'SELECT * from forums LIMIT 1');
-        $data = DB_Conn::execute_fetch_all('test');
+        Connection::prepare('test', 'SELECT * from forums LIMIT 1');
+        $data = Connection::executeFetchAll('test');
         $this->assertType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
@@ -120,8 +121,8 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
 
     public function testExecutePassParamFetch()
     {
-        DB_Conn::prepare('test', 'SELECT * from forums LIMIT ?,?');
-        $data = DB_Conn::execute_fetch_all('test', array(0,1));
+        Connection::prepare('test', 'SELECT * from forums LIMIT ?,?');
+        $data = Connection::executeFetchAll('test', array(0,1));
         $this->assertType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
@@ -134,7 +135,7 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
         ));
 
         // Re run with other parameters
-        $data = DB_Conn::execute_fetch_all('test', array(1, 1));
+        $data = Connection::executeFetchAll('test', array(1, 1));
         $this->assertType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
@@ -149,8 +150,8 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
 
     public function testExecutePassParamTypeFetch()
     {
-        DB_Conn::prepare('test', 'SELECT * from forums LIMIT ?,?');
-        $data = DB_Conn::execute_fetch_all('test', array(0,1), array('i', 's'));
+        Connection::prepare('test', 'SELECT * from forums LIMIT ?,?');
+        $data = Connection::executeFetchAll('test', array(0,1), array('i', 's'));
         $this->assertType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
@@ -163,7 +164,7 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
         ));
 
         // Re run with other parameters
-        $data = DB_Conn::execute_fetch_all('test', array(1,1), array('i', 's'));
+        $data = Connection::executeFetchAll('test', array(1,1), array('i', 's'));
         $this->assertType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
@@ -180,15 +181,15 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
     {
         $big_post = str_repeat('1234567890', 1000000);
 
-        DB_Conn::prepare('test', 'INSERT posts (thread_id, posted_text, poster) VALUES (?,?,?)');
-        $res = DB_Conn::execute('test', array(3, 'boob', 'poster'));
+        Connection::prepare('test', 'INSERT posts (thread_id, posted_text, poster) VALUES (?,?,?)');
+        $res = Connection::execute('test', array(3, 'boob', 'poster'));
         $this->assertType('mysqli_stmt', $res);
 
-        $res = DB_Conn::execute('test', array(3, $big_post, 'poster'), array('s', 'b', 's'));
+        $res = Connection::execute('test', array(3, $big_post, 'poster'), array('s', 'b', 's'));
         $this->assertType('mysqli_stmt', $res);
-        $last_id = DB_Conn::last_insert_id();
+        $last_id = Connection::getLastInsertId();
 
-        $res = DB_Conn::query_fetch_all("SELECT * FROM posts WHERE id ='{$last_id}'");
+        $res = Connection::queryFetchAll("SELECT * FROM posts WHERE id ='{$last_id}'");
         $this->assertEquals($res[0]['posted_text'], $big_post);
     }
     
@@ -198,7 +199,7 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
     public function testQueryFetchBlob()
     {   
         $big_post = str_repeat('1234567890', 100000);
-        $data = DB_Conn::query_fetch_all('SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
+        $data = Connection::queryFetchAll('SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
         $this->assertType('array', $data);
         $this->assertEquals(1, count($data));
         $this->assertEquals(
@@ -224,8 +225,8 @@ class Conn_TransferTest extends PHPUnit_Framework_TestCase
     public function testExecuteFetchBlob()
     {   
         $big_post = str_repeat('1234567890', 100000);
-        DB_Conn::prepare('test', 'SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
-        $data = DB_Conn::execute_fetch_all('test');
+        Connection::prepare('test', 'SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
+        $data = Connection::executeFetchAll('test');
         $this->assertType('array', $data);
         $this->assertEquals(1, count($data));
         $this->assertEquals(

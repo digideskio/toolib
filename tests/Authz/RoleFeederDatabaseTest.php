@@ -45,7 +45,7 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
     public function testMandatoryOptions1()
     {
         $list = new Authz_Role_FeederDatabase(array(
-            'role_query' => Users::open_query()->where('username = ?')
+            'role_query' => Users::openQuery()->where('username = ?')
         ));
     }
 
@@ -62,7 +62,7 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
     public function testNoDependency()
     {
         $list = new Authz_Role_FeederDatabase(array(
-            'role_query' => Users::open_query()->where('username = ?'),
+            'role_query' => Users::openQuery()->where('username = ?'),
             'role_name_field' => 'username'
         ));
         
@@ -94,8 +94,8 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
 
     public function testDependency()
     {
-        $users_query = Users::open_query()->where('username = ?');
-        $group_query = Membership::open_query()->where('username = ?');
+        $users_query = Users::openQuery()->where('username = ?');
+        $group_query = Membership::openQuery()->where('username = ?');
         
         $list = new Authz_Role_FeederDatabase(array(
             'role_query' => $users_query,
@@ -155,8 +155,8 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
     
     public function testDependencyFilter()
     {
-        $users_query = Users::open_query()->where('username = ?');
-        $group_query = Membership::open_query()->where('username = ?');
+        $users_query = Users::openQuery()->where('username = ?');
+        $group_query = Membership::openQuery()->where('username = ?');
         
         $list = new Authz_Role_FeederDatabase(array(
             'role_query' => $users_query,

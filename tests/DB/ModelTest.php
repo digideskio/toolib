@@ -20,10 +20,12 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
-require_once dirname(__FILE__) .  '/SampleSchema.class.php';
-require_once dirname(__FILE__) .  '/SampleModels.inc.php';
+require_once __DIR__ .  '/../path.inc.php';
+require_once __DIR__ .  '/SampleSchema.class.php';
+require_once __DIR__ .  '/SampleModels.inc.php';
+
+use toolib\DB\Connection;
+use toolib\DB\Model;
 
 class ModelTest extends PHPUnit_Framework_TestCase
 {
@@ -42,15 +44,17 @@ class ModelTest extends PHPUnit_Framework_TestCase
     }
 
     public static function tearDownAfterClass()
-    {   SampleSchema::destroy();
+    {   
+    	SampleSchema::destroy();
     }
 
     public function setUp()
-    {   SampleSchema::connect();
+    {   
+    	SampleSchema::connect();
     }
     public function tearDown()
     {
-        DB_Conn::disconnect();
+        Connection::disconnect();
     }
 
     //! Provider for model information
@@ -98,39 +102,39 @@ class ModelTest extends PHPUnit_Framework_TestCase
 
     public function testOpenModel()
     {   // Open wrong
-        $res = DB_Model::open('wrong');
+        $res = Model::open('wrong');
         $this->assertNull($res);
 
         // Open with class name but not model
-        $res = DB_Model::open('ModelTest');
+        $res = Model::open('ModelTest');
         $this->assertNull($res);
 
         // Open Forum
-        $res = DB_Model::open('Forum');
-        $this->assertType('DB_Model', $res);
+        $res = Model::open('Forum');
+        $this->assertType('toolib\DB\Model', $res);
         $this->assertEquals($res->name(), 'Forum');
 
         // Open Group
-        $res = DB_Model::open('Group');
-        $this->assertType('DB_Model', $res);
+        $res = Model::open('Group');
+        $this->assertType('toolib\DB\Model', $res);
         $this->assertEquals($res->name(), 'Group');
 
         // Open Group_Members
-        $res = DB_Model::open('Group_Members');
-        $this->assertType('DB_Model', $res);
+        $res = Model::open('Group_Members');
+        $this->assertType('toolib\DB\Model', $res);
         $this->assertEquals($res->name(), 'Group_Members');
     }
 
     public function testExistsModel()
     {
-        $this->assertFalse(DB_Model::exists('wrong'));
-        $this->assertFalse(DB_Model::exists('ModelTest'));
-        $this->assertTrue(DB_Model::exists('Forum'));
-        $this->assertTrue(DB_Model::exists('Thread'));
-        $this->assertTrue(DB_Model::exists('Post'));
-        $this->assertTrue(DB_Model::exists('User'));
-        $this->assertTrue(DB_Model::exists('Group'));
-        $this->assertTrue(DB_Model::exists('Group_Members'));
+        $this->assertFalse(Model::exists('wrong'));
+        $this->assertFalse(Model::exists('ModelTest'));
+        $this->assertTrue(Model::exists('Forum'));
+        $this->assertTrue(Model::exists('Thread'));
+        $this->assertTrue(Model::exists('Post'));
+        $this->assertTrue(Model::exists('User'));
+        $this->assertTrue(Model::exists('Group'));
+        $this->assertTrue(Model::exists('Group_Members'));
     }
 
     //! Check model names and tables
@@ -139,12 +143,12 @@ class ModelTest extends PHPUnit_Framework_TestCase
     */
     public function testNameTable($model_name, $table)
     {
-        $m = DB_Model::open($model_name);
+        $m = Model::open($model_name);
         $this->assertEquals($m->name(), $model_name);
         $this->assertEquals($m->table(), $table);
 
         // Check class information
-        $this->assertEquals(get_static_var($model_name, 'table'), $table);
+        $this->assertEquals($table, $model_name::$table);
     }
 
     //! Check model field information
@@ -153,7 +157,7 @@ class ModelTest extends PHPUnit_Framework_TestCase
     */
     public function testFields($model_name, $table, $fields, $pks, $ais, $fks)
     {   
-        $m = DB_Model::open($model_name);
+        $m = Model::open($model_name);
 
         // Fields names
         $fs = $m->fields();
@@ -164,19 +168,18 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(array_keys($fs), $fields);
 
         // Field_info (wrong-name)
-        $this->assertNull($m->field_info('wrong'));
-        $this->assertNull($m->field_info('wrong', 'wrong'));
+        $this->assertNull($m->fieldInfo('wrong'));
+        $this->assertNull($m->fieldInfo('wrong', 'wrong'));
 
         // Has-field
-        $this->assertFalse($m->has_field('wrong'));
+        $this->assertFalse($m->hasField('wrong'));
 
         // Field_info (correct)
         foreach($fields as $field)
         {
-            $this->assertTrue($m->has_field($field));
+            $this->assertTrue($m->hasField($field));
 
-
-            $info = $m->field_info($field);
+            $info = $m->fieldInfo($field);
             $this->assertType('array', $info);
             $this->assertEquals($field, $info['name']);
 
@@ -198,19 +201,19 @@ class ModelTest extends PHPUnit_Framework_TestCase
     */
     public function testPkFields($model_name, $table, $fields, $pks, $ais, $fks)
     {   
-        $m = DB_Model::open($model_name);
+        $m = Model::open($model_name);
 
         // Pk field names
-        $this->assertEquals($m->pk_fields(), $pks);
+        $this->assertEquals($m->pkFields(), $pks);
 
         // PK Fields info
-        $this->assertEquals(array_keys($m->pk_fields(true)), $pks);
+        $this->assertEquals(array_keys($m->pkFields(true)), $pks);
 
-        foreach($m->pk_fields(true) as $name => $info)
+        foreach($m->pkFields(true) as $name => $info)
         {
             $this->assertEquals($name, $info['name']);
             $this->assertTrue($info['pk']);
-            $this->assertEquals($m->field_info($name), $info);
+            $this->assertEquals($m->fieldInfo($name), $info);
         }
     }
 
@@ -220,19 +223,19 @@ class ModelTest extends PHPUnit_Framework_TestCase
     */
     public function testAIFields($model_name, $table, $fields, $pks, $ais, $fks)
     {   
-        $m = DB_Model::open($model_name);
+        $m = Model::open($model_name);
 
         // AI field names
-        $this->assertEquals($m->ai_fields(), $ais);
+        $this->assertEquals($m->aiFields(), $ais);
 
         // AI Fields info
-        $this->assertEquals(array_keys($m->ai_fields(true)), $ais);
+        $this->assertEquals(array_keys($m->aiFields(true)), $ais);
 
-        foreach($m->ai_fields(true) as $name => $info)
+        foreach($m->aiFields(true) as $name => $info)
         {
             $this->assertEquals($name, $info['name']);
             $this->assertTrue($info['ai']);
-            $this->assertEquals($m->field_info($name), $info);
+            $this->assertEquals($m->fieldInfo($name), $info);
         }
     }
 
@@ -242,19 +245,19 @@ class ModelTest extends PHPUnit_Framework_TestCase
     */
     public function testFKFields($model_name, $table, $fields, $pks, $ais, $fks)
     {   
-        $m = DB_Model::open($model_name);
+        $m = Model::open($model_name);
 
         // FK field names
-        $this->assertEquals($m->fk_fields(), array_keys($fks));
+        $this->assertEquals($m->fkFields(), array_keys($fks));
 
         // FK Fields info
-        $this->assertEquals(array_keys($m->fk_fields(true)), array_keys($fks));
+        $this->assertEquals(array_keys($m->fkFields(true)), array_keys($fks));
 
-        foreach($m->fk_fields(true) as $name => $info)
+        foreach($m->fkFields(true) as $name => $info)
         {
             $this->assertEquals($name, $info['name']);
             $this->assertEquals($info['fk'], $fks[$name]);
-            $this->assertEquals($m->field_info($name), $info);
+            $this->assertEquals($m->fieldInfo($name), $info);
         }
     }
 
@@ -264,18 +267,18 @@ class ModelTest extends PHPUnit_Framework_TestCase
     */
     public function testFKFieldFor($model_name, $table, $fields, $pks, $ais, $fks)
     {   
-        $m = DB_Model::open($model_name);
+        $m = Model::open($model_name);
 
         // Check corect reference
         foreach($fks as $fk => $model)
         {
-            $this->assertEquals($m->fk_field_for($model), $fk);
-            $this->assertEquals($m->fk_field_for($model, true), $m->field_info($fk));
+            $this->assertEquals($m->fkFieldFor($model), $fk);
+            $this->assertEquals($m->fkFieldFor($model, true), $m->fieldInfo($fk));
         }
 
         // Check for unknown model
-        $this->assertNull($m->fk_field_for('unknown'));
-        $this->assertNull($m->fk_field_for('unknown', true));
+        $this->assertNull($m->fkFieldFor('unknown'));
+        $this->assertNull($m->fkFieldFor('unknown', true));
     }
 
     //! Cast data to external format
@@ -284,8 +287,8 @@ class ModelTest extends PHPUnit_Framework_TestCase
     */
     public function testCastDataToUserWrong()
     {   
-        $m = DB_Model::open('Forum');
-        $m->user_field_data('no field', 'test');
+        $m = Model::open('Forum');
+        $m->userFieldData('no field', 'test');
     }
 
     //! Cast data to external format
@@ -294,8 +297,8 @@ class ModelTest extends PHPUnit_Framework_TestCase
     */
     public function testCastDataToDBWrongField()
     {   
-        $m = DB_Model::open('Forum');
-        $m->db_field_data('no field', 'test');
+        $m = Model::open('Forum');
+        $m->dbFieldData('no field', 'test');
     }
 
     //! Cast data to external format
@@ -304,63 +307,63 @@ class ModelTest extends PHPUnit_Framework_TestCase
     */
     public function testCastDataToDBWrongData()
     {   
-        $m = DB_Model::open('Post');
-        $m->user_field_data('date', 'wrong date');
+        $m = Model::open('Post');
+        $m->userFieldData('date', 'wrong date');
     }
 
     public function testDataCast()
     {   
-        $m = DB_Model::open('Post');
+        $m = Model::open('Post');
 
         // Generic db -> external
-        $this->assertEquals('same text', $m->user_field_data('id', 'same text'));
-        $this->assertEquals('123', $m->user_field_data('id', 123));
-        $this->assertEquals(123, $m->user_field_data('id', '123'));
-        $this->assertSame(array('test'), $m->user_field_data('id', array('test')));
-        $this->assertEquals(true, $m->user_field_data('id', true));
-        $this->assertEquals(false, $m->user_field_data('id', false));
-        $this->assertSame(null, $m->user_field_data('id', null));
+        $this->assertEquals('same text', $m->userFieldData('id', 'same text'));
+        $this->assertEquals('123', $m->userFieldData('id', 123));
+        $this->assertEquals(123, $m->userFieldData('id', '123'));
+        $this->assertSame(array('test'), $m->userFieldData('id', array('test')));
+        $this->assertEquals(true, $m->userFieldData('id', true));
+        $this->assertEquals(false, $m->userFieldData('id', false));
+        $this->assertSame(null, $m->userFieldData('id', null));
 
         // Datetime db -> external
-        $this->assertNull($m->user_field_data('date', null));  // Null is always null
+        $this->assertNull($m->userFieldData('date', null));  // Null is always null
         $expected_tm = date_create('2002-10-10', new DateTimeZone('UTC'));
         $expected_tm->setTimeZone(new DateTimeZone(date_default_timezone_get()));
         $this->assertEquals($expected_tm,
-            $m->user_field_data('date', '2002-10-10')
+            $m->userFieldData('date', '2002-10-10')
         );
         $expected_tm = date_create('@123', new DateTimeZone('UTC'));
         $expected_tm->setTimeZone(new DateTimeZone(date_default_timezone_get()));
-        $this->assertEquals($expected_tm, $m->user_field_data('date', '@123'));
+        $this->assertEquals($expected_tm, $m->userFieldData('date', '@123'));
 
         // Serializable db -> external
-        $this->assertNull($m->user_field_data('image', null));  // Null is always null
-        $this->assertEquals('text sample', $m->user_field_data('image', 's:11:"text sample";'));
+        $this->assertNull($m->userFieldData('image', null));  // Null is always null
+        $this->assertEquals('text sample', $m->userFieldData('image', 's:11:"text sample";'));
         $this->assertEquals(array('item1', 'slot2' => 'item2'),
-        $m->user_field_data('image', 'a:2:{i:0;s:5:"item1";s:5:"slot2";s:5:"item2";}'));
+        $m->userFieldData('image', 'a:2:{i:0;s:5:"item1";s:5:"slot2";s:5:"item2";}'));
 
         // Generic external -> db
-        $this->assertEquals('same text', $m->db_field_data('id', 'same text'));
-        $this->assertEquals('123', $m->db_field_data('id', 123));
-        $this->assertEquals('123', $m->db_field_data('id', '123'));
-        $this->assertEquals('Array', $m->db_field_data('id', array('test')));
-        $this->assertEquals(1, $m->db_field_data('id', true));
-        $this->assertEquals('', $m->db_field_data('id', false));
-        $this->assertEquals('', $m->db_field_data('id', null));
-        $this->assertSame(null, $m->db_field_data('id', null));
+        $this->assertEquals('same text', $m->dbFieldData('id', 'same text'));
+        $this->assertEquals('123', $m->dbFieldData('id', 123));
+        $this->assertEquals('123', $m->dbFieldData('id', '123'));
+        $this->assertEquals('Array', $m->dbFieldData('id', array('test')));
+        $this->assertEquals(1, $m->dbFieldData('id', true));
+        $this->assertEquals('', $m->dbFieldData('id', false));
+        $this->assertEquals('', $m->dbFieldData('id', null));
+        $this->assertSame(null, $m->dbFieldData('id', null));
 
         // Datetime external -> db
-        $this->assertEquals(null, $m->db_field_data('date', null)); // Null is always null
+        $this->assertEquals(null, $m->dbFieldData('date', null)); // Null is always null
         $formated_date = date_create('2002-10-10 00:00:00');
         $formated_date->setTimeZone(new DateTimeZone('UTC'));
         $this->assertEquals($formated_date->format(DATE_ISO8601),
-            $m->db_field_data('date', date_create('2002-10-10 00:00:00')));
-        $this->assertEquals('1970-01-01T00:02:03+0000', $m->db_field_data('date', date_create('@123')));
+            $m->dbFieldData('date', date_create('2002-10-10 00:00:00')));
+        $this->assertEquals('1970-01-01T00:02:03+0000', $m->dbFieldData('date', date_create('@123')));
         
         // Serializable external -> db
-        $this->assertEquals(null, $m->db_field_data('image', null)); // Null is always null
-        $this->assertEquals('s:11:"text sample";', $m->db_field_data('image', 'text sample'));
+        $this->assertEquals(null, $m->dbFieldData('image', null)); // Null is always null
+        $this->assertEquals('s:11:"text sample";', $m->dbFieldData('image', 'text sample'));
         $this->assertEquals('a:2:{i:0;s:5:"item1";s:5:"slot2";s:5:"item2";}',
-        $m->db_field_data('image', array('item1', 'slot2' => 'item2')));
+        $m->dbFieldData('image', array('item1', 'slot2' => 'item2')));
     }
 }
 ?>

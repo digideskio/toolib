@@ -19,11 +19,11 @@
  *  
  */
 
+require_once __DIR__ .  '/../../path.inc.php';
+require_once __DIR__ .  '/../SampleSchema.class.php';
+require_once __DIR__ .  '/../SampleModels.inc.php';
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../../path.inc.php';
-require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
-require_once dirname(__FILE__) .  '/../SampleModels.inc.php';
+use toolib\DB\Connection;
 
 class Record_Query_SQLDeleteTest extends PHPUnit_Framework_TestCase
 {
@@ -49,29 +49,28 @@ class Record_Query_SQLDeleteTest extends PHPUnit_Framework_TestCase
     
     public function testDelete()
     {
-        $mq = Thread::raw_query();
+        $mq = Thread::rawQuery();
         $mq->delete()
             ->where('id = ?');
         $this->assertEquals('DELETE FROM `threads` WHERE `thread_id` = ?', $mq->sql());
         
-        $mq = Thread::raw_query();
+        $mq = Thread::rawQuery();
         $mq->delete()
             ->where('id = ?');
         $this->assertEquals('DELETE FROM `threads` WHERE `thread_id` = ?', $mq->sql());
         
-        $mq = Post::raw_query();
+        $mq = Post::rawQuery();
         $mq->delete()
             ->where('post = ?')
             ->limit(1, 14); // Drop offset in delete as it is not valid
         $this->assertEquals('DELETE FROM `posts` WHERE `posted_text` = ? LIMIT 1', $mq->sql());
         
-        $mq = Post::raw_query();
+        $mq = Post::rawQuery();
         $mq->delete()
             ->where('post = ?')
             ->group_by('post')  // Drop group by post in delete
-            ->order_by('id');
+            ->orderBy('id');
         $this->assertEquals('DELETE FROM `posts` WHERE `posted_text` = ? ORDER BY `id` ASC', $mq->sql());
     }
     
 }
-?>

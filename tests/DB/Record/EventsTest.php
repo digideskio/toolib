@@ -20,17 +20,20 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../../path.inc.php';
-require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
-require_once dirname(__FILE__) .  '/../SampleModels.inc.php';
+require_once __DIR__ .  '/../../path.inc.php';
+require_once __DIR__ .  '/../SampleSchema.class.php';
+require_once __DIR__ .  '/../SampleModels.inc.php';
+
+use toolib\DB\Connection;
 
 class Record_EventsTest extends PHPUnit_Framework_TestCase
 {
 	public static $events = array();
 
 	public static function pop_event()
-	{   return array_pop(self::$events);    }
+	{
+		return array_pop(self::$events);
+	}
 
 	public static function push_event($e)
 	{
@@ -68,28 +71,31 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 	}
 
 	public function tearDown()
-	{   $this->assertEquals(count(self::$events), 0);
-	DB_Conn::disconnect();
+	{
+		$this->assertEquals(count(self::$events), 0);
+		Connection::disconnect();
 	}
 
 	public function check_last_event($type, $name, $check_last)
-	{   $e = self::pop_event();
-	$this->assertType('Event', $e);
-	$this->assertEquals($e->type, $type);
-	$this->assertEquals($e->name, $name);
-	if ($check_last)
-	$this->assertEquals(0, count(self::$events));
-	return $e;
+	{
+		$e = self::pop_event();
+		$this->assertType('toolib\Event', $e);
+		$this->assertEquals($e->type, $type);
+		$this->assertEquals($e->name, $name);
+		if ($check_last)
+		$this->assertEquals(0, count(self::$events));
+		return $e;
 	}
 
 	public function check_first_event($type, $name, $check_last)
-	{   $e = array_shift(self::$events);
-	$this->assertType('Event', $e);
-	$this->assertEquals($e->type, $type);
-	$this->assertEquals($e->name, $name);
-	if ($check_last)
-	$this->assertEquals(0, count(self::$events));
-	return $e;
+	{
+		$e = array_shift(self::$events);
+		$this->assertType('toolib\Event', $e);
+		$this->assertEquals($e->type, $type);
+		$this->assertEquals($e->name, $name);
+		if ($check_last)
+		$this->assertEquals(0, count(self::$events));
+		return $e;
 	}
 
 	public function testOpenEvents()
@@ -107,8 +113,8 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertType('Forum', $e->arguments['records'][0]);
 		$this->assertEquals($e->arguments['model'], 'Forum');
 
-		// Open_all() 1PK
-		$res = Forum::open_all();
+		// openAll() 1PK
+		$res = Forum::openAll();
 		// Post-Open
 		$e = self::check_last_event('notify', 'op.post.open', true);
 		$this->assertType('array', $e->arguments['records']);
@@ -130,8 +136,8 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertType('Group_Members', $e->arguments['records'][0]);
 		$this->assertEquals($e->arguments['model'], 'Group_Members');
 
-		// Open_all() 2PK
-		$res = Group_Members::open_all();
+		// openAll() 2PK
+		$res = Group_Members::openAll();
 		// Post-Open
 		$e = self::check_last_event('notify', 'op.post.open', true);
 		$this->assertType('array', $e->arguments['records']);

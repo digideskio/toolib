@@ -19,12 +19,12 @@
  *  
  */
 
+namespace toolib\DB;
 
 /**
  * Repository for model information
- *
  */
-class DB_Model
+class Model
 {
 	//! An array with all models
 	static private $models = array();
@@ -37,12 +37,13 @@ class DB_Model
 	
 	//! Open a model from models pool
 	/**
-	 * @return
-	 *  - @b DB_Model object with models information
+	 * @return \toolib\DB\Model
+	 *  - @b Object with model information
 	 *  - @b NULL if model was not found.
 	 */
 	static public function open($model_name)
-	{	// Check in session cache
+	{
+		// Check in session cache
 		if (self::exists($model_name))
 			return self::$models[$model_name];
 			
@@ -52,8 +53,8 @@ class DB_Model
 		
 		// Check cache
 		$md = self::$model_cache->get('model-' . $model_name, $succ);
-		if ($succ)
-		{	self::$models[$model_name] = $md;
+		if ($succ) {
+			self::$models[$model_name] = $md;
 			return $md;
 		}
 		
@@ -61,14 +62,22 @@ class DB_Model
 		return NULL;
 	}
 	
-	//! Create a model
+	//! Create a new model
+	/**
+	 * This is used from Record on first usage.
+	 * @param string $model_name
+	 * @param string $table
+	 * @param array $fields
+	 * @param array $relationships
+	 * @return toolib\DB\Model Object of the model.
+	 */
 	static public function create($model_name, $table, $fields, $relationships)
 	{	
 		// Return error if already existign
 		if (self::exists($model_name))
 			return false;
 			
-		$md = new DB_Model($model_name, $table, $fields, $relationships);
+		$md = new self($model_name, $table, $fields, $relationships);
 		self::$models[$model_name] = $md;
 		
 		// Save in model cache
@@ -79,22 +88,32 @@ class DB_Model
 	}
 	
 	//! Check if a model exists
-	/*
-	 * @return
+	/**
+	 * @return boolean
 	 *  - @b true if model exists
 	 *  - @b if model does not exists.
 	 */
 	static public function exists($model_name)
-	{	return isset(self::$models[$model_name]);	}
+	{
+		return isset(self::$models[$model_name]);
+	}
 	
-	//! Define the model cache
-	static public function set_model_cache($cache)
+	//! Define the model cache storage
+	/** 
+	 * @param Cache $cache Instance of a Cache repository
+	 */
+	static public function setModelCache($cache)
 	{
 		self::$model_cache = $cache;
 	}
 	
 	//! Get the model cache
-	static public function get_model_cache()
+	/**
+	 * @return \toolib\Cache
+	 *  - Instance of the cache object.
+	 *  - @b null if cache is disabled.
+	 */
+	static public function getModelCache()
 	{
 	    return self::$model_cache;
     }
@@ -102,18 +121,18 @@ class DB_Model
 	//! The actual meta data
 	private $meta_data = NULL;
 		
-	//! Create a DB_Model object
+	//! Create a Model object
 	final private function __construct($model_name, $table, $fields, $relationships)
 	{
 		$info = array('pk' => array(), 'ai' => array(), 'fk' => array());
 		
 		// Validate and copy all fields
 		$filtered_fields = array();
-		foreach($fields as $field_name => $field)
-		{	
+		foreach($fields as $field_name => $field) {
+				
 		    // Check if it was given as number entry or associative entry
-			if (is_numeric($field_name) && is_string($field))
-			{	$field_name = $field; 
+			if (is_numeric($field_name) && is_string($field)) {
+				$field_name = $field; 
 				$field = array();
 			}
 
@@ -131,15 +150,14 @@ class DB_Model
 			$filtered_field = array_merge($default_field_options, $field);
 			
 			// Find key(s)
-			if ($filtered_field['pk'])
-			{
+			if ($filtered_field['pk']) {
 				$filtered_field['unique'] = true;
 				$info['pk'][$filtered_field['name']] = $filtered_field;
 				if ($filtered_field['ai'])
 					$info['ai'][$filtered_field['name']] = $filtered_field;
-			}
-			else if ($filtered_field['ai'])
+			} else if ($filtered_field['ai']) {
 				$filtered_field['ai'] = false;
+			}
 
 			if ($filtered_field['fk'] != false)
 			    $info['fk'][$filtered_field['name']] = $filtered_field;
@@ -163,12 +181,18 @@ class DB_Model
 	}
 	
 	//! The name of the model
+	/**
+	 * @return string The name of this model.
+	 */
 	public function name()
 	{
 	    return $this->meta_data['model'];
     }
 	
 	//! Name of table associated with the model
+	/**
+	 * @return string The actual database table name.
+	 */
 	public function table()
 	{
 	    return $this->meta_data['table'];
@@ -176,8 +200,10 @@ class DB_Model
 	
 	//! Get all fields of this model
 	/**
-	 * @param $fields_info Set @b true to request fields info otherwise only names.
-	 * @return
+	 * @param boolean $fields_info
+	 *  - @b true To get all fields information.
+	 *  - @b false To get only the name of the fields.
+	 * @return array
 	 *  - @b associative @b array with fields and their info or
 	 *  - @b array with field names.  
 	 */
@@ -191,12 +217,14 @@ class DB_Model
 	
 	//! Get primary key fields of this model
 	/**
-	 * @param $fields_info Set @b true to request fields info otherwise only names.
-	 * @return
+	 * @param boolean $fields_info
+	 *  - @b true To get all fields information.
+	 *  - @b false To get only the name of the fields.
+	 * @return array
 	 *  - @b associative @b array with fields and their info or
 	 *  - @b array with field names.  
 	 */
-	public function pk_fields($fields_info = false)
+	public function pkFields($fields_info = false)
 	{
 	    if ($fields_info === false)
 			return array_keys($this->meta_data['pk']);
@@ -205,12 +233,14 @@ class DB_Model
 
 	//! Get auto_increment key fields of this model
 	/**
-	 * @param $fields_info Set @b true to request fields info otherwise only names.
-	 * @return
+	 * @param boolean $fields_info
+	 *  - @b true To get all fields information.
+	 *  - @b false To get only the name of the fields.
+	 * @return array
 	 *  - @b associative @b array with fields and their info or
 	 *  - @b array with field names.  
 	 */
-	public function ai_fields($fields_info = false)
+	public function aiFields($fields_info = false)
 	{
 	    if ($fields_info === false)
 			return array_keys($this->meta_data['ai']);
@@ -219,12 +249,14 @@ class DB_Model
 
 	//! Get foreign key fields of this model
 	/**
-	 * @param $fields_info Set @b true to request fields info otherwise only names.
+	 * @param boolean $fields_info
+	 *  - @b true To get all fields information.
+	 *  - @b false To get only the name of the fields.
 	 * @return
 	 *  - @b associative @b array with fields and their info or
 	 *  - @b array with field names.  
 	 */
-	public function fk_fields($fields_info = false)
+	public function fkFields($fields_info = false)
 	{
 	    if ($fields_info === false)
 			return array_keys($this->meta_data['fk']);
@@ -233,15 +265,16 @@ class DB_Model
 
 	//! Find the foreign key that references to a foreign model
 	/**
-	 * 
-	 * @param $model The model that fk references to.
-	 * @param $field_info Set @b true to request field info otherwise only names.
-	 * @return
+	 * @param string $model The model that fk references to.
+	 * @param boolean $fields_info
+	 *   - @b true To get all fields information.
+	 *   - @b false To get only the name of the fields.
+	 * @return 
 	 *  - @b associative @b array All the information of the field.
 	 *  - @b string The name of the field.
 	 *  - @b null If there is no foreign key for this model or on any error.
 	 */
-	public function fk_field_for($model, $field_info = false)
+	public function fkFieldFor($model, $field_info = false)
 	{  
 	    foreach($this->meta_data['fk'] as $fk)
 	    {
@@ -256,11 +289,11 @@ class DB_Model
 	
 	//! Check if there is a field
 	/**
-	 * @return
+	 * @return boolean
 	 *  - @b true if field exist
 	 *  - @b false if the name is unknown.
 	 */
-	public function has_field($name)
+	public function hasField($name)
 	{
 	    return isset($this->meta_data['fields'][$name]);
     }
@@ -268,28 +301,28 @@ class DB_Model
 	//! Query fields properties
 	/**
 	 * Ask for a property of a field or all of them.
-	 * @param $name The name of the field as it was defined in model
-	 * @param $property Specify property by name or pass NULL to get all properties in an array.
-	 * @return The string with the property value or an associative array with all properties.
-     * @throws InvalidArgumentException if the $property was unknown.
+	 * @param string $name The name of the field as it was defined in model
+	 * @param string $property Specify property by name or pass NULL to get all properties in an array.
+	 * @return string The string with the property value or an associative array with all properties.
+     * @throws \InvalidArgumentException if the $property was unknown.
 	 */
-	public function field_info($name, $property = NULL)
+	public function fieldInfo($name, $property = NULL)
 	{
 		if (!isset($this->meta_data['fields'][$name]))
 			return NULL;
 		if ($property === NULL)
 			return $this->meta_data['fields'][$name];
 		if (!isset($this->meta_data['fields'][$name][$property]))
-			throw InvalidArgumentException("There is no field property with name $property");
+			throw \InvalidArgumentException("There is no field property with name $property");
 		return $this->meta_data['fields'][$name][$property];
 	}
 	
 	//! Get a field's friendly name based on sqlfield value
 	/**
-	 * @param $sqlfield The name of field as it is defined in sql table.
-	 * @return @b FieldName The name of the field or @b NULL if it was not found
+	 * @param string $sqlfield The name of field as it is defined in sql table.
+	 * @return string @b FieldName The name of the field or @b NULL if it was not found
 	 */
-	public function field_name_by_sqlfield($sqlfield)
+	public function fieldNameBySqlfield($sqlfield)
 	{
 	    foreach($this->meta_data['fields'] as $field)
 			if ($field['sqlfield'] === $sqlfield)
@@ -299,15 +332,15 @@ class DB_Model
 	
 	//! Cast data db -> user 
 	/**
-	 * @param $field_name The name of the field that data belongs to.
+	 * @param string $field_name The name of the field that data belongs to.
 	 * @param $db_data The data to be casted
 	 * @return The data casted to @e user format based on the @e type of the field.
-	 * @throws InvalidArgumentException if $field_name is not valid
+	 * @throws \InvalidArgumentException if $field_name is not valid
 	 */
-	public function user_field_data($field_name, $db_data)
+	public function userFieldData($field_name, $db_data)
 	{	
-		if (($field = $this->field_info($field_name)) === NULL)
-			throw new InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
+		if (($field = $this->fieldInfo($field_name)) === NULL)
+			throw new \InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
 
 		// Short exit for generic
 		if ($field['type'] === 'generic')
@@ -322,8 +355,8 @@ class DB_Model
 			return unserialize($db_data);
 		else if ($field['type'] === 'datetime')
 		{
-		    $utc_time = new DateTime($db_data, new DateTimeZone(self::$database_time_zone));
-			$utc_time->setTimeZone(new DateTimeZone(date_default_timezone_get()));
+		    $utc_time = new \DateTime($db_data, new \DateTimeZone(self::$database_time_zone));
+			$utc_time->setTimeZone(new \DateTimeZone(date_default_timezone_get()));
 			return $utc_time;
         }
 
@@ -333,15 +366,15 @@ class DB_Model
 	
 	//! Cast data user -> db 
 	/**
-	 * @param $field_name The name of the field that data belongs to.
+	 * @param string $field_name The name of the field that data belongs to.
 	 * @param $user_data The data to be casted
 	 * @return The data casted to @e db format based on the @e type of the field.
-	 * @throws InvalidArgumentException if $field_name is not valid
+	 * @throws \InvalidArgumentException if $field_name is not valid
 	 */
-	public function db_field_data($field_name, $user_data)
+	public function dbFieldData($field_name, $user_data)
 	{
-		if (($field = $this->field_info($field_name)) === NULL)
-			throw new InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
+		if (($field = $this->fieldInfo($field_name)) === NULL)
+			throw new \InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
 
         // Short exit for null
         if ($user_data === null)
@@ -353,10 +386,9 @@ class DB_Model
 			
 		if ($field['type'] === 'serialized')
 			return serialize($user_data);
-		else if ($field['type'] === 'datetime')
-		{   
-		    $user_data->setTimeZone(new DateTimeZone(self::$database_time_zone));
-			return $user_data->format(DATE_ISO8601);
+		else if ($field['type'] === 'datetime') {   
+			return $user_data->setTimeZone(new \DateTimeZone(self::$database_time_zone))
+				->format(DATE_ISO8601);
         }
 		else if ($field['type'] === 'relationship')
 			return $description;
@@ -364,12 +396,27 @@ class DB_Model
 	}
 	
 	//! Check if there is a relationship with name
-	public function has_relationship($name)
+	/**
+	 * @param string $name The name of the relationship
+	 * @return boolean
+	 *  - @b true if it exists.
+	 *  - @b false if it does not exist.
+	 */
+	public function hasRelationship($name)
 	{
 	    return isset($this->meta_data['relationships'][$name]);
     }
 	
 	//! All the relationships of this model
+	/**
+	 * 
+	 * @param boolean $info
+	 *   - @b true To get all relationships information.
+	 *   - @b false To get only the name of the relationships.
+	 * @return array
+	 *  - @b associative @b array All the information of the field.
+	 *  - @b array with the relationship names.
+	 */
 	public function relationships($info = false)
 	{  
 	    if ($info === false)
@@ -381,29 +428,29 @@ class DB_Model
 	//! Query relationships properties
 	/**
 	 * Ask for a property of a field or all of them.
-	 * @param $name The name of the field as it was defined in model
-	 * @param $property Specify property by name or pass NULL to get all properties in an array.
+	 * @param string $name The name of the field as it was defined in model
+	 * @param string $property Specify property by name or pass NULL to get all properties in an array.
 	 * @return The string with the property value or an associative array with all properties.
 	 */
-	public function relationship_info($name, $property = NULL)
+	public function relationshipInfo($name, $property = NULL)
 	{
 		if (!isset($this->meta_data['relationships'][$name]))
 			return NULL;
 		if ($property === NULL)
 			return $this->meta_data['relationships'][$name];
 		if (!isset($this->meta_data['relationships'][$name][$property]))
-			throw InvalidArgumentException("There is no relationship property with name $property");
+			throw \InvalidArgumentException("There is no relationship property with name $property");
 		return $this->meta_data['relationships'][$name][$property];
 	}
 	
 	//! Push in model's private cache
 	/**
 	 * Push something in model's private cache
-	 * @param $key A key that must be unique inside the model
+	 * @param string $key A key that must be unique inside the model
 	 * @param $obj The object to push
-	 * @return @b TRUE if it was cached succesfully.
+	 * @return boolean @b trueif it was cached succesfully.
 	 */
-	public function push_cache($key, $obj)
+	public function cachePush($key, $obj)
 	{
 	    if (self::$model_cache === NULL)
 			return false;
@@ -414,19 +461,18 @@ class DB_Model
 	//! Fetch from model's private cache
 	/**
 	 * Fetch something from model's private cache
-	 * @param $key The key of the slot in model's cache
-	 * @param $succ A by ref boolean that will hold the result of the action 
+	 * @param string $key The key of the slot in model's cache
+	 * @param [out] boolean $succ A by ref boolean that will hold the result of the action 
 	 * @return The object that was found inside the cache, or @b NULL if it was not found.
 	 */
-	public function fetch_cache($key, & $succ)
+	public function cacheFetch($key, & $succ)
 	{
 	    $succ = false;
 		if (self::$model_cache === NULL)
 			return NULL;
 
 		$obj = self::$model_cache->get('dbmodel[' . $this->name() . ']' . $key, $rsucc);
-		if ($rsucc)
-		{
+		if ($rsucc) {
 		    $succ = true;
 			return $obj;
 		}
@@ -437,9 +483,9 @@ class DB_Model
 	//! Invalidates something in model's private cache
 	/**
 	 * Invalidate (delete) something from model's private cache
-	 * @param $key The key of the slot in model's private cache
+	 * @param string $key The key of the slot in model's private cache
 	 */
-	public function invalidate_cache($key)
+	public function cacheInvalidate($key)
 	{
 		if (self::$model_cache === NULL)
 			return false;
@@ -447,4 +493,3 @@ class DB_Model
 		return self::$model_cache->delete($key);
 	}
 }
-?>

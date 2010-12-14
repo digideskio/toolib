@@ -20,10 +20,11 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../../path.inc.php';
-require_once dirname(__FILE__) .  '/../SampleSchema.class.php';
-require_once dirname(__FILE__) .  '/../SampleModels.inc.php';
+require_once __DIR__ .  '/../../path.inc.php';
+require_once __DIR__ .  '/../SampleSchema.class.php';
+require_once __DIR__ .  '/../SampleModels.inc.php';
+
+use toolib\DB\Connection;
 
 class Record_ManyToOneTest extends PHPUnit_Framework_TestCase
 {
@@ -44,7 +45,7 @@ class Record_ManyToOneTest extends PHPUnit_Framework_TestCase
 	}
 	public function tearDown()
 	{
-		DB_Conn::disconnect();
+		Connection::disconnect();
 	}
 
 	public function check_last_event($type, $name, $check_last)
@@ -124,7 +125,7 @@ class Record_ManyToOneTest extends PHPUnit_Framework_TestCase
 		
 		// Order by (Reverse order)
 		$threads = Forum::open(1)->threads->subquery()
-			->order_by('id', 'DESC')
+			->orderBy('id', 'DESC')
 			->execute();
 		$this->assertEquals(count($threads), 3);
 		$this->assertEquals($threads[2]->title, 'First thread');
@@ -133,7 +134,7 @@ class Record_ManyToOneTest extends PHPUnit_Framework_TestCase
 		
 		// Limit result
 		$threads = Forum::open(1)->threads->subquery()
-			->order_by('id', 'DESC')
+			->orderBy('id', 'DESC')
 			->limit(1)
 			->execute();
 		$this->assertEquals(count($threads), 1);
