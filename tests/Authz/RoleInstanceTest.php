@@ -20,37 +20,38 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
+use toolib\Authz;
+use toolib\Authz\Role\Instance;
+
+require_once __DIR__ .  '/../path.inc.php';
 
 class Authz_RoleInstanceTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $parent = new Authz_Role_Instance('parent');
-        $this->assertEquals($parent->get_name(), 'parent');
-        $this->assertEquals($parent->get_parents(), array());
-        $this->assertFalse($parent->has_parent('admin'));
-        $this->assertFalse($parent->has_parent(null));
+        $parent = new Instance('parent');
+        $this->assertEquals($parent->getName(), 'parent');
+        $this->assertEquals($parent->getParents(), array());
+        $this->assertFalse($parent->hasParent('admin'));
+        $this->assertFalse($parent->hasParent(null));
 
-        $child = new Authz_Role_Instance('child', array($parent));
-        $this->assertEquals($child->get_name(), 'child');
-        $this->assertEquals($child->get_parents(), array('parent' => $parent));
-        $this->assertFalse($child->has_parent('admin'));
-        $this->assertFalse($child->get_parent('admin'));
-        $this->assertFalse($child->has_parent(null));
-        $this->assertTrue($child->has_parent('parent'));
-        $this->assertEquals($child->get_parent('parent'), $parent);
+        $child = new Instance('child', array($parent));
+        $this->assertEquals($child->getName(), 'child');
+        $this->assertEquals($child->getParents(), array('parent' => $parent));
+        $this->assertFalse($child->hasParent('admin'));
+        $this->assertFalse($child->getParent('admin'));
+        $this->assertFalse($child->hasParent(null));
+        $this->assertTrue($child->hasParent('parent'));
+        $this->assertEquals($child->getParent('parent'), $parent);
         
-        $mix = new Authz_Role_Instance('mix', array($parent, $child) );
-        $this->assertEquals($mix->get_name(), 'mix');
-        $this->assertEquals($mix->get_parents(), array('parent' => $parent, 'child' => $child));
-        $this->assertFalse($mix->has_parent('mix'));
-        $this->assertFalse($mix->has_parent(null));
-        $this->assertTrue($mix->has_parent('parent'));
-        $this->assertEquals($mix->get_parent('parent'), $parent);
-        $this->assertTrue($mix->has_parent('child'));
-        $this->assertEquals($mix->get_parent('child'), $child);
+        $mix = new Instance('mix', array($parent, $child) );
+        $this->assertEquals($mix->getName(), 'mix');
+        $this->assertEquals($mix->getParents(), array('parent' => $parent, 'child' => $child));
+        $this->assertFalse($mix->hasParent('mix'));
+        $this->assertFalse($mix->hasParent(null));
+        $this->assertTrue($mix->hasParent('parent'));
+        $this->assertEquals($mix->getParent('parent'), $parent);
+        $this->assertTrue($mix->hasParent('child'));
+        $this->assertEquals($mix->getParent('child'), $child);
     }
 }
-?>

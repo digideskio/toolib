@@ -19,12 +19,13 @@
  *  
  */
 
+namespace toolib\Authz;
 
-require_once dirname(__FILE__) . '/Role/Feeder.class.php';
-require_once dirname(__FILE__) . '/ResourceClass.class.php';
+require_once __DIR__ . '/Role/Feeder.class.php';
+require_once __DIR__ . '/ResourceClass.class.php';
 
 //! A containers for resources
-class Authz_ResourceList
+class ResourceList
 {
     //! The array that hold all resource classes
     private $resources = array();
@@ -37,24 +38,24 @@ class Authz_ResourceList
      *  - @b null if this resource has no parent.
      *  .
      * @return Authz_ResourceClass holding the new resource.
-     * @throws InvalidArgumentException If there is already a resource with this name.
-     * @throws InvalidArgumentException If the parent is unknwon.
+     * @throws \InvalidArgumentException If there is already a resource with this name.
+     * @throws \InvalidArgumentException If the parent is unknwon.
      */
-    public function add_resource($name, $parent = null)
+    public function addResource($name, $parent = null)
     {
         // Check for duplication
         if (isset($this->resources[$name]))
-            throw new InvalidArgumentException("There is already resource with name \"{$name}\"");
+            throw new \InvalidArgumentException("There is already resource with name \"{$name}\"");
 
         // Check for broken dependency
         if ($parent !== null)
-            if (!$this->has_resource($parent))
-                throw new InvalidArgumentException(
+            if (!$this->hasResource($parent))
+                throw new \InvalidArgumentException(
                     "Cannot add resource that depends on unknown resource \"{$parent}\"");
 
-        $this->resources[$name] = new Authz_ResourceClass(
+        $this->resources[$name] = new ResourceClass(
             $name,
-            ($parent?$this->get_resource($parent):null)
+            ($parent?$this->getResource($parent):null)
         );
         
         return $this->resources[$name];
@@ -69,16 +70,16 @@ class Authz_ResourceList
      *  .
     * @throws RuntimeException if there is another resource that depends on this one.
      */
-    public function remove_resource($name)
+    public function removeResource($name)
     {
         if (!isset($this->resources[$name]))
             return false;
             
         foreach($this->resources as $res)
-            if ($res->has_parent())
-                if ($res->get_parent()->get_name() == $name)
-                    throw new RuntimeException(
-                        "Cannot remove resource \"{$name}\" because \"{$res->get_name()}\" depends on it.");
+            if ($res->hasParent())
+                if ($res->getParent()->getName() == $name)
+                    throw new \RuntimeException(
+                        "Cannot remove resource \"{$name}\" because \"{$res->getName()}\" depends on it.");
 
         unset($this->resources[$name]);
         return true;
@@ -94,7 +95,7 @@ class Authz_ResourceList
      *  - @b false if it was not found.
      *  .
      */
-    public function get_resource($name, $instance = null)
+    public function getResource($name, $instance = null)
     {
         if (!isset($this->resources[$name]))
             return false;
@@ -102,17 +103,15 @@ class Authz_ResourceList
         if ($instance === null)
             return $this->resources[$name];
 
-        return $this->resources[$name]->get_instance($instance);
+        return $this->resources[$name]->getInstance($instance);
     }
     
     //! Check that there is a resource class in this container.
     /**
      * @param $name The name of the resource class.
      */
-    public function has_resource($name)
+    public function hasResource($name)
     {
         return isset($this->resources[$name]);
     }
 }
-
-?>

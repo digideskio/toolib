@@ -20,8 +20,10 @@
  */
 
 
-//! Implementation of Authz_Role for Authz_Role_FeederInstance
-class Authz_Role_Instance implements Authz_Role
+namespace toolib\Authz\Role;
+
+//! Implementation of Role for FeederInstance
+class Instance implements \toolib\Authz\Role
 {
     //! The name of the role
     private $name;
@@ -39,31 +41,29 @@ class Authz_Role_Instance implements Authz_Role
         $this->name = $name;
         
         foreach($parents as $p)
-            $this->parents[$p->get_name()] = $p;
+            $this->parents[$p->getName()] = $p;
     }
 
-    public function get_name()
+    public function getName()
     {
         return $this->name;
     }
     
-    public function get_parents()
+    public function getParents()
     {
         return $this->parents;
     }
     
-    public function has_parent($name)
+    public function hasParent($name)
     {
         return array_key_exists($name, $this->parents);
     }
     
-    public function get_parent($name)
+    public function getParent($name)
     {   
-        if (!$this->has_parent($name))
+        if (!$this->hasParent($name))
             return false;
 
         return $this->parents[$name];
     }
 }
-
-?>

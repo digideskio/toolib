@@ -20,18 +20,27 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
-require_once dirname(__FILE__) .  '/SampleSchema.class.php';
+use toolib\DB\Connection;
 
-class Authn_RealmTest extends PHPUnit_Framework_TestCase
+use toolib\Authn\Realm;
+use toolib\Authn\Session as aSession;
+use toolib as tb;
+
+
+require_once __DIR__ .  '/../path.inc.php';
+require_once __DIR__ . '/SampleSchema.class.php';
+
+
+class RealmTest extends PHPUnit_Framework_TestCase
 {
     public static $events = array();
     public static $storage;
     public static $auth;
 
     public static function pop_event()
-    {   return array_pop(self::$events);    }
+    {
+    	return array_pop(self::$events);
+    }
 
     public static function push_event($e)
     {
@@ -45,13 +54,13 @@ class Authn_RealmTest extends PHPUnit_Framework_TestCase
     public static function setUpBeforeClass()
     {
         Authn_SampleSchema::build();
-        Authn_Realm::events()->connect(
+        Realm::events()->connect(
             NULL,
-            array('Authn_RealmTest', 'push_event')
+            array('RealmTest', 'push_event')
         );
         Authn_SampleSchema::connect();
-        self::$storage = new Authn_Session_Instance();
-        self::$auth = new Authn_Backend_DB(array(
+        self::$storage = new \toolib\Authn\Session\Instance();
+        self::$auth = new \toolib\Authn\DB\Backend(array(
             'query_user' => User_md5::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
@@ -63,9 +72,9 @@ class Authn_RealmTest extends PHPUnit_Framework_TestCase
     public static function tearDownAfterClass()
     {
         Authn_SampleSchema::destroy();
-        Authn_Realm::events()->disconnect(
+        Realm::events()->disconnect(
         NULL,
-        array('Authn_RealmTest', 'push_event')
+        array('RealmTest', 'push_event')
         );
     }
 
@@ -79,7 +88,7 @@ class Authn_RealmTest extends PHPUnit_Framework_TestCase
     public function tearDown()
     {
         $this->assertEquals(count(self::$events), 0);
-        DB_Conn::disconnect();
+        Connection::disconnect();
     }
 
     public function check_last_event($type, $name, $check_last)
@@ -96,7 +105,7 @@ class Authn_RealmTest extends PHPUnit_Framework_TestCase
     public function check_first_event($type, $name, $check_last)
     {   
         $e = array_shift(self::$events);
-        $this->assertType('Event', $e);
+        $this->assertType('toolib\Event', $e);
         $this->assertEquals($e->type, $type);
         $this->assertEquals($e->name, $name);
         if ($check_last)
@@ -107,55 +116,54 @@ class Authn_RealmTest extends PHPUnit_Framework_TestCase
     public function testSetters()
     {
         // Check default values
-        $this->assertType('Authn_Session_Native', Authn_Realm::get_session());
-        $this->assertNull(Authn_Realm::get_backend());
-        $this->assertFalse(Authn_Realm::get_identity());
-        $this->assertFalse(Authn_Realm::has_identity());
+        $this->assertType('toolib\Authn\Session\Native', Realm::getSession());
+        $this->assertNull(Realm::getBackend());
+        $this->assertFalse(Realm::getIdentity());
+        $this->assertFalse(Realm::hasIdentity());
 
-        Authn_Realm::set_session(self::$storage);
-        $this->assertType('Authn_Session_Instance', Authn_Realm::get_session());
-        $this->assertEquals(self::$storage, Authn_Realm::get_session());
-        $this->assertFalse(Authn_Realm::get_identity());
-        $this->assertFalse(Authn_Realm::has_identity());
+        Realm::setSession(self::$storage);
+        $this->assertType('toolib\Authn\Session\Instance', Realm::getSession());
+        $this->assertEquals(self::$storage, Realm::getSession());
+        $this->assertFalse(Realm::getIdentity());
+        $this->assertFalse(Realm::hasIdentity());
 
-        Authn_Realm::set_backend(self::$auth);
-        $this->assertType('Authn_Backend_DB', Authn_Realm::get_backend());
-        $this->assertEquals(self::$auth, Authn_Realm::get_backend());
-        $this->assertFalse(Authn_Realm::get_identity());
-        $this->assertFalse(Authn_Realm::has_identity());
+        Realm::setBackend(self::$auth);
+        $this->assertType('toolib\Authn\DB\Backend', Realm::getBackend());
+        $this->assertEquals(self::$auth, Realm::getBackend());
+        $this->assertFalse(Realm::getIdentity());
+        $this->assertFalse(Realm::hasIdentity());
     }
 
     public function testAuthnenticate()
     {
-        Authn_Realm::set_session(self::$storage);
-        Authn_Realm::set_backend(self::$auth);
-        $this->assertFalse(Authn_Realm::get_identity());
-        $this->assertFalse(Authn_Realm::has_identity());
+        Realm::setSession(self::$storage);
+        Realm::setBackend(self::$auth);
+        $this->assertFalse(Realm::getIdentity());
+        $this->assertFalse(Realm::hasIdentity());
 
         // False clear identity
-        Authn_Realm::clear_identity();
+        Realm::clearIdentity();
 
         // False authentication
-        $res = Authn_Realm::authenticate('user1', 'false password');
+        $res = Realm::authenticate('user1', 'false password');
         $this->assertFalse($res);
-        $this->assertFalse(Authn_Realm::get_identity());
-        $this->assertFalse(Authn_Realm::has_identity());
+        $this->assertFalse(Realm::getIdentity());
+        $this->assertFalse(Realm::hasIdentity());
         self::check_first_event('notify', 'auth.error', true);
 
         // Successful authentication
-        $res = Authn_Realm::authenticate('user1', 'password1');
-        $this->assertType('Authn_Identity_DB', $res);
-        $this->assertEquals($res, Authn_Realm::get_identity());
-        $this->assertTrue(Authn_Realm::has_identity());
+        $res = Realm::authenticate('user1', 'password1');
+        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertEquals($res, Realm::getIdentity());
+        $this->assertTrue(Realm::hasIdentity());
         self::check_first_event('notify', 'auth.successful', true);
 
         // Reauthenticate with new user
-        $res = Authn_Realm::authenticate('user2', 'password2 #');
-        $this->assertType('Authn_Identity_DB', $res);
-        $this->assertEquals($res, Authn_Realm::get_identity());
-        $this->assertTrue(Authn_Realm::has_identity());
+        $res = Realm::authenticate('user2', 'password2 #');
+        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertEquals($res, Realm::getIdentity());
+        $this->assertTrue(Realm::hasIdentity());
         self::check_first_event('notify', 'ident.clear', false);
         self::check_first_event('notify', 'auth.successful', true);
     }
 }
-?>

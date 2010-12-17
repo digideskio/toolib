@@ -170,7 +170,7 @@ class SmartMenuEntry
     }
 
     //! Get the link of this entry
-    public function get_link()
+    public function getLink()
     {
         return $this->link;
     }

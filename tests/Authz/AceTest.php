@@ -20,45 +20,44 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
+use \toolib\Authz\ACE;
+require_once __DIR__ .  '/../path.inc.php';
 
 class Authz_AceTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $ace = new Authz_ACE('admin', 'read', false);
-        $this->assertFalse($ace->is_allowed());
-        $this->assertEquals($ace->get_role(), 'admin');
-        $this->assertEquals($ace->get_action(), 'read');
+        $ace = new ACE('admin', 'read', false);
+        $this->assertFalse($ace->isAllowed());
+        $this->assertEquals($ace->getRole(), 'admin');
+        $this->assertEquals($ace->getAction(), 'read');
 
-        $ace2 = new Authz_ACE('@devs', 'write', true);
-        $this->assertTrue($ace2->is_allowed());
-        $this->assertEquals($ace2->get_role(), '@devs');
-        $this->assertEquals($ace2->get_action(), 'write');
+        $ace2 = new ACE('@devs', 'write', true);
+        $this->assertTrue($ace2->isAllowed());
+        $this->assertEquals($ace2->getRole(), '@devs');
+        $this->assertEquals($ace2->getAction(), 'write');
     }
     
     public function testSetAllowed()
     {
-        $ace = new Authz_ACE('admin', 'read', false);
-        $this->assertFalse($ace->is_allowed());
-        $ace->set_allowed(true);
-        $this->assertTrue($ace->is_allowed());
-        $ace->set_allowed(false);
-        $this->assertFalse($ace->is_allowed());
+        $ace = new ACE('admin', 'read', false);
+        $this->assertFalse($ace->isAllowed());
+        $ace->setAllowed(true);
+        $this->assertTrue($ace->isAllowed());
+        $ace->setAllowed(false);
+        $this->assertFalse($ace->isAllowed());
     }
     
     public function testIsRoleNull()
     {
-        $ace = new Authz_ACE('admin', 'read', false);
-        $this->assertFalse($ace->is_role_null());
-        $ace = new Authz_ACE('0', null, false);
-        $this->assertFalse($ace->is_role_null());
-        $ace = new Authz_ACE(0, null, false);
-        $this->assertFalse($ace->is_role_null());
-        $ace = new Authz_ACE(null, null, false);
-        $this->assertTrue($ace->is_role_null());
+        $ace = new ACE('admin', 'read', false);
+        $this->assertFalse($ace->isRoleNull());
+        $ace = new ACE('0', null, false);
+        $this->assertFalse($ace->isRoleNull());
+        $ace = new ACE(0, null, false);
+        $this->assertFalse($ace->isRoleNull());
+        $ace = new ACE(null, null, false);
+        $this->assertTrue($ace->isRoleNull());
 
     }
 }
-?>

@@ -20,10 +20,12 @@
  */
 
 
-require_once dirname(__FILE__) . '/../Role.class.php';
+namespace toolib\Authz\Role;
+
+require_once __DIR__ . '/../Role.class.php';
 
 //! Implementation of Authz_Role for Authz_Role_FeederDatabase
-class Authz_Role_Database implements Authz_Role
+class Database implements \toolib\Authz\Role
 {
     //! Options of database communication
     protected $options;
@@ -34,7 +36,7 @@ class Authz_Role_Database implements Authz_Role
     //! Construct a new role
     /**
      * @param $name The name of the role.
-     * @param $options Normalized options given by Authz_Role_FeederDatabase
+     * @param $options Normalized options given by FeederDatabase
      */
     public function __construct($name, $options)
     {
@@ -43,49 +45,47 @@ class Authz_Role_Database implements Authz_Role
     }
     
     //! Check if this role have info for parents location
-    protected function has_parents_ability()
+    protected function hasParentsAbility()
     {
         if (($this->options === null) || ($this->options['parents_query'] === null))
             return false;
         return true;
     }
     
-    public function get_name()
+    public function getName()
     {
         return $this->name;
     }
         
-    public function get_parents()
+    public function getParents()
     {
-        if (! $this->has_parents_ability())
+        if (! $this->hasParentsAbility())
             return array();
             
-        $result = $this->options['parents_query']->execute($this->get_name());
+        $result = $this->options['parents_query']->execute($this->getName());
 
         $parents = array();
-        foreach($result as $record)
-        {   
+        foreach($result as $record) {   
             $parent_name = $record->{$this->options['parent_name_field']};
             if ($this->options['parent_name_filter_func'])
                 $parent_name = call_user_func($this->options['parent_name_filter_func'], $parent_name);
-            $parents[$parent_name] = new Authz_Role_Database(
+            $parents[$parent_name] = new Database(
                 $parent_name , null);
         }
 
         return $parents;
     }
 
-    public function has_parent($name)
+    public function hasParent($name)
     {      
-        return array_key_exists($name, $this->get_parents());
+        return array_key_exists($name, $this->getParents());
     }
     
-    public function get_parent($name)
+    public function getParent($name)
     {   
-        if (array_key_exists($name, $parents = $this->get_parents()))
+        if (array_key_exists($name, $parents = $this->getParents()))
             return $parents[$name];
 
         return false;
     }
 }
-?>

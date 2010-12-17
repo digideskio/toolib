@@ -19,12 +19,12 @@
  *  
  */
 
-require_once(dirname(__FILE__) . '/../functions.lib.php');
-require_once(dirname(__FILE__) . '/Condition/Authentication.class.php');
-require_once(dirname(__FILE__) . '/Condition/Authorization.class.php');
-require_once(dirname(__FILE__) . '/Condition/Func.class.php');
-require_once(dirname(__FILE__) . '/Condition/UrlParams.class.php');
-require_once(dirname(__FILE__) . '/Condition/UrlPath.class.php');
+namespace toolib\Stupid;
+
+require_once __DIR__ . '/Condition/Authentication.class.php';
+require_once __DIR__ . '/Condition/Func.class.php';
+require_once __DIR__ . '/Condition/UrlParams.class.php';
+require_once __DIR__ . '/Condition/UrlPath.class.php';
 
 //! Base class for condition evaluators of Stupid system.
 /**
@@ -32,9 +32,9 @@ require_once(dirname(__FILE__) . '/Condition/UrlPath.class.php');
  *
  * This class will be used to extend Stupid system by creating new
  * condition evaluators. If you are looking to add rules in
- * stupid system check Stupid::add_rule()
+ * stupid system check Stupid::addRule()
  */
-abstract class Stupid_Condition
+abstract class Condition
 {
 	//! Internal array with all evaluators saved in associative array by their type.
 	private static $evaluators = array();
@@ -75,7 +75,7 @@ abstract class Stupid_Condition
 	}
 
 	//! Params for action (Return an array with the parameters)
-	public function action_arguments()
+	public function actionArguments()
 	{
 	    return $this->back_references;
     }
@@ -84,8 +84,8 @@ abstract class Stupid_Condition
 	public function evaluate($previous_backrefs= array())
 	{	
 	    if ( (isset($this->options['not'])) && ($this->options['not'] === true ))
-			return ! $this->evaluate_impl($previous_backrefs);	
-		return $this->evaluate_impl($previous_backrefs);
+			return ! $this->evaluateImpl($previous_backrefs);	
+		return $this->evaluateImpl($previous_backrefs);
 	}
 	
 	//! Returns the unique type of evaluator
@@ -95,6 +95,5 @@ abstract class Stupid_Condition
     }
 	
 	//! @b ABSTRACT To be implemented by evaluator
-	abstract protected function evaluate_impl($previous_arguments);
+	abstract protected function evaluateImpl($previous_arguments);
 }
-?>

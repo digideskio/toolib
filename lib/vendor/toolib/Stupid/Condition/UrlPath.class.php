@@ -19,8 +19,9 @@
  *  
  */
 
+namespace toolib\Stupid\Condition;
 
-require_once(dirname(__FILE__) . '/../Condition.class.php');
+require_once __DIR__ . '/../Condition.class.php';
 
 //! Implementation of url_path Stupid_Condition
 /**
@@ -44,20 +45,22 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
  * @par Examples
  * @code
  * // Using chunks
- * Stupid::add_rule('create_news',
+ * Stupid::addRule('create_news',
  *     array('type' => 'url_path', 'chunk[0]' => '/^news$/' , chunk[1] => '/([\d]+)/'));
  * // Using full path
- * Stupid::add_rule('create_news',
+ * Stupid::addRule('create_news',
  *     array('type' => 'url_path', 'path' => '/^news/\+create$/'));
  * @endcode
  * @author sque
  */
-class Stupid_Condition_UrlPath extends Stupid_Condition
+class UrlPath extends \toolib\Stupid\Condition
 {
 	public static function type()
-	{	return 'url_path';	}
+	{
+		return 'url_path';
+	}
  
-	public function evaluate_impl($previous_backrefs)
+	public function evaluateImpl($previous_backrefs)
 	{
 		// Default condition values
 		$defcond = array(
@@ -83,8 +86,8 @@ class Stupid_Condition_UrlPath extends Stupid_Condition
 		}
 
 		// Check if there is a path constrain
-		if (isset($options['path']))
-		{	if (preg_match($options['path'], $subject_path, $matches) != 1)
+		if (isset($options['path'])) {
+			if (preg_match($options['path'], $subject_path, $matches) != 1)
 				return false;
 				
 			// Push back references
@@ -94,21 +97,19 @@ class Stupid_Condition_UrlPath extends Stupid_Condition
 		
 		// Pre-process chunk[X] options
 		$chunk_checks = array();
-		foreach($options as $key => $value)
-		{	
+		foreach($options as $key => $value) {
 			if (preg_match('/chunk\[([-]?[\d]+)\]/', $key, $matches) == 1)
 				$chunk_checks[$matches[1]] = $value;
 		}
 		
 		// Post-process chunk[X] options
-		if (count($chunk_checks) > 0)
-		{
+		if (count($chunk_checks) > 0) {
 			// Explode path
 			$chunks = $subject_path;
 			$chunks = explode($options['delimiter'], $chunks);
 		
-			foreach($chunk_checks as $chunk_index => $regex)
-			{	// Check out of boundries
+			foreach($chunk_checks as $chunk_index => $regex) {
+				// Check out of boundries
 				if (($chunk_index >= 0) && ($chunk_index >= count($chunks)))
 					return false;
 				if (($chunk_index < 0) && ((abs($chunk_index)-1) >= count($chunks)))
@@ -130,5 +131,4 @@ class Stupid_Condition_UrlPath extends Stupid_Condition
 		return true;
 	}
 };
-Stupid_Condition_UrlPath::register();
-?>
+UrlPath::register();

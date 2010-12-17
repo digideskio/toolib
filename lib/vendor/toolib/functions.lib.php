@@ -39,10 +39,8 @@ function preg_matches_remove_unamed($matches)
 {
     $fmatches = $matches; // Filtered array
     $idx_count = 0;
-    foreach($matches as $idx => $match)
-    {
-        if ($idx !== $idx_count)
-        {
+    foreach($matches as $idx => $match) {
+        if ($idx !== $idx_count) {
             unset($fmatches[$idx_count]);
             continue;
         }
@@ -52,8 +50,7 @@ function preg_matches_remove_unamed($matches)
 }
 
 if ( !function_exists('gzdecode')) {
-    function gzdecode($data)
-    {
+    function gzdecode($data) {
         $temp_fname = tempnam(sys_get_temp_dir(), 'ff');
         @file_put_contents($temp_fname, $data);
         ob_start();
@@ -68,8 +65,7 @@ function get_upload_maxsize()
 {
     $val = trim(ini_get('upload_max_filesize'));
     $last = strtolower($val[strlen($val)-1]);
-    switch($last)
-    {
+    switch($last) {
         // The 'G' modifier is available since PHP 5.1.0
         case 'g':
             $val *= 1024;

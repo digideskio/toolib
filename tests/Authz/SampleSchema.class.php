@@ -20,9 +20,11 @@
  */
 
 
-require_once dirname(__FILE__) .  '/../path.inc.php';
+require_once __DIR__ .  '/../path.inc.php';
+use toolib\DB\Record;
+use toolib\DB\Connection;
 
-class Users extends DB_Record
+class Users extends Record
 {
     static public $table = 'users';
     static public $fields = array(
@@ -32,7 +34,7 @@ class Users extends DB_Record
         );
 }
 
-class Membership extends DB_Record
+class Membership extends Record
 {
     static public $table = 'memberships';
     static public $fields = array(
@@ -73,7 +75,7 @@ class Authz_SampleSchema
 
     static public function connect($delayed = true)
     {
-        return DB_Conn::connect(
+        return Connection::connect(
             self::$conn_params['host'],
             self::$conn_params['username'],
             self::$conn_params['password'],
@@ -85,15 +87,15 @@ class Authz_SampleSchema
     static public function build()
     {   
         self::destroy();
-        DB_Conn::connect(
+        Connection::connect(
             self::$conn_params['host'],
             self::$conn_params['username'],
             self::$conn_params['password'],
             'mysql'
         );
 
-        DB_Conn::query('CREATE DATABASE IF NOT EXISTS `' . self::$conn_params['schema']. '` ;');
-        DB_Conn::connect(
+        Connection::query('CREATE DATABASE IF NOT EXISTS `' . self::$conn_params['schema']. '` ;');
+        Connection::connect(
             self::$conn_params['host'],
             self::$conn_params['username'],
             self::$conn_params['password'],
@@ -101,7 +103,7 @@ class Authz_SampleSchema
         );
 
         // Create schema
-        DB_Conn::query('
+        Connection::query('
         CREATE TABLE `users` (
             username varchar(15),
             password varchar(255),
@@ -110,7 +112,7 @@ class Authz_SampleSchema
         );
         ');
 
-        DB_Conn::query('
+        Connection::query('
         CREATE TABLE `memberships` (
             username varchar(15),
             groupname varchar(255),
@@ -121,32 +123,31 @@ class Authz_SampleSchema
         foreach(self::$test_users as $record)
         {   
             list($username, $password, $enabled) = $record;
-            DB_Conn::query("INSERT INTO `users` (username, password, enabled) VALUES " .
-                "( '" . DB_Conn::get_link()->real_escape_string($username) . "', " .
-                " '" .  DB_Conn::get_link()->real_escape_string($password) . "', " .
+            Connection::query("INSERT INTO `users` (username, password, enabled) VALUES " .
+                "( '" . Connection::getLink()->real_escape_string($username) . "', " .
+                " '" .  Connection::getLink()->real_escape_string($password) . "', " .
                 " '" . $enabled . "')");
         }
         
         foreach(self::$test_groups as $record)
         {   
             list($user, $group) = $record;
-            DB_Conn::query("INSERT INTO `memberships` (username, groupname) VALUES " .
-                "( '" . DB_Conn::get_link()->real_escape_string($user) . "', " .
-                " '" .  DB_Conn::get_link()->real_escape_string($group) . "')");
+            Connection::query("INSERT INTO `memberships` (username, groupname) VALUES " .
+                "( '" . Connection::getLink()->real_escape_string($user) . "', " .
+                " '" .  Connection::getLink()->real_escape_string($group) . "')");
 
         }
     }
 
     static public function destroy()
     {
-        DB_Conn::connect(
+        Connection::connect(
             self::$conn_params['host'],
             self::$conn_params['username'],
             self::$conn_params['password'],
             'mysql'
         );
-        @DB_Conn::query('DROP DATABASE `' . self::$conn_params['schema']. '`;');
-        DB_Conn::disconnect();
+        @Connection::query('DROP DATABASE `' . self::$conn_params['schema']. '`;');
+        Connection::disconnect();
     }
 }
-?>

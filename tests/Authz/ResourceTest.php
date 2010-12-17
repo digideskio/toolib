@@ -20,55 +20,58 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
+use toolib\Authz;
+use toolib\Authz\ResourceClass;
+use toolib\Authz\Resource;
+
+require_once __DIR__ .  '/../path.inc.php';
 
 class Authz_ResourceTest extends PHPUnit_Framework_TestCase
 {
     public function roleFeeder()
     {
-        $roles = new Authz_Role_FeederInstance();
-        $roles->add_role('@game');
-        $roles->add_role('@video');
-        $roles->add_role('@user', array('@game', '@video'));
-        $roles->add_role('@web-user');
-        $roles->add_role('@web-admin', '@web-user');
-        $roles->add_role('@fs-admin');
-        $roles->add_role('@logger');
-        $roles->add_role('@admin', array('@user', '@web-admin', '@fs-admin'));
+        $roles = new \toolib\Authz\Role\FeederInstance();
+        $roles->addRole('@game');
+        $roles->addRole('@video');
+        $roles->addRole('@user', array('@game', '@video'));
+        $roles->addRole('@web-user');
+        $roles->addRole('@web-admin', '@web-user');
+        $roles->addRole('@fs-admin');
+        $roles->addRole('@logger');
+        $roles->addRole('@admin', array('@user', '@web-admin', '@fs-admin'));
         return $roles;
     }
     
     public function testConstrutc()
     {
 
-        $dir = new Authz_Resource('directory');
+        $dir = new Resource('directory');
         
-        $this->assertTrue($dir->get_acl()->is_empty());
-        $this->assertEquals($dir->get_name(), 'directory');
-        $this->assertFalse($dir->has_parent());
-        $this->assertNull($dir->get_parent());
+        $this->assertTrue($dir->getAcl()->isEmpty());
+        $this->assertEquals($dir->getName(), 'directory');
+        $this->assertFalse($dir->hasParent());
+        $this->assertNull($dir->getParent());
 
-        $file = new Authz_Resource('file', $dir);
-        $this->assertTrue($file->get_acl()->is_empty());
-        $this->assertEquals($file->get_name(), 'file');
-        $this->assertTrue($file->has_parent());
-        $this->assertSame($file->get_parent(), $dir);
+        $file = new Resource('file', $dir);
+        $this->assertTrue($file->getAcl()->isEmpty());
+        $this->assertEquals($file->getName(), 'file');
+        $this->assertTrue($file->hasParent());
+        $this->assertSame($file->getParent(), $dir);
     }
     
     public function testGetInstance()
     {
-        $dir = new Authz_ResourceClass('directory');
-        $this->assertTrue($dir->get_acl()->is_empty());
-        $this->assertEquals($dir->get_name(), 'directory');
-        $this->assertFalse($dir->has_parent());
-        $this->assertNull($dir->get_parent());
+        $dir = new ResourceClass('directory');
+        $this->assertTrue($dir->getAcl()->isEmpty());
+        $this->assertEquals($dir->getName(), 'directory');
+        $this->assertFalse($dir->hasParent());
+        $this->assertNull($dir->getParent());
 
-        $root = $dir->get_instance('/');
-        $this->assertTrue($root->get_acl()->is_empty());
-        $this->assertEquals($root->get_name(), '/');
-        $this->assertTrue($root->has_parent());
-        $this->assertSame($root->get_parent(), $dir);
+        $root = $dir->getInstance('/');
+        $this->assertTrue($root->getAcl()->isEmpty());
+        $this->assertEquals($root->getName(), '/');
+        $this->assertTrue($root->hasParent());
+        $this->assertSame($root->getParent(), $dir);
     }
     
     public function dataEffectiveAce()
@@ -76,19 +79,19 @@ class Authz_ResourceTest extends PHPUnit_Framework_TestCase
         
         $roles = $this->roleFeeder();
         
-        $dir = new Authz_ResourceClass('directory');
-        $dir->get_acl()->allow(null, 'read');
-        $dir->get_acl()->deny(null, 'write');
-        $dir->get_acl()->deny(null, 'delete');
-        $dir->get_acl()->allow(null, 'create');
-        $dir->get_acl()->allow('@fs-admin', 'write');
+        $dir = new ResourceClass('directory');
+        $dir->getAcl()->allow(null, 'read');
+        $dir->getAcl()->deny(null, 'write');
+        $dir->getAcl()->deny(null, 'delete');
+        $dir->getAcl()->allow(null, 'create');
+        $dir->getAcl()->allow('@fs-admin', 'write');
         
-        $file = new Authz_ResourceClass('file', $dir);
-        $file->get_acl()->allow('@fs-admin', 'delete');
+        $file = new ResourceClass('file', $dir);
+        $file->getAcl()->allow('@fs-admin', 'delete');
         
-        $root = $dir->get_instance('/');
-        $root->get_acl()->deny(null, 'create');
-        $root->get_acl()->allow('@fs-admin', 'create');
+        $root = $dir->getInstance('/');
+        $root->getAcl()->deny(null, 'create');
+        $root->getAcl()->allow('@fs-admin', 'create');
         
         return array(
             // roles, $resource, $role, $action, $ace, $depth
@@ -149,7 +152,7 @@ class Authz_ResourceTest extends PHPUnit_Framework_TestCase
     {
     
         $depth = null;
-        $ace = $resource->effective_ace($role, $action, $roles, $depth);
+        $ace = $resource->effectiveAce($role, $action, $roles, $depth);
         
         if ($expected_ace === null)
         {
@@ -158,11 +161,10 @@ class Authz_ResourceTest extends PHPUnit_Framework_TestCase
         else
         {
             $this->assertNotNull($ace);
-            $this->assertEquals($ace->is_allowed(), $expected_ace);
+            $this->assertEquals($ace->isAllowed(), $expected_ace);
         }
         $this->assertEquals($expected_depth, $depth);
     }
 
 
 }
-?>

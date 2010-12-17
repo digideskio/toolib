@@ -19,9 +19,10 @@
  *  
  */
 
+namespace toolib\Net\Http;
 
-//! Manage http cookies
-class Net_HTTP_Cookie
+//! [R3] Manage http cookies
+class Cookie
 {
     //! The name of te cookie
     private $name;
@@ -46,13 +47,13 @@ class Net_HTTP_Cookie
 
     //! Construct a cookie
     /**
-     * @param $name The name of the cookie.
-     * @param $value The value of the cookie
-     * @param $domain The effective domain of the cookie.
-     * @param $path The effective path of the cookie.
-     * @param $expiration_time The unix time stamp when cookie expires or 0 for session cookie.
-     * @param $httponly Set the "httponly" flag of the cookie.
-     * @param $secure Set the "secure" flag of the cookie.
+     * @param string $name The name of the cookie.
+     * @param string $value The value of the cookie
+     * @param integer $expiration_time The unix time stamp when cookie expires or 0 for session cookie.
+     * @param string $path The effective path of the cookie.
+     * @param string $domain The effective domain of the cookie.          
+     * @param boolean $httponly Set the "httponly" flag of the cookie.
+     * @param boolean $secure Set the "secure" flag of the cookie.
      */
     public function __construct($name, $value, $expiration_time = 0, $path = '/', $domain = '', $secure = false, $httponly = false)
     {
@@ -66,139 +67,150 @@ class Net_HTTP_Cookie
     }
 
     //! Get the name of the cookie
-    public function get_name()
+    public function getName()
     {
         return $this->name;
     }
 
     //! Get the value of the cookie
-    public function get_value()
+    public function getValue()
     {   
         return $this->value;
     }
 
     //! Get the effective domain of the cookie
-    public function get_domain()
+    public function getDomain()
     {   
         return $this->domain;
     }
 
     //! Get the effective path of the cookie
-    public function get_path()
+    public function getPath()
     {   
         return $this->path;
     }
 
     //! Get the time this cookie expires
     /**
-     * @return Unix timestamp of expiration time or 0 if
+     * @return integer Unix timestamp of expiration time or 0 if
      *      it is session cookie.
      */
-    public function get_expiration_time()
+    public function getExpirationTime()
     {
         return $this->expiration_time;
     }
 
     //! Check if cookie is session cookie based on expiration time
-    public function is_session_cookie()
+    public function isSessionCookie()
     {   
         return ($this->expiration_time == 0);
     }    
     
     //! Check "httponly" flag of the cookie
-    public function is_httponly()
+    public function isHttponly()
     {
         return $this->httponly;
     }
 
     //! Check "seucre" flag of the cookie
-    public function is_secure()
+    public function isSecure()
     {
         return $this->secure;
     }
 
     //! Set the name of the cookie
     /**
-     * @param $name The new name.
+     * @param string $name The new name.
      */
-    public function set_name($name)
+    public function setName($name)
     {
         $this->name = $name;
     }
     
     //! Set the value of the cookie
     /**
-     * @param $value The new value.
+     * @param string $value The new value.
      */
-    public function set_value($value)
+    public function setValue($value)
     {
         $this->value = $value;
     }
 
     //! Set the effective domain of the cookie
     /**
-     * @param $domain The new effective domain.
+     * @param string $domain The new effective domain.
      */
-    public function set_domain($domain)
+    public function setDomain($domain)
     {
         $this->domain = $domain;
     }
 
     //! Set the effective path of the cookie
     /**
-     * @param $path The new effective path.
+     * @param string $path The new effective path.
      */
-    public function set_path($path)
+    public function setPath($path)
     {
         $this->path = $path;
     }
 
     //! Set the "secure" flag of the cookie
     /**
-     * @param $enabled @b boolean The new state of "secure" flag.
+     * @param boolean $enabled The new state of "secure" flag.
      */
-    public function set_secure($enabled)
+    public function setSecure($enabled)
     {
         return $this->secure = $enabled;
     }
     
     //! Set the "httponly" flag of the cookie
     /**
-     * @param $enabled @b boolean The new state of "httponly" flag.
+     * @param boolean $enabled The new state of "httponly" flag.
      */
-    public function set_httponly($enabled)
+    public function setHttponly($enabled)
     {
         return $this->httponly = $enabled;
     }
 
     //! Set the expiration time of the cookie.
     /**
-     * @param $time
+     * @param integer $time
      *  - The unix time stamp of the expiration date.
      *  - @b 0 if the cookie is a session cookie.
      *  .
      */
-    public function set_expiration_time($time)
+    public function setExpirationTime($time)
     {
         return $this->expiration_time = $time;
     }
 
     //! Open a cookie received through web server
+    /**
+     * @param string $name The name of the cookie
+     * @return Cookie
+     *   - Cookie object with all data for this cookie
+     *   - @b false if this cookie was not found.
+     * .
+     */
     public static function open($name)
     {
         if (!isset($_COOKIE[$name]))
             return false;
 
-        $cookie = new Net_HTTP_Cookie($name, $_COOKIE[$name]);
+        $cookie = new self($name, $_COOKIE[$name]);
         return $cookie;
     }
 
-    //! Send cookie to the underlying web server
+    //! Send cookie to the http response layer
+    /**
+     * It will use the php's setcookie() function to send
+     * all cookie data to the response.
+     */
     public function send()
     {
         setcookie($this->name,
             $this->value,
-            ($this->is_session_cookie()?0:$this->expiration_time),
+            ($this->isSessionCookie()?0:$this->expiration_time),
             $this->path,
             $this->domain,
             $this->secure,

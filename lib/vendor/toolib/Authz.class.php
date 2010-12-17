@@ -19,15 +19,16 @@
  *  
  */
 
+namespace toolib;
 
-require_once dirname(__FILE__) . '/Authz/ResourceList.class.php';
-require_once dirname(__FILE__) . '/Authz/Role/FeederInstance.class.php';
+require_once __DIR__ . '/Authz/ResourceList.class.php';
+require_once __DIR__ . '/Authz/Role/FeederInstance.class.php';
 
 //! Static authorization realm
 /**
  * Authz was created to provide a singleton that just works in the majority
  * of cases with little customization. You can archive the same
- * functionality with non singleton interface using directly Authz_ResourceList()
+ * functionality with non singleton interface using directly ResourceList()
  * and one Authz_Role_Feeder implementation.
  */
 class Authz
@@ -46,54 +47,54 @@ class Authz
     {
     }
     
-    //! Get the current Authz_ResourceList used by Authz
-    static public function get_resource_list()
+    //! Get the current ResourceList used by Authz
+    static public function getResourceList()
     {
         if (self::$resource_list === null)  
-            self::$resource_list = new Authz_ResourceList();
+            self::$resource_list = new Authz\ResourceList();
         return self::$resource_list;
     }
     
-    //! Set a new Authz_ResourceList for Authz to use.
-    static public function set_resource_list(Authz_ResourceList $list)
+    //! Set a new ResourceList for Authz to use.
+    static public function setResourceList(Authz\ResourceList $list)
     {
         self::$resource_list = $list;
     }
     
     //! Get the current Authz_Role_Feeder used by Authz
-    static public function get_role_feeder()
+    static public function getRoleFeeder()
     {
         return self::$role_feeder;
     }
     
-    //! Set a new Authz_Role_Feeder for Authz to use.
-    static public function set_role_feeder(Authz_Role_Feeder $feeder)
+    //! Set a new Authz=Role\Feeder for Authz to use.
+    static public function setRoleFeeder(Authz\Role\Feeder $feeder)
     {
         self::$role_feeder = $feeder;
     }
     
     //! Get the callback that retrieves the current role name
-    static public function get_current_role_func()
+    static public function getCurrentRoleFunc()
     {
         if (self::$current_role_func === null)
             self::$current_role_func = create_function('', 
-                ' if (!Authn_Realm::has_identity())
+                ' if (!Authn_Realm::hasIdentity())
                     return null;
-                  return Authn_Realm::get_identity()->id();');
+                  return Authn_Realm::getIdentity()->id();');
         return self::$current_role_func;
     }
     
     //! Get the current role name based on callback
-    static public function get_current_role()
+    static public function getCurrentRole()
     {   
-        return call_user_func(self::get_current_role_func());
+        return call_user_func(self::getCurrentRoleFunc());
     }
 
     //! Set the callback function tha returns the current role name
     /**
      * @param $callable Any type of object that can be called with call_user_func()
      */
-    static public function set_current_role_func($callable)
+    static public function setCurrentRoleFunc($callable)
     {
         self::$current_role_func = $callable;
     }
@@ -104,17 +105,17 @@ class Authz
      *  - @b string The name of the resource class
      *  - @b array A tuple of name and instance id of a resource instance.
      *  .
-     * @return
+     * @return \toolib\Authz\Resource
      *  - @b Authz_Resource The found resource object.
      *  - @b false If the resource was not found.
      *  .
      */
-    static public function get_resource($resource)
+    static public function getResource($resource)
     {
         if (is_array($resource))
-            $res = self::get_resource_list()->get_resource($resource[0], $resource[1]);
+            $res = self::getResourceList()->getResource($resource[0], $resource[1]);
         else
-            $res = self::get_resource_list()->get_resource($resource);
+            $res = self::getResourceList()->getResource($resource);
         return $res;
     }
     
@@ -132,12 +133,12 @@ class Authz
      */
     static public function allow($resource, $role, $action)
     {
-        $res = self::get_resource($resource);
+        $res = self::getResource($resource);
         if (!$res)
-            throw new InvalidArgumentException('Cannot find resource with name "' . 
+            throw new \InvalidArgumentException('Cannot find resource with name "' . 
                 (is_array($resource)?$resource[0]:$resource) . '"');
 
-        return $res->get_acl()->allow($role, $action);
+        return $res->getAcl()->allow($role, $action);
     }
     
     //! Shortcut to add an @b deny ACE in the ACL of a resource
@@ -154,17 +155,17 @@ class Authz
      */
     static public function deny($resource, $role, $action)
     {
-        $res = self::get_resource($resource);
+        $res = self::getResource($resource);
         if (!$res)
-            throw new InvalidArgumentException('Cannot find resource with name "' . 
+            throw new \InvalidArgumentException('Cannot find resource with name "' . 
                 (is_array($resource)?$resource[0]:$resource) . '"');
 
-        return $res->get_acl()->deny($role, $action);
+        return $res->getAcl()->deny($role, $action);
     }
 
     //! Search if an action by current role on a specific resource is permitted.
     /**
-     * The current role is retrieve using the callback defined by set_current_role_func().
+     * The current role is retrieve using the callback defined by setCurrentRoleFunc().
      * @param $resource
      *  - @b string The name of the resource class
      *  - @b array A tuple of name and instance id of a resource instance.
@@ -175,9 +176,9 @@ class Authz
      *  - @b false If the ACE denied it or there is no effective ACE.
      *  .
      */
-    static public function is_allowed($resource, $action)
+    static public function isAllowed($resource, $action)
     {   
-        return self::is_role_allowed_to(self::get_current_role(), $resource, $action);
+        return self::isRoleAllowedTo(self::getCurrentRole(), $resource, $action);
     }
     
     //! Search if a role on a resource is permitted to do an action.
@@ -196,20 +197,18 @@ class Authz
      *  - @b false If the ACE denied it or there is no effective ACE.
      *  .
      */
-    static public function is_role_allowed_to($role, $resource, $action)
+    static public function isRoleAllowedTo($role, $resource, $action)
     {   
-        $res = self::get_resource($resource);
+        $res = self::getResource($resource);
 
         if (!$res)
-            throw new InvalidArgumentException('Cannot find resource with name "' . 
+            throw new \InvalidArgumentException('Cannot find resource with name "' . 
                 (is_array($resource)?$resource[0]:$resource) . '"');
 
         
-        if (($ace = $res->effective_ace($role, $action, self::get_role_feeder(), $depth)) === null)
+        if (($ace = $res->effectiveAce($role, $action, self::getRoleFeeder(), $depth)) === null)
             return false;
 
-        return $ace->is_allowed();
+        return $ace->isAllowed();
     }
 }
-
-?>

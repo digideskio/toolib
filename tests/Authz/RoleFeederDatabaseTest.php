@@ -20,9 +20,11 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
-require_once dirname(__FILE__) .  '/SampleSchema.class.php';
+use toolib\Authz;
+use toolib\Authz\Role\FeederDatabase;
+
+require_once __DIR__ .  '/../path.inc.php';
+require_once __DIR__ .  '/SampleSchema.class.php';
 
 class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
 {
@@ -44,7 +46,7 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
      */
     public function testMandatoryOptions1()
     {
-        $list = new Authz_Role_FeederDatabase(array(
+        $list = new FeederDatabase(array(
             'role_query' => Users::openQuery()->where('username = ?')
         ));
     }
@@ -54,42 +56,42 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
      */
     public function testMandatoryOptions2()
     {
-        $list = new Authz_Role_FeederDatabase(array(
+        $list = new FeederDatabase(array(
             'role_name_field' => 'username'
         ));
     }
     
     public function testNoDependency()
     {
-        $list = new Authz_Role_FeederDatabase(array(
+        $list = new FeederDatabase(array(
             'role_query' => Users::openQuery()->where('username = ?'),
             'role_name_field' => 'username'
         ));
         
         
-        $this->assertFalse($list->has_role('unknown-user'));
-        $this->assertFalse($list->has_role('unknown-user'));
+        $this->assertFalse($list->hasRole('unknown-user'));
+        $this->assertFalse($list->hasRole('unknown-user'));
         
-        $this->assertTrue($list->has_role('user1'));
-        $this->assertTrue($list->has_role('user2'));
-        $this->assertTrue($list->has_role('user3'));
-        $this->assertTrue($list->has_role('user4'));
-        $this->assertTrue($list->has_role('user5'));
-        $this->assertTrue($list->has_role('user6'));
+        $this->assertTrue($list->hasRole('user1'));
+        $this->assertTrue($list->hasRole('user2'));
+        $this->assertTrue($list->hasRole('user3'));
+        $this->assertTrue($list->hasRole('user4'));
+        $this->assertTrue($list->hasRole('user5'));
+        $this->assertTrue($list->hasRole('user6'));
         
-        $this->assertFalse($list->has_role('user7'));
-        $this->assertFalse($list->get_role('user7'));
+        $this->assertFalse($list->hasRole('user7'));
+        $this->assertFalse($list->getRole('user7'));
         
-        $user1 = $list->get_role('user1');
-        $user2 = $list->get_role('user2');
-        $this->assertType('Authz_Role_Database', $user1);
-        $this->assertEquals($user1->get_name(), 'user1');
-        $this->assertType('Authz_Role_Database', $user2);
-        $this->assertEquals($user2->get_name(), 'user2');
+        $user1 = $list->getRole('user1');
+        $user2 = $list->getRole('user2');
+        $this->assertType('toolib\Authz\Role\Database', $user1);
+        $this->assertEquals($user1->getName(), 'user1');
+        $this->assertType('toolib\Authz\Role\Database', $user2);
+        $this->assertEquals($user2->getName(), 'user2');
         
-        $this->assertFalse($user1->has_parent('test'));
-        $this->assertFalse($user1->has_parent('wrong'));
-        $this->assertEquals($user1->get_parents(), array());
+        $this->assertFalse($user1->hasParent('test'));
+        $this->assertFalse($user1->hasParent('wrong'));
+        $this->assertEquals($user1->getParents(), array());
     }
 
     public function testDependency()
@@ -97,60 +99,60 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
         $users_query = Users::openQuery()->where('username = ?');
         $group_query = Membership::openQuery()->where('username = ?');
         
-        $list = new Authz_Role_FeederDatabase(array(
+        $list = new FeederDatabase(array(
             'role_query' => $users_query,
             'role_name_field' => 'username',
             'parents_query' => $group_query,
             'parent_name_field' => 'groupname'));        
         
-        $this->assertFalse($list->has_role('unknown-user'));
-        $this->assertFalse($list->has_role('unknown-user'));
+        $this->assertFalse($list->hasRole('unknown-user'));
+        $this->assertFalse($list->hasRole('unknown-user'));
         
-        $this->assertTrue($list->has_role('user1'));
-        $this->assertTrue($list->has_role('user2'));
-        $this->assertTrue($list->has_role('user3'));
-        $this->assertTrue($list->has_role('user4'));
-        $this->assertTrue($list->has_role('user5'));
-        $this->assertTrue($list->has_role('user6'));
+        $this->assertTrue($list->hasRole('user1'));
+        $this->assertTrue($list->hasRole('user2'));
+        $this->assertTrue($list->hasRole('user3'));
+        $this->assertTrue($list->hasRole('user4'));
+        $this->assertTrue($list->hasRole('user5'));
+        $this->assertTrue($list->hasRole('user6'));
         
-        $this->assertFalse($list->has_role('user7'));
-        $this->assertFalse($list->get_role('user7'));
+        $this->assertFalse($list->hasRole('user7'));
+        $this->assertFalse($list->getRole('user7'));
         
-        $user1 = $list->get_role('user1');
-        $user4 = $list->get_role('user4');
-        $user5 = $list->get_role('user5');
-        $this->assertType('Authz_Role_Database', $user1);
-        $this->assertEquals($user1->get_name(), 'user1');
-        $this->assertType('Authz_Role_Database', $user5);
-        $this->assertEquals($user5->get_name(), 'user5');
-        $this->assertType('Authz_Role_Database', $user4);
-        $this->assertEquals($user4->get_name(), 'user4');
+        $user1 = $list->getRole('user1');
+        $user4 = $list->getRole('user4');
+        $user5 = $list->getRole('user5');
+        $this->assertType('toolib\Authz\Role\Database', $user1);
+        $this->assertEquals($user1->getName(), 'user1');
+        $this->assertType('toolib\Authz\Role\Database', $user5);
+        $this->assertEquals($user5->getName(), 'user5');
+        $this->assertType('toolib\Authz\Role\Database', $user4);
+        $this->assertEquals($user4->getName(), 'user4');
         
-        $this->assertFalse($user1->has_parent('wrong'));
-        $this->assertTrue($user1->has_parent('group13'));
-        $this->assertFalse($user5->has_parent('wrong'));
-        $this->assertTrue($user5->has_parent('group46'));
-        $this->assertFalse($user5->has_parent('group12'));
+        $this->assertFalse($user1->hasParent('wrong'));
+        $this->assertTrue($user1->hasParent('group13'));
+        $this->assertFalse($user5->hasParent('wrong'));
+        $this->assertTrue($user5->hasParent('group46'));
+        $this->assertFalse($user5->hasParent('group12'));
 
-        $this->assertType('array', $user5->get_parents());
-        $this->assertEquals(count($user5->get_parents()), 1);
-        $parents = $user5->get_parents();
+        $this->assertType('array', $user5->getParents());
+        $this->assertEquals(count($user5->getParents()), 1);
+        $parents = $user5->getParents();
         $group46 = $parents['group46'];
-        $this->assertEquals($group46->get_name(), 'group46');
-        $this->assertFalse($group46->has_parent('test'));
-        $this->assertEquals($group46->get_parents(), array());
+        $this->assertEquals($group46->getName(), 'group46');
+        $this->assertFalse($group46->hasParent('test'));
+        $this->assertEquals($group46->getParents(), array());
         
-        $this->assertType('array', $user4->get_parents());
-        $this->assertEquals(count($user4->get_parents()), 2);
-        $parents = $user4->get_parents();
+        $this->assertType('array', $user4->getParents());
+        $this->assertEquals(count($user4->getParents()), 2);
+        $parents = $user4->getParents();
         $group34 = $parents['group34'];
         $group46 = $parents['group46'];
-        $this->assertEquals($group34->get_name(), 'group34');
-        $this->assertFalse($group34->has_parent('test'));
-        $this->assertEquals($group34->get_parents(), array());
-        $this->assertEquals($group46->get_name(), 'group46');
-        $this->assertFalse($group46->has_parent('test'));
-        $this->assertEquals($group46->get_parents(), array());
+        $this->assertEquals($group34->getName(), 'group34');
+        $this->assertFalse($group34->hasParent('test'));
+        $this->assertEquals($group34->getParents(), array());
+        $this->assertEquals($group46->getName(), 'group46');
+        $this->assertFalse($group46->hasParent('test'));
+        $this->assertEquals($group46->getParents(), array());
     }
     
     public function testDependencyFilter()
@@ -158,7 +160,7 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
         $users_query = Users::openQuery()->where('username = ?');
         $group_query = Membership::openQuery()->where('username = ?');
         
-        $list = new Authz_Role_FeederDatabase(array(
+        $list = new FeederDatabase(array(
             'role_query' => $users_query,
             'role_name_field' => 'username',
             'parents_query' => $group_query,
@@ -166,55 +168,53 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
             'parent_name_filter_func' => create_function('$name', ' return "@" . $name; ')
         ));
         
-        $this->assertFalse($list->has_role('unknown-user'));
-        $this->assertFalse($list->has_role('unknown-user'));
+        $this->assertFalse($list->hasRole('unknown-user'));
+        $this->assertFalse($list->hasRole('unknown-user'));
         
-        $this->assertTrue($list->has_role('user1'));
-        $this->assertTrue($list->has_role('user2'));
-        $this->assertTrue($list->has_role('user3'));
-        $this->assertTrue($list->has_role('user4'));
-        $this->assertTrue($list->has_role('user5'));
-        $this->assertTrue($list->has_role('user6'));
+        $this->assertTrue($list->hasRole('user1'));
+        $this->assertTrue($list->hasRole('user2'));
+        $this->assertTrue($list->hasRole('user3'));
+        $this->assertTrue($list->hasRole('user4'));
+        $this->assertTrue($list->hasRole('user5'));
+        $this->assertTrue($list->hasRole('user6'));
         
-        $this->assertFalse($list->has_role('user7'));
-        $this->assertFalse($list->get_role('user7'));
+        $this->assertFalse($list->hasRole('user7'));
+        $this->assertFalse($list->getRole('user7'));
         
-        $user1 = $list->get_role('user1');
-        $user4 = $list->get_role('user4');
-        $user5 = $list->get_role('user5');
-        $this->assertType('Authz_Role_Database', $user1);
-        $this->assertEquals($user1->get_name(), 'user1');
-        $this->assertType('Authz_Role_Database', $user5);
-        $this->assertEquals($user5->get_name(), 'user5');
-        $this->assertType('Authz_Role_Database', $user4);
-        $this->assertEquals($user4->get_name(), 'user4');
+        $user1 = $list->getRole('user1');
+        $user4 = $list->getRole('user4');
+        $user5 = $list->getRole('user5');
+        $this->assertType('toolib\Authz\Role\Database', $user1);
+        $this->assertEquals($user1->getName(), 'user1');
+        $this->assertType('toolib\Authz\Role\Database', $user5);
+        $this->assertEquals($user5->getName(), 'user5');
+        $this->assertType('toolib\Authz\Role\Database', $user4);
+        $this->assertEquals($user4->getName(), 'user4');
         
-        $this->assertFalse($user1->has_parent('wrong'));
-        $this->assertTrue($user1->has_parent('@group13'));
-        $this->assertFalse($user5->has_parent('wrong'));
-        $this->assertTrue($user5->has_parent('@group46'));
-        $this->assertFalse($user5->has_parent('@group12'));
+        $this->assertFalse($user1->hasParent('wrong'));
+        $this->assertTrue($user1->hasParent('@group13'));
+        $this->assertFalse($user5->hasParent('wrong'));
+        $this->assertTrue($user5->hasParent('@group46'));
+        $this->assertFalse($user5->hasParent('@group12'));
 
-        $this->assertType('array', $user5->get_parents());
-        $this->assertEquals(count($user5->get_parents()), 1);
-        $parents = $user5->get_parents();
+        $this->assertType('array', $user5->getParents());
+        $this->assertEquals(count($user5->getParents()), 1);
+        $parents = $user5->getParents();
         $group46 = $parents['@group46'];
-        $this->assertEquals($group46->get_name(), '@group46');
-        $this->assertFalse($group46->has_parent('test'));
-        $this->assertEquals($group46->get_parents(), array());
+        $this->assertEquals($group46->getName(), '@group46');
+        $this->assertFalse($group46->hasParent('test'));
+        $this->assertEquals($group46->getParents(), array());
         
-        $this->assertType('array', $user4->get_parents());
-        $this->assertEquals(count($user4->get_parents()), 2);
-        $parents = $user4->get_parents();
+        $this->assertType('array', $user4->getParents());
+        $this->assertEquals(count($user4->getParents()), 2);
+        $parents = $user4->getParents();
         $group34 = $parents['@group34'];
         $group46 = $parents['@group46'];
-        $this->assertEquals($group34->get_name(), '@group34');
-        $this->assertFalse($group34->has_parent('test'));
-        $this->assertEquals($group34->get_parents(), array());
-        $this->assertEquals($group46->get_name(), '@group46');
-        $this->assertFalse($group46->has_parent('test'));
-        $this->assertEquals($group46->get_parents(), array());
+        $this->assertEquals($group34->getName(), '@group34');
+        $this->assertFalse($group34->hasParent('test'));
+        $this->assertEquals($group34->getParents(), array());
+        $this->assertEquals($group46->getName(), '@group46');
+        $this->assertFalse($group46->hasParent('test'));
+        $this->assertEquals($group46->getParents(), array());
     }
-    
 }
-?>

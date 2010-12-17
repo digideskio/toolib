@@ -19,11 +19,11 @@
  *  
  */
 
+namespace toolib\Authn;
 
 //! Interface representing authentication identity
-interface Authn_Identity
+interface Identity
 {
     //! The id of this identity
     public function id();
 }
-?>

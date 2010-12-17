@@ -19,8 +19,9 @@
  *  
  */
 
+namespace toolib\Stupid\Condition;
 
-require_once(dirname(__FILE__) . '/../Condition.class.php');
+require_once __DIR__ . '/../Condition.class.php';
 
 //! Implementation of auth Stupid_Condition
 /**
@@ -36,17 +37,19 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
  * @par Examples
  * @code
  * // This action is accesible only from user root
- * Stupid::add_rule('create_news',
+ * Stupid::addRule('create_news',
  *     array('type' => 'url_path', 'path' => '/\/news\/\+create/'),
  *     array('type' => 'authn', 'op' => 'isuser', 'user' => 'root'));
  * @endcode
  */
-class Stupid_Condition_Authentication extends Stupid_Condition
+class Authentication extends \toolib\Stupid\Condition
 {
 	public static function type()
-	{	return 'authn';	}
+	{
+		return 'authn';
+	}
 
-	public function evaluate_impl($previous_backrefs)
+	public function evaluateImpl($previous_backrefs)
 	{
 		// Default condition values
 		$defcond = array(
@@ -58,12 +61,10 @@ class Stupid_Condition_Authentication extends Stupid_Condition
 		// Per operand
 		switch($options['op']){
 		case 'isanon';
-			return ! Authn_Realm::has_identity();
+			return ! Authn_Realm::hasIdentity();
 		case 'isuser':
-			return ((Authn_Realm::has_identity()) && (Authn_Realm::get_identity() == $options['user']));
+			return ((Authn_Realm::hasIdentity()) && (Authn_Realm::getIdentity() == $options['user']));
 		}
 	}
 }
-Stupid_Condition_Authentication::register();
-
-?>
+Authentication::register();

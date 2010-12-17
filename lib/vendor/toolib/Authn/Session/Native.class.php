@@ -20,10 +20,13 @@
  */
 
 
-require_once(dirname(__FILE__) . '/../Session.class.php');
+namespace toolib\Authn\Session;
+use toolib\Authn\Identity;
+
+require_once __DIR__ . '/../Session.class.php';
 
 //! Use native php sessions to track identity
-class Authn_Session_Native implements Authn_Session
+class Native implements \toolib\Authn\Session
 {
     //! The index to use in $_SESSION array for storing identity.
     private $session_index;
@@ -38,13 +41,13 @@ class Authn_Session_Native implements Authn_Session
     }
     
     
-    public function set_identity(Authn_Identity $identity, $ttl = null)
+    public function setIdentity(Identity $identity, $ttl = null)
     {
         session_regenerate_id();
         $_SESSION[$this->session_index] = $identity;
     }
 
-    public function get_identity()
+    public function getIdentity()
     {
         if (!isset($_SESSION[$this->session_index]))
             return false;
@@ -54,10 +57,8 @@ class Authn_Session_Native implements Authn_Session
     }
 
 
-    public function clear_identity()
+    public function clearIdentity()
     {
         $_SESSION[$this->session_index] = null;
     }
 }
-
-?>

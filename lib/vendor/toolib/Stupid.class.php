@@ -19,8 +19,9 @@
  *  
  */
 
+namespace toolib;
 
-require_once(dirname(__FILE__) . '/Stupid/Condition.class.php');
+require_once __DIR__ . '/Stupid/Condition.class.php';
 
 //! A simple expert system processor
 /**
@@ -42,14 +43,14 @@ require_once(dirname(__FILE__) . '/Stupid/Condition.class.php');
  * @code
  * // This rule uses grouping (parenthesis) in regex that act as backreferences
  * // and are given as argument in the action 
- * Stupid::add_rule('show_news',
+ * Stupid::addRule('show_news',
  *     array('type' => 'url_path', 'path' => '/\/news\/([\d]+)/'));
  * // A rule that uses more than one condition
- * Stupid::add_rule('create_news',
+ * Stupid::addRule('create_news',
  *     array('type' => 'url_path', 'path' => '/\/news\/\+create/'),
  *     array('type' => 'auth', 'op' => 'ingroup', 'group' => 'admin'));
  * // Evaluate rules and trigger apropriate action
- * Stupid::chain_reaction();
+ * Stupid::chainReaction);
  * 
  * // Show news implementation
  * function show_news($id)
@@ -59,7 +60,7 @@ require_once(dirname(__FILE__) . '/Stupid/Condition.class.php');
  * function create_news()
  * ...
  * @endcode
- * You can see add_rule() for syntax information.
+ * You can see addRule() for syntax information.
  * 
  * @par Standard Condition Evaluators
  * Stupid system ships with a set of standard evaluators, those evaluators
@@ -101,14 +102,15 @@ class Stupid
 	 *  
 	 * @code
 	 * // A rule that uses more than one condition
-	 * Stupid::add_rule('create_news',
+	 * Stupid::addRule('create_news',
 	 *     array('type' => 'url_path', 'path' => '/\/news\/\+create/'),
 	 *     array('type' => 'auth', 'op' => 'ingroup', 'group' => 'admin'));
 	 * @endcode
 	 * @return NULL
 	 */
-	public static function add_rule()
-	{	// Analyze function arguments
+	public static function addRule()
+	{	
+		// Analyze function arguments
 		$args = func_get_args();
 		if (count($args) < 2)
 			return false;
@@ -116,8 +118,7 @@ class Stupid
 		$conditions = array_slice($args, 1);
 			
 		$processed_conditions = array();
-		foreach($conditions as $condition)
-		{
+		foreach($conditions as $condition) {
 			if (($cond_obj = Stupid_Condition::create($condition)) === false)
 				return false;
 			$processed_conditions[]  = $cond_obj;
@@ -153,27 +154,27 @@ class Stupid
 	 * 
 	 * @return NULL
 	 */
-	public static function chain_reaction()
+	public static function chainReaction()
 	{
-		foreach(self::$rules as $rule)
-		{	$cond_res = true;
+		foreach(self::$rules as $rule) {
+			$cond_res = true;
 			$action_args = array();
 			foreach($rule['conditions'] as $condition)
 				if (! ($cond_res = $condition->evaluate($action_args)))
 					break;
 				else
-					$action_args = array_merge($action_args, $condition->action_arguments());
+					$action_args = array_merge($action_args, $condition->actionArguments());
 
-			if ($cond_res)
-			{	self::reset();
+			if ($cond_res) {
+				self::reset();
 				call_user_func_array($rule['action'], $action_args);
 				return;
 			}
 		}
 		
 		// Nothing matched default action
-		if (self::$def_action !== false)
-		{	$def_action = self::$def_action; 
+		if (self::$def_action !== false) {
+			$def_action = self::$def_action; 
 			self::reset();
 			call_user_func($def_action);
 		}
@@ -185,9 +186,8 @@ class Stupid
 	 * @param $func The callback function 
 	 * @return NULL
 	 */
-	public static function set_default_action($func)
+	public static function setDefaultAction($func)
 	{	
 	    self::$def_action = $func;
     }
 }
-?>

@@ -45,13 +45,13 @@ if (Registry::get('site.deploy_checks'))
     }
 }
 // Special handling for special urls
-Stupid::add_rule(create_function('', 'require(\'web/login.php\');'),
+Stupid::addRule(create_function('', 'require(\'web/login.php\');'),
     array('type' => 'url_path', 'chunk[-1]' => '/\+login/')
 );
-Stupid::add_rule(create_function('', 'require(\'web/login.php\');'),
+Stupid::addRule(create_function('', 'require(\'web/login.php\');'),
     array('type' => 'url_path', 'chunk[-1]' => '/\+logout/')
 );
-Stupid::add_rule(create_function('', 'require(\'web/home.php\');'),
+Stupid::addRule(create_function('', 'require(\'web/home.php\');'),
     array('type' => 'url_path', 'path' => '/^\/?$/')
 );
 
@@ -66,14 +66,14 @@ function include_sub($sub)
     require dirname(__FILE__)  . "/web/sub/$sub.php";
 }
 
-Stupid::add_rule('include_sub',
+Stupid::addRule('include_sub',
     array('type' => 'url_path', 'chunk[1]' => '/^([\w]+)$/'),
     array('type' => 'func', 'func' => 'is_valid_sub')
 );
 
-Stupid::set_default_action(create_function('', ' throw new Exception404(); '));
+Stupid::setDefaultAction(create_function('', ' throw new Exception404(); '));
 try {
-	Stupid::chain_reaction();
+	Stupid::chainReaction();
 } catch(Exception404 $e) {
 	require(dirname(__FILE__). '/web/not_found.php');
 }

@@ -20,10 +20,14 @@
  */
 
 
-require_once(dirname(__FILE__) . '/../Session.class.php');
+namespace toolib\Authn\Session;
+use toolib\Authn\Identity;
+use toolib\Cache;
+
+require_once __DIR__ . '/../Session.class.php';
 
 //! Use a cache engine to store tracked identities
-class Authn_Session_Cache implements Authn_Session
+class Cache implements \toolib\Authn\Session
 {
     //! Cache Engine
     private $cache;
@@ -47,15 +51,15 @@ class Authn_Session_Cache implements Authn_Session
         $this->cookie = $cookie;
 
         // Check if there is already a cookie
-        $received_cookie = Net_HTTP_Cookie::open($cookie->get_name());
+        $received_cookie = Net_HTTP_Cookie::open($cookie->getName());
         if ($received_cookie)
             $this->session_id = $received_cookie->get_value();
     }
 
-    public function set_identity(Authn_Identity $identity, $ttl = null)
+    public function setIdentity(Identity $identity, $ttl = null)
     {   
         // Clear identity
-        $this->clear_identity();
+        $this->clearIdentity();
 
         // Create a new sessionid
         // Uniqid() without $entropy = true is just an alias for mircoseconds.
@@ -79,22 +83,21 @@ class Authn_Session_Cache implements Authn_Session
         );
     }
 
-    public function get_identity()
+    public function getIdentity()
     {
         if ($this->session_id === null)
             return false;
 
         $identity = $this->cache->get($this->session_id, $succ);
-        if (!$succ)
-        {   
-            $this->clear_identity();
+        if (!$succ) {   
+            $this->clearIdentity();
             return false;
         }
 
         return $identity;
     }
 
-    public function clear_identity()
+    public function clearIdentity()
     {   
         // Remove data from cache
         if ($this->session_id)
@@ -108,5 +111,3 @@ class Authn_Session_Cache implements Authn_Session
         $this->cookie->send();
     }
 }
-
-?>

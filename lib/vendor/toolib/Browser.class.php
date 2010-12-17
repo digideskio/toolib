@@ -21,7 +21,8 @@
 
 
 //! Browser helper class
-class Browser {
+class Browser
+{
     /** 
         Figure out what browser is used, its version and the platform it is
         running on.

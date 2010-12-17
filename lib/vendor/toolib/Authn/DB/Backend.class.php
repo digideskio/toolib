@@ -20,15 +20,17 @@
  */
 
 
-require_once( dirname(__FILE__) . '/../Backend.class.php');
-require_once( dirname(__FILE__) . '/../Identity/DB.class.php');
+namespace toolib\Authn\DB;
+
+require_once __DIR__ . '/../Backend.class.php';
+require_once __DIR__ . '/Identity.class.php';
 
 //! Implementation for database backend
 /**
  * Authentication based on DB_Record implementation.
  * The database models must first be declared before using this class.
  */
-class Authn_Backend_DB implements Authn_Backend
+class Backend implements \toolib\Authn\Backend
 {
     //! The normalized options of this instance.
     private $options = array();
@@ -37,7 +39,7 @@ class Authn_Backend_DB implements Authn_Backend
     private $model_query = array();
 
     //! Get the options of this instance.
-    public function get_options()
+    public function getOptions()
     {
         return $this->options;
     }
@@ -59,7 +61,7 @@ class Authn_Backend_DB implements Authn_Backend
             $options['query_user'],
             $options['field_username'],
             $options['field_password'])
-        )   throw new InvalidArgumentException('Missing mandatory options for Authn_DB_Backend!');
+        )   throw new \InvalidArgumentException('Missing mandatory options for Authn_DB_Backend!');
         
         // Merge with default options and save
         $this->options = array_merge(array(
@@ -83,7 +85,7 @@ class Authn_Backend_DB implements Authn_Backend
             return false;
 
         // Succesfull
-        return new Authn_Identity_DB($records[0]->{$this->options['field_username']}, $this, $records[0]);
+        return new Identity($records[0]->{$this->options['field_username']}, $this, $records[0]);
     }
 
     //! Reset the password of an identity
@@ -94,7 +96,7 @@ class Authn_Backend_DB implements Authn_Backend
      *  - @b true if the password was reset.
      *  - @b false on any error.
      */
-    public function reset_password($id, $new_password)
+    public function resetPassword($id, $new_password)
     {   
         $records = $this->options['query_user']->execute($id);
             

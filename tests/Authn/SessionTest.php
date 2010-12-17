@@ -20,15 +20,17 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
-require_once dirname(__FILE__) . '/SampleSchema.class.php';
+use toolib\Authn\Session;
+use toolib\DB\Connection;
+
+require_once __DIR__ .  '/../path.inc.php';
+require_once __DIR__ . '/SampleSchema.class.php';
 
 class Authn_SessionTest extends PHPUnit_Framework_TestCase
 {
     public function getBackend()
     {
-        return new Authn_Backend_DB(array(
+        return new \toolib\Authn\DB\Backend(array(
             'query_user' => User_plain::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
@@ -38,29 +40,28 @@ class Authn_SessionTest extends PHPUnit_Framework_TestCase
 
     public function testInstanceSession()
     {
-        $stor = new Authn_Session_Instance();
+        $stor = new Session\Instance();
 
-        $this->assertFalse($stor->get_identity());
+        $this->assertFalse($stor->getIdentity());
 
-        $stor->set_identity(new Authn_Identity_DB(true,$this->getBackend(),true));
-        $this->assertType('Authn_Identity_DB', $stor->get_identity());
+        $stor->setIdentity(new \toolib\Authn\DB\Identity(true,$this->getBackend(),true));
+        $this->assertType('toolib\Authn\DB\Identity', $stor->getIdentity());
 
-        $stor->clear_identity();
-        $this->assertFalse($stor->get_identity());
+        $stor->clearIdentity();
+        $this->assertFalse($stor->getIdentity());
     }
 
     public function testNativeSession()
     {
-        $stor = new Authn_Session_Native();
+        $stor = new Session\Native();
 
-        $this->assertFalse($stor->get_identity());
+        $this->assertFalse($stor->getIdentity());
 
-        @$stor->set_identity(new Authn_Identity_DB(true,$this->getBackend(),true));
-        $this->assertType('Authn_Identity_DB', $stor->get_identity());
+        @$stor->setIdentity(new \toolib\Authn\DB\Identity(true,$this->getBackend(),true));
+        $this->assertType('toolib\Authn\DB\Identity', $stor->getIdentity());
 
-        $stor->clear_identity();
-        $this->assertFalse($stor->get_identity());
+        $stor->clearIdentity();
+        $this->assertFalse($stor->getIdentity());
     }
 
 }
-?>

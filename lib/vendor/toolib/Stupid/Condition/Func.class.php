@@ -20,7 +20,9 @@
  */
 
 
-require_once(dirname(__FILE__) . '/../Condition.class.php');
+namespace toolib\Stupid\Condition;
+
+require_once __DIR__ . '/../Condition.class.php';
 
 //! Implementation of func Stupid_Condition
 /**
@@ -41,18 +43,20 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
  * 	// Check if current time is morning and return true or false
  * }
  * // Adding a rule that checks what part of day is it
- * Stupid::add_rule("view_forum",
+ * Stupid::addRule("view_forum",
  *     array('type' => 'func', 'func' => 'is_morning'));
  * 
  * @endcode
  * @author sque
  */
-class Stupid_Condition_Func extends Stupid_Condition
+class Func extends \toolib\Stupid\Condition
 {
 	public static function type()
-	{	return 'func';	}
+	{
+		return 'func';
+	}
 	
-	public function evaluate_impl($previous_backrefs)
+	public function evaluateImpl($previous_backrefs)
 	{
 		// Default condition values
 		$defcond = array(
@@ -74,6 +78,4 @@ class Stupid_Condition_Func extends Stupid_Condition
 		return call_user_func_array($options['func'], $args);
 	}
 };
-Stupid_Condition_Func::register();
-
-?>
+Func::register();

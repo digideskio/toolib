@@ -20,10 +20,12 @@
  */
 
 
-require_once dirname(__FILE__) . '/Identity.class.php';
+namespace toolib\Authn;
+
+require_once __DIR__ . '/Identity.class.php';
 
 //! Interface for authentication session storage
-interface Authn_Session
+interface Session
 {
     //! Set the current session identity
     /**
@@ -33,7 +35,7 @@ interface Authn_Session
      *  - @b null if you dont want to declare it explicitly for this identity.
      *  .
      */
-    public function set_identity(Authn_Identity $identity, $ttl = null);
+    public function setIdentity(Identity $identity, $ttl = null);
 
     //! Get the current session identity
     /**
@@ -41,8 +43,8 @@ interface Authn_Session
      *  - @b Authn_Identity object if one is signed on.
      *  - @b false If no identity online.
      */
-    public function get_identity();
+    public function getIdentity();
 
     //! Clear any identity from this session
-    public function clear_identity();
+    public function clearIdentity();
 }

@@ -19,8 +19,9 @@
  *  
  */
 
+namespace toolib\Stupid\Condition;
 
-require_once(dirname(__FILE__) . '/../Condition.class.php');
+require_once __DIR__ . '/../Condition.class.php';
 
 //! Implementation of url_params Stupid_Condition
 /**
@@ -39,11 +40,11 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
  * @par Examples
  * @code
  * // Adding a rule that checks if parameter id is set and is of type numeric
- * Stupid::add_rule("view_forum",
+ * Stupid::addRule("view_forum",
  *     array('type' => 'url_params', 'op' => 'isnumeric', 'param' => 'id'));
  * 
  * // A rule with two conditions
- * Stupid::add_rule("delete_forum",
+ * Stupid::addRule("delete_forum",
  *     // Check that parameter "action" is set and is equal to "delete"
  *     array('type' => 'url_params', 'op' => 'equal', 'param' => 'action', 'value' => 'delete'),
  *     // Check that parameter "action" is set and is equal to 'id'
@@ -51,13 +52,15 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
  * @endcode
  * @author sque
  */
-class Stupid_Condition_UrlParams extends Stupid_Condition
+class UrlParams extends \toolib\Stupid\Condition
 {
 	public static function type()
-	{	return 'url_params';	}
+	{
+		return 'url_params';
+	}
 	
  
-	public function evaluate_impl($previous_backrefs)
+	public function evaluateImpl($previous_backrefs)
 	{
 		// Default condition values
 		$defcond = array(
@@ -88,5 +91,4 @@ class Stupid_Condition_UrlParams extends Stupid_Condition
 		return false;		
 	}
 };
-Stupid_Condition_UrlParams::register();
-?>
+UrlParams::register();

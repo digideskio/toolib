@@ -19,9 +19,10 @@
  *  
  */
 
+namespace toolib\Authn;
 
 //! Interface of authentication backend.
-interface Authn_Backend
+interface Backend
 {
     //! Authenticate a user on this authority
     /**
@@ -33,4 +34,3 @@ interface Authn_Backend
      */
     public function authenticate($username, $password);
 }
-?>

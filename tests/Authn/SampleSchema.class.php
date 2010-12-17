@@ -19,10 +19,11 @@
  *  
  */
 
+use toolib\DB\Record;
+use toolib\DB\Connection;
+require_once __DIR__ .  '/../path.inc.php';
 
-require_once dirname(__FILE__) .  '/../path.inc.php';
-
-class User_plain extends DB_Record
+class User_plain extends Record
 {
     static public $table = 'users_plain';
     static public $fields = array(
@@ -32,7 +33,7 @@ class User_plain extends DB_Record
         );
 }
 
-class User_id extends DB_Record
+class User_id extends Record
 {
     static public $table = 'users_id';
     static public $fields = array(
@@ -42,7 +43,7 @@ class User_id extends DB_Record
         'enabled'
         );
 }
-class User_md5 extends DB_Record
+class User_md5 extends Record
 {
     static public $table = 'users_md5';
     static public $fields = array(
@@ -52,7 +53,7 @@ class User_md5 extends DB_Record
         );
 }
 
-class User_sha1 extends DB_Record
+class User_sha1 extends Record
 {
     static public $table = 'users_sha1';
     static public $fields = array(
@@ -83,7 +84,7 @@ class Authn_SampleSchema
 
     static public function connect($delayed = true)
     {
-        return DB_Conn::connect(
+        return Connection::connect(
             self::$conn_params['host'],
             self::$conn_params['username'],
             self::$conn_params['password'],
@@ -94,24 +95,24 @@ class Authn_SampleSchema
 
     static public function insert_user($table, $username, $password, $enabled)
     {   
-        DB_Conn::query("INSERT INTO {$table} (username, password, enabled) VALUES " .
-            "( '" . DB_Conn::get_link()->real_escape_string($username) . "', " .
-            " '" .  DB_Conn::get_link()->real_escape_string($password) . "', " .
+        Connection::query("INSERT INTO {$table} (username, password, enabled) VALUES " .
+            "( '" . Connection::getLink()->real_escape_string($username) . "', " .
+            " '" .  Connection::getLink()->real_escape_string($password) . "', " .
             " '" . $enabled . "')");
     }
 
     static public function build()
     {   
         self::destroy();
-        DB_Conn::connect(
+        Connection::connect(
             self::$conn_params['host'],
             self::$conn_params['username'],
             self::$conn_params['password'],
             'mysql'
         );
 
-        DB_Conn::query('CREATE DATABASE IF NOT EXISTS `' . self::$conn_params['schema']. '` ;');
-        DB_Conn::connect(
+        Connection::query('CREATE DATABASE IF NOT EXISTS `' . self::$conn_params['schema']. '` ;');
+        Connection::connect(
             self::$conn_params['host'],
             self::$conn_params['username'],
             self::$conn_params['password'],
@@ -119,7 +120,7 @@ class Authn_SampleSchema
         );
 
         // Create schema
-        DB_Conn::query('
+        Connection::query('
         CREATE TABLE `users_plain` (
             username varchar(15),
             password varchar(255),
@@ -128,7 +129,7 @@ class Authn_SampleSchema
         );
         ');
 
-        DB_Conn::query('
+        Connection::query('
         CREATE TABLE `users_id` (
             id INT auto_increment NOT NULL,
             username varchar(15),
@@ -139,7 +140,7 @@ class Authn_SampleSchema
         );
         ');
 
-        DB_Conn::query('
+        Connection::query('
         CREATE TABLE `users_md5` (
             username varchar(15),
             password CHAR(32),
@@ -148,7 +149,7 @@ class Authn_SampleSchema
         );
         ');
 
-        DB_Conn::query('
+        Connection::query('
         CREATE TABLE `users_sha1` (
             username varchar(15),
             password CHAR(40),
@@ -184,14 +185,13 @@ class Authn_SampleSchema
 
     static public function destroy()
     {
-        DB_Conn::connect(
+        Connection::connect(
             self::$conn_params['host'],
             self::$conn_params['username'],
             self::$conn_params['password'],
             'mysql'
         );
-        @DB_Conn::query('DROP DATABASE `' . self::$conn_params['schema']. '`;');
-        DB_Conn::disconnect();
+        @Connection::query('DROP DATABASE `' . self::$conn_params['schema']. '`;');
+        Connection::disconnect();
     }
 }
-?>

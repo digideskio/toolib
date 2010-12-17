@@ -25,7 +25,7 @@ require_once dirname(__FILE__) . '/Cookie.class.php';
 //! Manage the native HTTP response
 class Net_HTTP_Response
 {
-    //! Ask user-agnet to redirect in a new url
+    //! Ask user-agent to redirect in a new url
     /**
      * @param $url The absolute or relative url to redirect.
      * @param $auto_exit If @b true the program will terminate immediatly.

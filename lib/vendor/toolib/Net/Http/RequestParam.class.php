@@ -128,5 +128,3 @@ class Net_HTTP_RequestParam
 		return (isset($array[$name]))?is_numeric($array[$name]):false;;
 	}
 };
-
-?>

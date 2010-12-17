@@ -79,6 +79,6 @@ $auth = new Authn_Backend_DB(array(
     'field_password' => 'password',
     'hash_function' => 'sha1'
 ));
-Authn_Realm::set_backend($auth);
+Authn_Realm::setBackend($auth);
 
 ?>

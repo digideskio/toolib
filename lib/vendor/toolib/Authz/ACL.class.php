@@ -20,13 +20,15 @@
  */
 
 
-require_once dirname(__FILE__) . '/ACE.class.php';
+namespace toolib\Authz;
+
+require_once __DIR__ . '/ACE.class.php';
 
 //! Implementation of an Access Control List
-class Authz_ACL
+class ACL
 {
 
-    //! The array with all the Authz_ACE of this ACL.
+    //! The array with all the ACE of this ACL.
     private $aces = array();
 
     //! Add a new entry in list to allow access for a tuple.
@@ -36,8 +38,8 @@ class Authz_ACL
      */
     public function allow($role, $action)
     {
-        $ace = new Authz_ACE($role, $action, true);
-        $this->aces[$ace->get_dn_hash()] = $ace;
+        $ace = new ACE($role, $action, true);
+        $this->aces[$ace->getDnHash()] = $ace;
     }
     
     //! Add a new entry in list to deny access for a tuple.
@@ -47,8 +49,8 @@ class Authz_ACL
      */
     public function deny($role, $action)
     {
-        $ace = new Authz_ACE($role, $action, false);
-        $this->aces[$ace->get_dn_hash()] = $ace;
+        $ace = new ACE($role, $action, false);
+        $this->aces[$ace->getDnHash()] = $ace;
     }
     
     //! Remove an entry from this list.
@@ -59,56 +61,54 @@ class Authz_ACL
      *  - @b true If the ACE was removed.
      *  - @b false If the ACE was not found.
      */
-    public function remove_ace($role, $action)
+    public function removeAce($role, $action)
     {
-        $ace = new Authz_ACE($role, $action, false);
-        if (!isset($this->aces[$ace->get_dn_hash()]))
+        $ace = new ACE($role, $action, false);
+        if (!isset($this->aces[$ace->getDnHash()]))
             return false;
             
-        unset($this->aces[$ace->get_dn_hash()]);
+        unset($this->aces[$ace->getDnHash()]);
         return true;
     }
     
     //! Check if this list is emptry
-    public function is_empty()
+    public function isEmpty()
     {
         return empty($this->aces);
     }
     
-    //! Get all the Authz_ACE of this list
-    public function get_aces()
+    //! Get all the ACE of this list
+    public function getAces()
     {
         return $this->aces;
     }
         
-    //! Get the effective Authz_ACE for the tuple role-action.
+    //! Get the effective ACE for the tuple role-action.
     /**
      * Traverse this list and find the most effective ACE for
      * the given tuple.
      * @return
-     *  - @b Authz_ACE If the effective ACE was found.
+     *  - @b ACE If the effective ACE was found.
      *  - @b null If no ACE was found for this tuple.
      *  .
      */
-    public function effective_ace($role, $action)
+    public function effectiveAce($role, $action)
     {
         $effective_ace = null;
 
         foreach($this->aces as $ace)
         {
-            if ($ace->get_action() !== $action)
+            if ($ace->getAction() !== $action)
                 continue;
 
-            if ($ace->get_role() == $role)
+            if ($ace->getRole() == $role)
                 $effective_ace = $ace;
             
-            if ((!$effective_ace) || $effective_ace->is_role_null())
-                if ($ace->is_role_null())
+            if ((!$effective_ace) || $effective_ace->isRoleNull())
+                if ($ace->isRoleNull())
                     $effective_ace = $ace;
         }
         
         return $effective_ace;
     }
 }
-
-?>

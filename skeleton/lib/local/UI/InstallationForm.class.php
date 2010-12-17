@@ -93,7 +93,7 @@ class UI_InstallationForm extends Output_HTML_Form
             
         $data = "<?php\n// File generated with /install\n";
         	
-        foreach(Registry::get_instance() as $name => $value)
+        foreach(Registry::getInstance() as $name => $value)
             $data .= sprintf("\nRegistry::set('%s', '%s');\n",
                 addslashes($name),
                 addslashes($value));
@@ -106,12 +106,12 @@ class UI_InstallationForm extends Output_HTML_Form
 
         if ($values['db-build'])
         {
-            if (DB_Conn::get_link()->multi_query(file_get_contents($this->db_build_file)))
-                while (DB_Conn::get_link()->next_result());
+            if (DB_Conn::getLink()->multi_query(file_get_contents($this->db_build_file)))
+                while (DB_Conn::getLink()->next_result());
             
-            if (DB_Conn::get_link()->errno !== 0)
+            if (DB_Conn::getLink()->errno !== 0)
                 etag('strong class="error" nl_escape_on', 'Error executing SQL build script.\n' .
-                    DB_Conn::get_link()->error);
+                    DB_Conn::getLink()->error);
         }
         
         // Show result

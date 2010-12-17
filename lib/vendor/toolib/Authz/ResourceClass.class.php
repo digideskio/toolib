@@ -19,14 +19,15 @@
  *  
  */
 
+namespace toolib\Authz;
 
-require_once dirname(__FILE__) . '/Resource.class.php';
+require_once __DIR__ . '/Resource.class.php';
 
 //! Representation of resource class.
 /**
  * Resource class is an extension of basic resource to support instances.
  */
-class Authz_ResourceClass extends Authz_Resource
+class ResourceClass extends Resource
 {
     //! An array with all instances of the class
     protected $instances = array();
@@ -36,17 +37,15 @@ class Authz_ResourceClass extends Authz_Resource
      * If the instance is known the previous handle is returned,
      * otherwise a new one inheriting the class is returned.
      */
-    public function get_instance($id)
+    public function getInstance($id)
     {
         if (isset($this->instances[$id]))
             return $this->instances[$id];
         
         return $this->instances[$id] =
-            new Authz_Resource(
+            new Resource(
                 (string)$id,
                 $this);
     }
     
 }
-
-?>

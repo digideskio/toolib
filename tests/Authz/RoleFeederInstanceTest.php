@@ -20,27 +20,29 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
+use toolib\Authz;
+use toolib\Authz\Role\FeederInstance;
+
+require_once __DIR__ .  '/../path.inc.php';
 
 class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $list = new Authz_Role_FeederInstance();
+        $list = new FeederInstance();
         
-        $this->assertFalse($list->has_role('test'));
-        $this->assertFalse($list->get_role('test'));
+        $this->assertFalse($list->hasRole('test'));
+        $this->assertFalse($list->getRole('test'));
 
-        $member_role = $list->add_role('member');
-        $this->assertTrue($list->has_role('member'));
-        $this->assertEquals($list->get_role('member'), $member_role);
+        $member_role = $list->addRole('member');
+        $this->assertTrue($list->hasRole('member'));
+        $this->assertEquals($list->getRole('member'), $member_role);
         
-        $admin_role = $list->add_role('admin', 'member');
-        $this->assertTrue($list->has_role('admin'));
-        $this->assertEquals($list->get_role('admin'), $admin_role);
-        $this->assertTrue($list->has_role('member'));
-        $this->assertEquals($list->get_role('member'), $member_role);
+        $admin_role = $list->addRole('admin', 'member');
+        $this->assertTrue($list->hasRole('admin'));
+        $this->assertEquals($list->getRole('admin'), $admin_role);
+        $this->assertTrue($list->hasRole('member'));
+        $this->assertEquals($list->getRole('member'), $member_role);
     }
     
     /**
@@ -48,9 +50,9 @@ class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
      */
     public function testSameRoleException()
     {
-        $list = new Authz_Role_FeederInstance();
-        $list->add_role('member');
-        $list->add_role('member', array('test', 'test2'));
+        $list = new FeederInstance();
+        $list->addRole('member');
+        $list->addRole('member', array('test', 'test2'));
     }
 
     /**
@@ -58,8 +60,7 @@ class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
      */
     public function testBrokenDependencyException()
     {
-        $list = new Authz_Role_FeederInstance();
-        $list->add_role('member', array('everyone'));
+        $list = new FeederInstance();
+        $list->addRole('member', array('everyone'));
     }
 }
-?>

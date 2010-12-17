@@ -18,8 +18,9 @@
  *  along with PHPLibs.  If not, see <http://www.gnu.org/licenses/>.
  *  
  */
- 
- 
+
+namespace toolib;
+
 //! Image manipulation and conversion
 class Image
 {
@@ -56,12 +57,11 @@ class Image
             'input' => 'file',
         ), $options);
         
-        if ($this->options['input'] === 'file')
-        {
+        if ($this->options['input'] === 'file') {
             $this->filepath = $input;
-        }
-        else
+        } else {
             $this->image_data = $input;
+        }
     }
     
     //! Clean up destructor
@@ -72,16 +72,15 @@ class Image
     }
 
     //! Load meta data from file
-    private function analyze_image()
+    private function analyzeImage()
     {
         if ($this->meta !== null)
             return; // Already analyzed
             
         // If it is raw data we must open file to get info
-        if ($this->options['input'] === 'data')
-        {
+        if ($this->options['input'] === 'data') {
             $this->meta['type'] = 'string';
-            $this->open_image();
+            $this->openImage();
             return;
         }
             
@@ -101,13 +100,13 @@ class Image
     }
     
     //! Dynamic image loading
-	private function open_image()
+	private function openImage()
     {
         if ($this->image !== null)
             return;
             
         // Analyze image
-        $this->analyze_image();
+        $this->analyzeImage();
 
         if ($this->meta['type'] === 'jpeg')
             $this->image = imagecreatefromjpeg($this->filepath);
@@ -116,11 +115,11 @@ class Image
         else if ($this->meta['type'] === 'gif')
             $this->image = imagecreatefromgif($this->filepath);
         else if ($this->meta['type'] === 'string')
-            $this->update_image(imagecreatefromstring($this->image_data));
+            $this->updateImage(imagecreatefromstring($this->image_data));
     }
     
     //! Update image with a new instance
-    private function update_image($handler)
+    private function updateImage($handler)
     {
         // Free previous image
         if ($this->image)
@@ -133,12 +132,11 @@ class Image
     }
     
     //! Create a new image based on this one
-    private function create_new_image($width, $height)
+    private function createNewImage($width, $height)
     {
         $img = imagecreatetruecolor($width, $height);
         imagealphablending($img, false);
-        if ($this->meta['type'] == 'gif')
-        {
+        if ($this->meta['type'] == 'gif') {
             $trans_color = imagecolorsforindex($this->image, imagecolortransparent($this->image));
             $trans_index = imagecolorallocatealpha(
                 $img,
@@ -153,9 +151,9 @@ class Image
     }
     
     //! Get gd resource handle
-    public function gd_handle()
+    public function gdHandle()
     {
-        $this->open_image();
+        $this->openImage();
         return $this->image;
     }
     
@@ -166,9 +164,9 @@ class Image
      *  - @b string The name of the meta field you want to get the value.
      *  .
      */
-    public function get_meta_info($field = null)
+    public function getMetaInfo($field = null)
     {
-        $this->analyze_image();
+        $this->analyzeImage();
         if ($field === null)
             return $this->meta;
 
@@ -192,14 +190,14 @@ class Image
      */
     public function resize($maxwidth, $maxheight, $crop = false)
     {
-        $this->open_image();
+        $this->openImage();
         
         if (($maxwidth == 0) && ($maxheight == 0))
-            throw new InvalidArgumentException('You have to set at least one dimension constrain.');
+            throw new \InvalidArgumentException('You have to set at least one dimension constrain.');
             
         if ($crop)
             if (($maxwidth == 0) || ($maxheight == 0))
-                throw new InvalidArgumentException('To enable cropping you have to set both dimension constrains.');
+                throw new \InvalidArgumentException('To enable cropping you have to set both dimension constrains.');
             
         $orig_width = $this->meta['width'];
         $orig_height = $this->meta['height'];
@@ -214,22 +212,16 @@ class Image
         $resized_ratio = $width / $height;
 
         
-        if ($crop)
-        {
+        if ($crop) {
             // Calculate crop area if ratio is different.
-            if ($resized_ratio > $orig_ratio)
-            {
+            if ($resized_ratio > $orig_ratio) {
                 $orig_cheight = $orig_cwidth /  $resized_ratio;
                 $orig_y = ($orig_height - $orig_cheight) /2;
-            }
-            else
-            {
+            } else {
                 $orig_cwidth = $orig_cheight *  $resized_ratio;
                 $orig_x = ($orig_width - $orig_cwidth) /2;
             }
-        }
-        else
-        {
+        } else {
             // Fix boundries if desired box is not suited.
             if ($resized_ratio < $orig_ratio)
                 $height = $width / $orig_ratio;
@@ -238,7 +230,7 @@ class Image
         }
         
             
-        $resized = $this->create_new_image($width, $height);
+        $resized = $this->createNewImage($width, $height);
 
         // Copy resized image to a new one.
         imagecopyresampled(
@@ -255,7 +247,7 @@ class Image
         );
         
         // Save information
-        $this->update_image($resized);
+        $this->updateImage($resized);
         return $this;
     }
     
@@ -270,10 +262,9 @@ class Image
      */
     public function flip($direction)
     {
-        $this->open_image();
+        $this->openImage();
 
-        switch($direction)
-        {
+        switch($direction) {
         case 'hor':
             $src_x = $this->meta['width'] - 1;
             $src_y = 0;
@@ -293,10 +284,10 @@ class Image
             $src_height = -$this->meta['height'];
             break;
         default:
-            throw new InvalidArgumentException("Invalid Image::flip() direction \"{$direction}\"!");
+            throw new \InvalidArgumentException("Invalid Image::flip() direction \"{$direction}\"!");
         }
         
-        $flipped = $this->create_new_image($this->meta['width'], $this->meta['height']);
+        $flipped = $this->createNewImage($this->meta['width'], $this->meta['height']);
         
         imagecopyresampled(
             $flipped,
@@ -311,7 +302,7 @@ class Image
             $src_height
         );
         
-        $this->update_image($flipped);
+        $this->updateImage($flipped);
         return $this;
     }
     
@@ -322,10 +313,9 @@ class Image
      */
     public function rotate($degrees)
     {
-        $this->open_image();
+        $this->openImage();
         $img = imagerotate($this->image, - $degrees, imagecolortransparent($this->image));
-        if ($this->meta['type'] == 'gif')
-        {
+        if ($this->meta['type'] == 'gif') {
             $trans_color = imagecolorsforindex($this->image, imagecolortransparent($this->image));
             $trans_index = imagecolorallocatealpha(
                 $img,
@@ -336,7 +326,7 @@ class Image
             );
             imagecolortransparent($img, $trans_index);
         }
-        $this->update_image($img);
+        $this->updateImage($img);
         return $this;
     }
     
@@ -349,22 +339,22 @@ class Image
      */
     public function crop($left, $top, $width, $height)
     {
-        $this->open_image();
+        $this->openImage();
         
         // Check parameters
         if (($left < 0)  || ($left >= $this->meta['width']))
-            throw new InvalidArgumentException('$left has a value out of image boundries');
+            throw new \InvalidArgumentException('$left has a value out of image boundries');
 
         if (($top < 0)  || ($top >= $this->meta['height']))
-            throw new InvalidArgumentException('$top has a value out of image boundries');
+            throw new \InvalidArgumentException('$top has a value out of image boundries');
 
         if (($width <= 0)  || (($left + $width) > $this->meta['width']))
-            throw new InvalidArgumentException('$width has a value out of image boundries');
+            throw new \InvalidArgumentException('$width has a value out of image boundries');
 
         if (($height <= 0)  || (($top + $height) > $this->meta['height']))
-            throw new InvalidArgumentException('$height has a value out of image boundries');
+            throw new \InvalidArgumentException('$height has a value out of image boundries');
             
-        $cropped = $this->create_new_image($width, $height);
+        $cropped = $this->createNewImage($width, $height);
         imagecopyresampled(
             $cropped,
             $this->image,
@@ -378,22 +368,22 @@ class Image
             $height
         );
         
-        $this->update_image($cropped);
+        $this->updateImage($cropped);
         return $this;
     }
     
     //! Generate image output
-    private function generate_output($options = array(), $dump_headers, $to_file = null)
+    private function generateOutput($options = array(), $dump_headers, $to_file = null)
     {
-        $this->open_image();
+        $this->openImage();
         
         // Normalize options
         $options = array_merge(array(
             'quality' => null,
             'format' => null
         ), $options);
-        if ($options['quality'] !== null)
-        {
+        
+        if ($options['quality'] !== null) {
             $options['quality'] = ($options['quality']>100?100:$options['quality']);
             $options['quality'] = ($options['quality']<0?0:$options['quality']);
         }
@@ -401,10 +391,9 @@ class Image
         // Decide output image type
         $imagetype = $options['format'];
         if (!in_array($imagetype, array(IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, null), true))
-            throw new InvalidArgumentException("Invalid image type \"${imagetype}\"!");
+            throw new \InvalidArgumentException("Invalid image type \"${imagetype}\"!");
 
-        if ($imagetype == null)
-        {
+        if ($imagetype == null) {
             if ($this->meta['type'] === 'string')
                 $imagetype = IMAGETYPE_PNG;
             else if ($this->meta['type'] === 'png')
@@ -420,20 +409,15 @@ class Image
             header('Content-Type: ' . image_type_to_mime_type($imagetype));
 
         // Dump headers
-        if ($imagetype === IMAGETYPE_JPEG)
-        {
+        if ($imagetype === IMAGETYPE_JPEG) {
             $quality = ($options['quality'] === null?75:$options['quality']);
             $res = imagejpeg($this->image, $to_file, $quality);
-        }
-        else if ($imagetype === IMAGETYPE_PNG)
-        {
+        } else if ($imagetype === IMAGETYPE_PNG) {
             $quality = ($options['quality'] === null?100:$options['quality']);
             $quality = round((100 - $quality) * 0.09);
             imagesavealpha($this->image, true);
             $res = imagepng($this->image, $to_file);
-        }
-        else if ($imagetype === IMAGETYPE_GIF)
-        {
+        } else if ($imagetype === IMAGETYPE_GIF) {
             imagesavealpha($this->image, true);
             $res = imagegif($this->image, $to_file);
         }
@@ -455,7 +439,7 @@ class Image
      */
     public function dump($options = array(), $dump_headers = true)
     {
-        return $this->generate_output($options, $dump_headers);
+        return $this->generateOutput($options, $dump_headers);
     }
     
     //! Save this image to a file
@@ -471,7 +455,7 @@ class Image
      */
     public function save($filename, $options = array())
     {
-        return $this->generate_output($options, false, $filename);
+        return $this->generateOutput($options, false, $filename);
     }
     
     //! Save image to string
@@ -491,5 +475,3 @@ class Image
 		return $data;
     }
 }
-
-?>

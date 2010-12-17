@@ -19,8 +19,10 @@
  *  
  */
 
+namespace toolib\Stupid\Condition;
 
-require_once(dirname(__FILE__) . '/../Condition.class.php');
+require_once __DIR__ . '/../../Authz.class.php';
+require_once __DIR__ . '/../Condition.class.php';
 
 //! Implementation of auth Stupid_Condition
 /**
@@ -38,19 +40,19 @@ require_once(dirname(__FILE__) . '/../Condition.class.php');
  * @par Examples
  * @code
  * // This action is accesible only for those authorized for "view" action on "news" resource.
- * Stupid::add_rule('create_news',
+ * Stupid::addRule('create_news',
  *     array('type' => 'url_path', 'chunk[0]' => '/\/news\/', 'chunk[1]' => '/(\d+)/'),
  *     array('type' => 'authz', 'resource' => 'news', 'backref_instance' => 0, 'action' => 'view'));
  * @endcode
  */
-class Stupid_Condition_Authorization extends Stupid_Condition
+class Authorization extends \toolib\Stupid\Condition
 {
 	public static function type()
 	{	
 	    return 'authz';
     }
 
-	public function evaluate_impl($previous_backrefs)
+	public function evaluateImpl($previous_backrefs)
 	{
 		// Default condition values
 		$defcond = array(
@@ -61,19 +63,17 @@ class Stupid_Condition_Authorization extends Stupid_Condition
 		
 		// Check mandatory options
 		if ((!isset($options['resource'])) || (!isset($options['action'])))
-		    throw new InvalidArgumentException('Stupid_Condition[Authz]: Undefined mandatory options!');
+		    throw new \InvalidArgumentException('Stupid_Condition[Authz]: Undefined mandatory options!');
 
         // Get instance
         if ($options['backref_instance'] !== false)
         {   if (!isset($previous_backrefs[$options['backref_instance']]))
-                throw new InvalidArgumentException(
+                throw new \InvalidArgumentException(
                     'Stupid_Condition[Authz] there is no backref with index key "' . $options['backref_instance'] . '"!');
                     
             $options['instance'] = $previous_backrefs[$options['backref_instance']];
         }
-        return Authz::is_allowed(array($options['resource'], $options['instance']), $options['action']);
+        return Authz::isAllowed(array($options['resource'], $options['instance']), $options['action']);
 	}
 }
-Stupid_Condition_Authorization::register();
-
-?>
+Authorization::register();

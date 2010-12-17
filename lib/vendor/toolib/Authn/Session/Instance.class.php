@@ -19,11 +19,13 @@
  *  
  */
 
+namespace toolib\Authn\Session;
+use toolib\Authn\Identity;
 
-require_once(dirname(__FILE__) . '/../Session.class.php');
+require_once __DIR__ . '/../Session.class.php';
 
 //! Track identity inside the instance of this object
-class Authn_Session_Instance implements Authn_Session
+class Instance implements \toolib\Authn\Session
 {
     //! The session identity
     private $online_identity;
@@ -33,20 +35,18 @@ class Authn_Session_Instance implements Authn_Session
         $this->online_identity = false;
     }
         
-    public function set_identity(Authn_Identity $identity, $ttl = null)
+    public function setIdentity(Identity $identity, $ttl = null)
     {
         $this->online_identity = $identity;
     }
 
-    public function get_identity()
+    public function getIdentity()
     {
         return $this->online_identity;
     }
     
-    public function clear_identity()
+    public function clearIdentity()
     {
         $this->online_identity = false;
     }
 }
-
-?>

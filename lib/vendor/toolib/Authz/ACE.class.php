@@ -19,9 +19,10 @@
  *  
  */
 
+namespace toolib\Authz;
 
 //! Access Control Entry
-class Authz_ACE
+class ACE
 {
 
     //! The role this entry is for.
@@ -49,25 +50,25 @@ class Authz_ACE
     }
     
     //! Get the role this ace is for.
-    public function get_role()
+    public function getRole()
     {
         return $this->role;
     }
     
     //! Check if the role is null (wildcard role)
-    public function is_role_null()
+    public function isRoleNull()
     {
         return $this->role === null;
     }
     
     //! Get the action this entry refers to.
-    public function get_action()
+    public function getAction()
     {
         return $this->action;
     }
     
     //! Check if this ace permit access to resource.
-    public function is_allowed()
+    public function isAllowed()
     {
         return $this->allowed;
     }
@@ -76,7 +77,7 @@ class Authz_ACE
     /**
      * @param $allowed A @b boolean allowing or denying access for this tuple.
      */
-    public function set_allowed($allowed)
+    public function setAllowed($allowed)
     {
         $this->allowed = (boolean) $allowed;
     }
@@ -85,7 +86,7 @@ class Authz_ACE
     /**
      * The hash is unique for the @b role, @b action tuple.
      */
-    public function get_dn_hash()
+    public function getDnHash()
     {   
         // @todo fix security flaw
         // Potential security flaw by hash slam attack.
@@ -94,4 +95,3 @@ class Authz_ACE
         return "{$this->role}:{$this->action}";
     }
 }
-?>

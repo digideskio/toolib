@@ -19,10 +19,11 @@
  *  
  */
 
+use toolib\Authn\DB\Backend;
+use toolib\DB\Connection;
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
-require_once dirname(__FILE__) . '/SampleSchema.class.php';
+require_once __DIR__ .  '/../path.inc.php';
+require_once __DIR__ . '/SampleSchema.class.php';
 
 class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 {
@@ -43,7 +44,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
     public function tearDown()
     {
-        DB_Conn::disconnect();
+        Connection::disconnect();
     }
 
     public function dataUsers()
@@ -53,7 +54,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
     public function testPlainReUse()
     {
-        $auth = new Authn_Backend_DB(array(
+        $auth = new Backend(array(
             'query_user' => User_plain::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
@@ -67,14 +68,14 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($res);
 
         $res = $auth->authenticate('user1', 'password1');
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_plain::open('user1'));
     }
 
     public function testPlainIdReUse()
     {
-        $auth = new Authn_Backend_DB(array(
+        $auth = new Backend(array(
             'query_user' => User_id::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
@@ -89,14 +90,14 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         //exit;
 
         $res = $auth->authenticate('user1', 'password1');
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_id::open(1));
     }
 
     public function testMd5User()
     {
-        $auth = new Authn_Backend_DB(array(
+        $auth = new Backend(array(
             'query_user' => User_md5::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
@@ -111,14 +112,14 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($res);
 
         $res = $auth->authenticate('user1', 'password1');
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_md5::open('user1'));
     }
 
     public function testSha1User()
     {
-        $auth = new Authn_Backend_DB(array(
+        $auth = new Backend(array(
             'query_user' => User_sha1::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
@@ -133,7 +134,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($res);
 
         $res = $auth->authenticate('user1', 'password1');
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_sha1::open('user1'));
     }
@@ -145,7 +146,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     {   
         static $auth = NULL;
         if (!$auth)
-        $auth = new Authn_Backend_DB(array(
+        $auth = new Backend(array(
             'query_user' => User_plain::openQuery()
                 ->where('username = ?'),
             'field_username' => 'username',
@@ -153,7 +154,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $res = $auth->authenticate($username, $password);
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->get_record(), User_plain::open($username));
     }
@@ -167,7 +168,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         static $count = 0;
         $count +=  1;
         if (!$auth)
-            $auth = new Authn_Backend_DB(array(
+            $auth = new Backend(array(
                 'query_user' => User_id::openQuery()
                     ->where('username = ?'),
                 'field_username' => 'username',
@@ -175,7 +176,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             ));
 
         $res = $auth->authenticate($username, $password);
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->get_record(), User_id::open($count));
     }
@@ -188,7 +189,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     {   
         static $auth = NULL;
         if (!$auth)
-            $auth = new Authn_Backend_DB(array(
+            $auth = new Backend(array(
                 'query_user' => User_md5::openQuery()
                     ->where('username = ?'),
                 'field_username' => 'username',
@@ -197,7 +198,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             ));
 
         $res = $auth->authenticate($username, $password);
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->get_record(), User_md5::open($username));
     }
@@ -209,7 +210,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     {   
         static $auth = NULL;
         if (!$auth)
-            $auth = new Authn_Backend_DB(array(
+            $auth = new Backend(array(
                 'query_user' => User_sha1::openQuery()
                     ->where('username = ?'),
                 'field_username' => 'username',
@@ -218,7 +219,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             ));
 
         $res = $auth->authenticate($username, $password);
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->get_record(), User_sha1::open($username));
     }
@@ -230,7 +231,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     {   
         static $auth = NULL;
         if (!$auth)
-            $auth = new Authn_Backend_DB(array(
+            $auth = new Backend(array(
                 'query_user' => User_plain::openQuery()
                     ->where('enabled = ?')
                     ->pushExecParam('1')
@@ -245,7 +246,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             $this->assertFalse($res);
             return;
         }
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->get_record(), User_plain::open($username));
     }
@@ -257,7 +258,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
     {   
         static $auth = NULL;
         if (!$auth)
-            $auth = new Authn_Backend_DB(array(
+            $auth = new Backend(array(
                 'query_user' => User_md5::openQuery()
                     ->where('enabled = ?')
                     ->pushExecParam('1')
@@ -272,14 +273,14 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             $this->assertFalse($res);
             return;
         }
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->get_record(), User_md5::open($username));
     }
 
     public function testResetPlainPwd()
     {
-        $auth = new Authn_Backend_DB(array(
+        $auth = new Backend(array(
             'query_user' => User_plain::openQuery()
                     ->where('username = ?'),
             'field_username' => 'username',
@@ -287,8 +288,8 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('Authn_Identity_DB', $identity);
-        $this->assertTrue($identity->reset_password('passwordnew'));
+        $this->assertType('toolib\Authn\DB\Identity', $identity);
+        $this->assertTrue($identity->resetPassword('passwordnew'));
 
         // Check same password
         $this->assertFalse($auth->authenticate('user1', 'password1'));
@@ -296,7 +297,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_plain::open('user1'));
 
@@ -307,7 +308,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
     public function testResetPlainIdPwd()
     {
-        $auth = new Authn_Backend_DB(array(
+        $auth = new Backend(array(
             'query_user' => User_id::openQuery()
                     ->where('username = ?'),
             'field_username' => 'username',
@@ -315,8 +316,8 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('Authn_Identity_DB', $identity);
-        $this->assertTrue($identity->reset_password('passwordnew'));
+        $this->assertType('toolib\Authn\DB\Identity', $identity);
+        $this->assertTrue($identity->resetPassword('passwordnew'));
 
         // Check same password
         $this->assertFalse($auth->authenticate('user1', 'password1'));
@@ -324,7 +325,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_id::open(1));
 
@@ -336,7 +337,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
     public function testResetMd5Pwd()
     {
-        $auth = new Authn_Backend_DB(array(
+        $auth = new Backend(array(
             'query_user' => User_md5::openQuery()
                     ->where('username = ?'),
             'field_username' => 'username',
@@ -345,8 +346,8 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('Authn_Identity_DB', $identity);
-        $this->assertTrue($identity->reset_password('passwordnew'));
+        $this->assertType('toolib\Authn\DB\Identity', $identity);
+        $this->assertTrue($identity->resetPassword('passwordnew'));
 
         // Check same password
         $this->assertFalse($auth->authenticate('user1', 'password1'));
@@ -354,7 +355,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_md5::open('user1'));
 
@@ -365,7 +366,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
     public function testResetSha1Pwd()
     {
-        $auth = new Authn_Backend_DB(array(
+        $auth = new Backend(array(
             'query_user' => User_sha1::openQuery()
                     ->where('username = ?'),
             'field_username' => 'username',
@@ -374,8 +375,8 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('Authn_Identity_DB', $identity);
-        $this->assertTrue($identity->reset_password('passwordnew'));
+        $this->assertType('toolib\Authn\DB\Identity', $identity);
+        $this->assertTrue($identity->resetPassword('passwordnew'));
 
         // Check same password
         $this->assertFalse($auth->authenticate('user1', 'password1'));
@@ -383,7 +384,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('Authn_Identity_DB', $res);
+        $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->get_record(), User_sha1::open('user1'));
 
@@ -397,7 +398,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
      */
     public function testMissArgument1()
     {
-        $auth = new Authn_Backend_DB();
+        $auth = new Backend();
     }
 
     /**
@@ -405,7 +406,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
      */
     public function testMissArgument2()
     {
-        $auth = new Authn_Backend_DB(array());
+        $auth = new Backend(array());
     }
 
     /**
@@ -413,7 +414,6 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
      */
     public function testMissArgument3()
     {
-        $auth = new Authn_Backend_DB(array('model_user' => 'User_plain'));
+        $auth = new Backend(array('model_user' => 'User_plain'));
     }
 }
-?>

@@ -20,11 +20,13 @@
  */
 
 
-require_once dirname(__FILE__) . '/ACL.class.php';
-require_once dirname(__FILE__) . '/Role/Feeder.class.php';
+namespace toolib\Authz;
+
+require_once __DIR__ . '/ACL.class.php';
+require_once __DIR__ . '/Role/Feeder.class.php';
 
 //! Representation of resource.
-class Authz_Resource
+class Resource
 {
     //! The name of the resource
     protected $name;
@@ -44,7 +46,7 @@ class Authz_Resource
      */
     public function __construct($name, $parent = null)
     {
-        $this->acl = new Authz_ACL();
+        $this->acl = new ACL();
         
         $this->name = $name;
         
@@ -53,25 +55,25 @@ class Authz_Resource
     }
     
     //! Get the name of this resource.
-    public function get_name()
+    public function getName()
     {
         return $this->name;
     }
 
     //! Get the parent of this resource.
-    public function get_parent()
+    public function getParent()
     {
         return $this->parent;
     }
     
     //! Check if this resource has parent.
-    public function has_parent()
+    public function hasParent()
     {
         return $this->parent !== null;
     }
     
     //! Get the access control list of this resource.
-    public function get_acl()
+    public function getAcl()
     {
         return $this->acl;
     }
@@ -83,40 +85,37 @@ class Authz_Resource
      * @param $roles The roles feeder that describes roles inheritance.
      * @param $depth A return value of the ACE's depth.
      *  This value is relative to implementation but it can be used to compare weight of ACEs.
-     * @return
+     * @return \toolib\Authz\ACE
      *  - @b Authz_ACE The effective ACE that was found.
      *  - @b null If no ACE was found for criteria.
      *  .
      */
-    public function effective_ace($role, $action, Authz_Role_Feeder $roles, & $depth)
-    {   $matched = array('ace' => null, 'depth' => -1);    
+    public function effectiveAce($role, $action, Role\Feeder $roles, & $depth)
+    {
+    	$matched = array('ace' => null, 'depth' => -1);    
         
         // Search local acl
-        if ($ace = $this->acl->effective_ace($role, $action))
-        {   
-            $matched = array('ace' => $ace, 'depth' => ($ace->is_role_null()?500:0));
+        if ($ace = $this->acl->effectiveAce($role, $action)) {   
+            $matched = array('ace' => $ace, 'depth' => ($ace->isRoleNull()?500:0));
 
-            if (! $ace->is_role_null())
-            {
+            if (! $ace->isRoleNull()) {
                 $depth = $matched['depth'];
                 return $ace;
             }
         }
 
         // Search for role inheritance
-        if ($roles->has_role($role))
-        {
-            foreach($roles->get_role($role)->get_parents() as $prole)
-            {   $pdepth = -1;
+        if ($roles->hasRole($role)) {
+            foreach($roles->getRole($role)->getParents() as $prole) {
+            	$pdepth = -1;
                 
-                if (($ace = $this->effective_ace($prole->get_name(), $action, $roles, $pdepth)) === null)
+                if (($ace = $this->effectiveAce($prole->getName(), $action, $roles, $pdepth)) === null)
                     continue;
 
-                if ($ace->is_role_null())
+                if ($ace->isRoleNull())
                     continue;
                     
-                if (($matched['depth'] == -1) || ($pdepth < $matched['depth']))
-                {
+                if (($matched['depth'] == -1) || ($pdepth < $matched['depth'])) {
                     $matched['depth'] = 1 + $pdepth;
                     $matched['ace'] = $ace;
                 }
@@ -124,16 +123,14 @@ class Authz_Resource
         }
         
         // Resolved using role inheritance
-        if ($matched['depth'] >= 0)
-        {
+        if ($matched['depth'] >= 0) {
             $depth = $matched['depth'];
             return $matched['ace'];
         }
         
         // Search for resource inheritance
-        if ($this->has_parent())
-            if (($ace = $this->get_parent()->effective_ace($role, $action, $roles, $pdepth)) !== null)
-            {
+        if ($this->hasParent())
+            if (($ace = $this->getParent()->effectiveAce($role, $action, $roles, $pdepth)) !== null) {
                 $depth = $pdepth + 10000;
                 return $ace;
             }
@@ -141,5 +138,3 @@ class Authz_Resource
         return null;
     }
 }
-
-?>

@@ -20,16 +20,18 @@
  */
 
 
-require_once( dirname(__FILE__) . '/../Backend.class.php');
-require_once( dirname(__FILE__) . '/../Identity/LDAP.class.php');
+namespace toolib\Authn\Backend;
 
-class Authn_Backend_LDAP implements Authn_Backend
+require_once __DIR__ . '/../Backend.class.php';
+require_once __DIR__ . '/../Identity/LDAP.class.php';
+
+class LDAP implements Backend
 {
     //! The normalized options of this instance.
     private $options = array();
 
     //! Get the options of this instance.
-    public function get_options()
+    public function getOptions()
     {
         return $this->options;
     }
@@ -87,6 +89,6 @@ class Authn_Backend_LDAP implements Authn_Backend
         if ((!$users) || ($users['count'] != 1))
             return false;
 
-        return new Authn_Identity_LDAP($users[0], $this->options['id_attribute']);
+        return new Id\LDAP($users[0], $this->options['id_attribute']);
     }
 }

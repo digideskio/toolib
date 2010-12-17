@@ -19,8 +19,7 @@
  *  
  */
 
-
-require_once 'PHPUnit/Framework.php';
+use toolib\Image;
 require_once dirname(__FILE__) .  '/../path.inc.php';
 
 class ImageTest extends PHPUnit_Framework_TestCase
@@ -213,8 +212,8 @@ class ImageTest extends PHPUnit_Framework_TestCase
     {
         $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.gif');
         $img->crop($left, $top, $width, $height);
-        $this->assertEquals($img->get_meta_info('height'), $height);
-        $this->assertEquals($img->get_meta_info('width'), $width);
+        $this->assertEquals($img->getMetaInfo('height'), $height);
+        $this->assertEquals($img->getMetaInfo('width'), $width);
     }
     
     
@@ -240,8 +239,8 @@ class ImageTest extends PHPUnit_Framework_TestCase
     {
         $img = new Image(dirname(__FILE__) . '/samples/orig_500x250.gif');
         $img->crop($left, $top, $width, $height);
-        $this->assertEquals($img->get_meta_info('height'), $height);
-        $this->assertEquals($img->get_meta_info('width'), $width);
+        $this->assertEquals($img->getMetaInfo('height'), $height);
+        $this->assertEquals($img->getMetaInfo('width'), $width);
     }
 
     public function dataCropFunctions()

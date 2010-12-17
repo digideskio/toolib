@@ -20,10 +20,10 @@
  */
 
 
-require_once 'PHPUnit/Framework.php';
-require_once dirname(__FILE__) .  '/../path.inc.php';
+use \toolib\Authz\ACL;
+require_once __DIR__ .  '/../path.inc.php';
 
-class Authz_AclTest extends PHPUnit_Framework_TestCase
+class ACLTest extends PHPUnit_Framework_TestCase
 {
    
     public function dataEffectiveAceTestData()
@@ -64,7 +64,7 @@ class Authz_AclTest extends PHPUnit_Framework_TestCase
      */
     public function testEffectiveAce($test_action, $tests)
     {
-        $acl = new Authz_ACL();
+        $acl = new ACL();
         $acl->allow(null, 'read');
         $acl->deny('@logger', 'read');
         $acl->deny('@user', 'write');
@@ -73,75 +73,75 @@ class Authz_AclTest extends PHPUnit_Framework_TestCase
         $acl->allow('@game', 'play');
         
         // Unknown action
-        $this->assertNull($acl->effective_ace(null, 'unknown-action'));
+        $this->assertNull($acl->effectiveAce(null, 'unknown-action'));
         
         // Read
         foreach($tests as $test)
         {
             if ($test[1] === null)
             {
-                $this->assertNull($acl->effective_ace($test[0], $test_action,
+                $this->assertNull($acl->effectiveAce($test[0], $test_action,
                     "Ace [{$test[0]}, $test_action] must be null"));
                 continue;
             }
             
-            $this->assertNotNull($acl->effective_ace($test[0], $test_action),
+            $this->assertNotNull($acl->effectiveAce($test[0], $test_action),
                 "Ace [{$test[0]}, $test_action] must not be null");
-            $this->assertEquals($acl->effective_ace($test[0], $test_action)->get_action(), $test_action);
+            $this->assertEquals($acl->effectiveAce($test[0], $test_action)->getAction(), $test_action);
             
             if ($test[1])
-                $this->assertTrue($acl->effective_ace($test[0], $test_action)->is_allowed());
+                $this->assertTrue($acl->effectiveAce($test[0], $test_action)->isAllowed());
             else
-                $this->assertFalse($acl->effective_ace($test[0], $test_action)->is_allowed());
+                $this->assertFalse($acl->effectiveAce($test[0], $test_action)->isAllowed());
         }
     }
     
     public function testEmpty()
     {
-        $acl = new Authz_ACL();
-        $this->assertTrue($acl->is_empty());
+        $acl = new ACL();
+        $this->assertTrue($acl->isEmpty());
         
         $acl->allow(null, 'read');
-        $this->assertFalse($acl->is_empty());
+        $this->assertFalse($acl->isEmpty());
         $acl->deny('@logger', 'read');
-        $this->assertFalse($acl->is_empty());
+        $this->assertFalse($acl->isEmpty());
         
         $acl->deny('@user', 'write');
-        $this->assertFalse($acl->is_empty());
+        $this->assertFalse($acl->isEmpty());
         $acl->allow('@fs-admin', 'write');
-        $this->assertFalse($acl->is_empty());
+        $this->assertFalse($acl->isEmpty());
         
         $acl->deny(null, 'play');
-        $this->assertFalse($acl->is_empty());
+        $this->assertFalse($acl->isEmpty());
         $acl->allow('@game', 'play');
-        $this->assertFalse($acl->is_empty());
+        $this->assertFalse($acl->isEmpty());
     }
     
     public function testGetAces()
     {
-        $acl = new Authz_ACL();
-        $this->assertEquals($acl->get_aces(), array());
+        $acl = new ACL();
+        $this->assertEquals($acl->getAces(), array());
         
         $acl->allow(null, 'read');
-        $this->assertType('array', $acl->get_aces());
-        $this->assertEquals(count($acl->get_aces()), 1);
+        $this->assertType('array', $acl->getAces());
+        $this->assertEquals(count($acl->getAces()), 1);
         $acl->deny('@logger', 'read');
-        $this->assertEquals(count($acl->get_aces()), 2);
+        $this->assertEquals(count($acl->getAces()), 2);
         
         // Rewrite same rule
         $acl->allow('@logger', 'read');
-        $this->assertEquals(count($acl->get_aces()), 2);
+        $this->assertEquals(count($acl->getAces()), 2);
         
         $acl->deny('@user', 'write');
-        $this->assertEquals(count($acl->get_aces()), 3);
+        $this->assertEquals(count($acl->getAces()), 3);
         $acl->allow('@fs-admin', 'write');
-        $this->assertEquals(count($acl->get_aces()), 4);
+        $this->assertEquals(count($acl->getAces()), 4);
     }
     
     public function testRemoveAce()
     {
-        $acl = new Authz_ACL();
-        $this->assertEquals($acl->get_aces(), array());
+        $acl = new ACL();
+        $this->assertEquals($acl->getAces(), array());
         
         $acl->allow(null, 'read');
         $acl->deny('@logger', 'read');
@@ -149,9 +149,9 @@ class Authz_AclTest extends PHPUnit_Framework_TestCase
         $acl->deny('@user', 'write');
         $acl->allow('@fs-admin', 'write');
         
-        $this->assertEquals(count($acl->get_aces()), 4);
-        $acl->remove_ace('@fs-admin', 'write');
-        $this->assertEquals(count($acl->get_aces()), 3);
+        $this->assertEquals(count($acl->getAces()), 4);
+        $acl->removeAce('@fs-admin', 'write');
+        $this->assertEquals(count($acl->getAces()), 3);
     }
 }
 ?>
