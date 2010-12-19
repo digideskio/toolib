@@ -19,7 +19,6 @@
  *  
  */
 
-
 namespace toolib\Authn\Backend;
 
 require_once __DIR__ . '/../Backend.class.php';

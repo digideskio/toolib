@@ -53,7 +53,8 @@ class Net_HTTP_RequestParam
 	 *  .
 	 */			
 	public static function is_equal($name, $check_value, $param_type = 'both')
-	{	if ($param_type == 'post')
+	{
+		if ($param_type == 'post')
 			$array = & $_POST;
 		else if ($param_type == 'get')
 			$array = & $_GET;

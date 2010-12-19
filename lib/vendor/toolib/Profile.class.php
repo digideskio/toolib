@@ -19,6 +19,7 @@
  *  
  */
 
+namespace toolib;
 
 //! Simple profiling suite
 /**
@@ -294,9 +295,9 @@ class Profile
 	* 		by $show_only filter.
 	* @return NULL
 	* @see passes()
-	* @see csv_dump()
+	* @see csvDump()
 	*/
-	public static function html_dump($show_only = NULL, $exclude = NULL)
+	public static function htmlDump($show_only = NULL, $exclude = NULL)
 	{	$passes = self::passes($show_only, $exclude);
 
 	    // Render html table
@@ -339,9 +340,9 @@ class Profile
 	* 		by $show_only filter.
 	* @return NULL
 	* @see passes()
-	* @see html_dump()
+	* @see htmlDump()
 	*/
-	public static function csv_dump($delimiter = ",", $show_only = NULL, $exclude = NULL)
+	public static function csvDump($delimiter = ",", $show_only = NULL, $exclude = NULL)
 	{
 		$passes = self::passes($show_only, $exclude);
 

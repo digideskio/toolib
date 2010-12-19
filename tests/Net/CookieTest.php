@@ -126,4 +126,89 @@ class Net_CookieTest extends PHPUnit_Framework_TestCase
 		$this->assertFalse($cookie->isSecure());
 		$this->assertFalse($cookie->isHttponly());
     }
+    
+    public function testToString()
+    {
+    	$c = new Cookie('parameter', 'value=2');
+    	$this->assertEquals('parameter=value%3D2', (string)$c);
+    	
+    	$c = new Cookie('parameter', 'value=2', 800000000);    	
+    	$this->assertEquals('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT', (string)$c);
+    	
+    	$c = new Cookie('parameter', 'value=2', 800000000, '/test');
+    	$this->assertEquals('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT; path=/test', (string)$c);
+    	
+    	$c = new Cookie('parameter', 'value=2', 800000000, '/test', 'www.example.com');
+    	$this->assertEquals('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT; domain=www.example.com; path=/test', (string)$c);
+    	
+    	$c = new Cookie('parameter', 'value=2', 800000000, '/test', 'www.example.com', true);
+    	$this->assertEquals('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT; domain=www.example.com; path=/test; secure', (string)$c);
+    	
+    	$c = new Cookie('parameter', 'value=2', 800000000, '/test', 'www.example.com', true, true);
+    	$this->assertEquals('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT; domain=www.example.com; path=/test; secure; httponly', (string)$c);
+    }
+    
+	public function testFromString()
+    {
+    	$c = Cookie::fromString('parameter=value%3D2');
+    	$this->assertEquals('parameter', $c->getName());
+    	$this->assertEquals('value=2', $c->getValue());
+    	$this->assertEquals(null, $c->getExpirationTime());
+    	$this->assertTrue($c->isSessionCookie());
+    	$this->assertEquals(null, $c->getDomain());
+    	$this->assertEquals('/', $c->getPath());    	
+    	$this->assertFalse($c->isHttponly());
+    	$this->assertFalse($c->isSecure());
+    	
+    	$c = Cookie::fromString('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT');
+    	$this->assertEquals('parameter', $c->getName());
+    	$this->assertEquals('value=2', $c->getValue());
+    	$this->assertEquals(800000000, $c->getExpirationTime());    	
+    	$this->assertFalse($c->isSessionCookie());
+    	$this->assertEquals(null, $c->getDomain());
+    	$this->assertEquals('/', $c->getPath());
+    	$this->assertFalse($c->isHttponly());
+    	$this->assertFalse($c->isSecure());
+    	
+    	$c = Cookie::fromString('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT; path=/test');
+    	$this->assertEquals('parameter', $c->getName());
+    	$this->assertEquals('value=2', $c->getValue());
+    	$this->assertEquals(800000000, $c->getExpirationTime());    	
+    	$this->assertFalse($c->isSessionCookie());
+    	$this->assertEquals(null, $c->getDomain());
+    	$this->assertEquals('/test', $c->getPath());
+    	$this->assertFalse($c->isHttponly());
+    	$this->assertFalse($c->isSecure());
+    	
+    	$c = Cookie::fromString('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT; domain=www.example.com; path=/test');
+    	$this->assertEquals('parameter', $c->getName());
+    	$this->assertEquals('value=2', $c->getValue());
+    	$this->assertEquals(800000000, $c->getExpirationTime());    	
+    	$this->assertFalse($c->isSessionCookie());
+    	$this->assertEquals('www.example.com', $c->getDomain());
+    	$this->assertEquals('/test', $c->getPath());
+    	$this->assertFalse($c->isHttponly());
+    	$this->assertFalse($c->isSecure());
+    	
+    	$c = Cookie::fromString('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT; domain=www.example.com; path=/test; secure');
+    	$this->assertEquals('parameter', $c->getName());
+    	$this->assertEquals('value=2', $c->getValue());
+    	$this->assertEquals(800000000, $c->getExpirationTime());    	
+    	$this->assertFalse($c->isSessionCookie());
+    	$this->assertEquals('www.example.com', $c->getDomain());
+    	$this->assertEquals('/test', $c->getPath());
+    	$this->assertFalse($c->isHttponly());
+    	$this->assertTrue($c->isSecure());
+
+    	
+    	$c = Cookie::fromString('parameter=value%3D2; expires=Tue, 09-May-1995 06:13:20 GMT; domain=www.example.com; path=/test; secure; httponly');
+    	$this->assertEquals('parameter', $c->getName());
+    	$this->assertEquals('value=2', $c->getValue());
+    	$this->assertEquals(800000000, $c->getExpirationTime());    	
+    	$this->assertFalse($c->isSessionCookie());
+    	$this->assertEquals('www.example.com', $c->getDomain());
+    	$this->assertEquals('/test', $c->getPath());
+    	$this->assertTrue($c->isHttponly());
+    	$this->assertTrue($c->isSecure());
+    }
 }

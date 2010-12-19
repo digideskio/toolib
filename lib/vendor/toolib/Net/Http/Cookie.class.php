@@ -24,6 +24,9 @@ namespace toolib\Net\Http;
 //! [R3] Manage http cookies
 class Cookie
 {
+	//! Date format of Cookies
+    const DATE_FORMAT = 'D, d-M-Y H:i:s T';
+    
     //! The name of te cookie
     private $name;
 
@@ -215,6 +218,112 @@ class Cookie
             $this->domain,
             $this->secure,
             $this->httponly
+        );
+    }
+    
+    /**
+     * origin: symfony-2
+     * Returns the HTTP representation of the Cookie.
+     * @return string The HTTP representation of the Cookie
+     */
+    public function __toString()
+    {
+        $cookie = sprintf('%s=%s', $this->name, urlencode($this->value));
+
+        if (0 !== $this->expiration_time) {
+            $cookie .= '; expires='.substr(\DateTime::createFromFormat('U', $this->expiration_time, new \DateTimeZone('UTC'))->format(static::DATE_FORMAT), 0, -5);
+        }
+
+        if ('' !== $this->domain) {
+            $cookie .= '; domain='.$this->domain;
+        }
+
+        if ('/' !== $this->path) {
+            $cookie .= '; path='.$this->path;
+        }
+
+        if ($this->secure) {
+            $cookie .= '; secure';
+        }
+
+        if ($this->httponly) {
+            $cookie .= '; httponly';
+        }
+
+        return $cookie;
+    }
+
+    
+    //! Creates a Cookie instance from a Set-Cookie header value.
+	/**
+	 * origin: symfony-2
+	 * @param string $cookie A Set-Cookie header value
+	 * @param string $url The base URL
+	 * @return Cookie A Cookie instance
+	 */
+    static public function fromString($cookie, $url = null)
+    {
+        $parts = explode(';', $cookie);
+
+        if (false === strpos($parts[0], '=')) {
+            throw new \InvalidArgumentException('The cookie string "%s" is not valid.');
+        }
+
+        list($name, $value) = explode('=', array_shift($parts), 2);
+
+        $values = array(
+            'name' => trim($name),
+            'value' => urldecode(trim($value)),
+            'expires' => null,
+            'path' => '/',
+            'domain' => '',
+            'secure' => false,
+            'httponly' => false,
+        );
+
+        if (null !== $url) {
+            if ((false === $parts = parse_url($url)) || !isset($parts['host']) || !isset($parts['path'])) {
+                throw new \InvalidArgumentException(sprintf('The URL "%s" is not valid.', $url));
+            }
+
+            $values['domain'] = $parts['host'];
+            $values['path'] = substr($parts['path'], 0, strrpos($parts['path'], '/'));
+        }
+
+        foreach ($parts as $part) {
+            $part = trim($part);
+
+            if ('secure' === strtolower($part)) {
+                $values['secure'] = true;
+                continue;
+            }
+
+            if ('httponly' === strtolower($part)) {
+                $values['httponly'] = true;
+                continue;
+            }
+
+            if (2 === count($elements = explode('=', $part, 2))) {
+                if ('expires' === $elements[0]) {
+                    if (false === $date = \DateTime::createFromFormat(static::DATE_FORMAT, $elements[1], new \DateTimeZone('UTC'))) {
+                        throw new \InvalidArgumentException(sprintf('The expires part of cookie is not valid (%s).', $elements[1]));
+                    }
+
+                    $elements[1] = $date->getTimestamp();
+                }
+
+                $values[strtolower($elements[0])] = $elements[1];
+            }
+        }
+
+        return new static(
+            $values['name'],
+            $values['value'],
+            $values['expires'],
+            $values['path'],
+            $values['domain'],
+            $values['secure'],
+            $values['httponly']
         );
     }
 }
