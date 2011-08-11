@@ -67,6 +67,62 @@ class Net_ParameterContainerTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals('big_long', $c->get('param_2', 'default'));
     	$this->assertEquals('2010-04-25 02:24:16+12:00', $c->get('param_date', 'default'));
     }
+    
+    
+    public function testIs()
+    {
+    	$c = new ParameterContainer(array(
+			'param1' => 'value1',
+			'param_2' => 'big_long',
+			'param_int' => '5',
+    		'param_int2' => '0',
+			'param_date' => '2010-04-25 02:24:16+12:00',));
+    	
+    	// Unknown parameter
+    	$this->assertFalse($c->is('unknown', 'somevalue', false));
+    	$this->assertFalse($c->is('unknown', false, false));
+    	$this->assertFalse($c->is('unknown', true, false));
+    	
+    	$this->assertFalse($c->is('unknown', 'big_long', true));
+    	$this->assertFalse($c->is('unknown', false, true));
+    	$this->assertFalse($c->is('unknown', true, true));
+    	
+    	// String parameter
+    	$this->assertTrue($c->is('param_2', 'big_long', false));
+    	$this->assertFalse($c->is('param_2', 'somevalue', false));
+    	$this->assertFalse($c->is('param_2', false, false));
+    	$this->assertTrue($c->is('param_2', true, false));
+    	
+    	$this->assertTrue($c->is('param_2', 'big_long', true));
+    	$this->assertFalse($c->is('param_2', 'somevalue', true));
+    	$this->assertFalse($c->is('param_2', false, true));
+    	$this->assertFalse($c->is('param_2', true, true));
+    	
+    	// Integer parameter
+    	$this->assertTrue($c->is('param_int', 5, false));
+    	$this->assertFalse($c->is('param_int', 'somevalue', false));
+    	$this->assertFalse($c->is('param_int', false, false));
+    	$this->assertTrue($c->is('param_int', true, false));
+    	$this->assertFalse($c->is('param_int2', true, false));
+    	
+    	$this->assertFalse($c->is('param_int', 5, true));
+    	$this->assertFalse($c->is('param_int', 'somevalue', true));
+    	$this->assertFalse($c->is('param_int', false, true));
+    	$this->assertFalse($c->is('param_int', true, true));
+    	$this->assertFalse($c->is('param_int2', true, true));
+    	
+    	
+    	// Date paramterer
+    	$this->assertTrue($c->is('param_date', '2010-04-25 02:24:16+12:00', false));
+    	$this->assertFalse($c->is('param_date', 'somevalue', false));
+    	$this->assertFalse($c->is('param_date', false, false));
+    	$this->assertTrue($c->is('param_date', true, false));
+    	
+    	$this->assertTrue($c->is('param_date', '2010-04-25 02:24:16+12:00', true));
+    	$this->assertFalse($c->is('param_date', 'somevalue', true));
+    	$this->assertFalse($c->is('param_date', false, true));
+    	$this->assertFalse($c->is('param_date', true, true));    	
+    }
 
     public function testGetInt()
     {
@@ -125,7 +181,6 @@ class Net_ParameterContainerTest extends PHPUnit_Framework_TestCase
 		
 		// check for phpunit that can compare datetimes
 		$this->assertNotEquals($date, $default_date);
-		var_dump(DateTime::createFromFormat('Y-m-d H:i:sP', '2001-02-23 05:44:12+10:00'));
 		
     	$this->assertEquals(null, $c->getDateTimeFromFormat('unknown', 'Y-m-d H:i:sP'));
     	$this->assertEquals(null, $c->getDateTimeFromFormat('param_2', 'Y-m-d H:i:sP'));

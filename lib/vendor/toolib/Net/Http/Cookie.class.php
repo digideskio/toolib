@@ -187,7 +187,7 @@ class Cookie
         return $this->expiration_time = $time;
     }
 
-    //! Open a cookie received through web server
+    //! Open a cookie received through php $_COOKIE superglobal.
     /**
      * @param string $name The name of the cookie
      * @return Cookie
@@ -195,7 +195,7 @@ class Cookie
      *   - @b false if this cookie was not found.
      * .
      */
-    public static function open($name)
+    public static function openReceived($name)
     {
         if (!isset($_COOKIE[$name]))
             return false;
@@ -256,7 +256,7 @@ class Cookie
     
     //! Creates a Cookie instance from a Set-Cookie header value.
 	/**
-	 * origin: symfony-2
+	 * @origin: symfony-2
 	 * @param string $cookie A Set-Cookie header value
 	 * @param string $url The base URL
 	 * @return Cookie A Cookie instance

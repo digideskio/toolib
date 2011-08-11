@@ -40,6 +40,7 @@ class ParameterContainer extends \ArrayObject
 	//! Check if a parameter exists
 	/**
 	 * @param string $name The name of the parameter
+	 * @return boolean true if parameter exists in this object or false if not.
 	 */
 	public function has($name)
 	{
@@ -56,6 +57,19 @@ class ParameterContainer extends \ArrayObject
 		if ($this->offsetExists($name))
 			return $this->offsetGet($name);
 		return $default;
+	}
+	
+	//! Check if a parameter is equal to a value
+	/**
+	 * @param string $name The name of the parameter
+	 * @param mixed $default The expected value of parameter to check.
+	 * @param boolean $strict Flag if comparisson should be done in strict mode.
+	 */
+	public function is($name, $expected, $strict = false)
+	{
+		if (!$this->offsetExists($name))
+			return false;
+		return $strict?($this->offsetGet($name) === $expected):($this->offsetGet($name) == $expected);
 	}
 
 	//! Get a parameter and cast to integer
@@ -76,6 +90,7 @@ class ParameterContainer extends \ArrayObject
 	 * @param string $name The name of the parameter
 	 * @param \DateTime $default The value to return if paremeter is
 	 *   missing or is not datetime.
+	 * @return \DateTime Object with the value of parameter parsed.
 	 */
 	public function getDateTime($name, \DateTime $default = null)
 	{
@@ -95,6 +110,7 @@ class ParameterContainer extends \ArrayObject
 	 * @param string $format The format of the datetime string.
 	 * @param \DateTime $default The value to return if paremeter is
 	 *   missing or is not datetime.
+	 * @return \DateTime Object with the value of parameter parsed.
 	 */
 	public function getDateTimeFromFormat($name, $format, \DateTime $default = null)
 	{

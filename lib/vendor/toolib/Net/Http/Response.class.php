@@ -19,16 +19,17 @@
  *  
  */
 
+namespace toolib\Net\Http;
 
-require_once dirname(__FILE__) . '/Cookie.class.php';
+require_once __DIR__ . '/Cookie.class.php';
 
 //! Manage the native HTTP response
-class Net_HTTP_Response
+class Response
 {
     //! Ask user-agent to redirect in a new url
     /**
      * @param $url The absolute or relative url to redirect.
-     * @param $auto_exit If @b true the program will terminate immediatly.
+     * @param $auto_exit If @b true the program will terminate immediately.
      */
     static public function redirect($url, $auto_exit = true)
     {   
@@ -41,7 +42,7 @@ class Net_HTTP_Response
     /**
      * @param $mime The mime of the content.
      */
-    static public function set_content_type($mime)
+    static public function setContentType($mime)
     {   
         header('Content-type: ' . $mime);
     }
@@ -51,7 +52,7 @@ class Net_HTTP_Response
      * @param $code 3-digits error code.
      * @param $message A small description of this error code.
      */
-    static public function set_error_code($code, $message)
+    static public function setErrorCode($code, $message)
     {   
         header("HTTP/1.1 {$code} {$message}");
     }

@@ -92,7 +92,10 @@ class UrlPath extends \toolib\Stupid\Condition
 				
 			// Push back references
             if (count($matches) > 1)
-				$this->back_references = array_merge($this->back_references, array_slice($matches, 1));
+				$this->back_references = array_merge(
+					$this->back_references,
+					array_slice($matches, 1)
+				);
 		}
 		
 		// Pre-process chunk[X] options

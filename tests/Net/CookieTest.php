@@ -103,19 +103,19 @@ class Net_CookieTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($cookie->isHttponly(), true);
     }
     
-    public function testOpen()
+    public function testopenReceived()
     {
-    	$this->assertFalse(Cookie::open('unknown'));
+    	$this->assertFalse(Cookie::openReceived('unknown'));
     	
     	$_COOKIE = array(
     		'cookie1' => 'value1',
     		'cookie2' => 'value2'
     	);
     	
-    	$this->assertFalse(Cookie::open('cookie3'));
+    	$this->assertFalse(Cookie::openReceived('cookie3'));
     	
     	// Check cookie 1
-    	$cookie = Cookie::open('cookie1');
+    	$cookie = Cookie::openReceived('cookie1');
     	$this->assertType('toolib\\Net\\Http\\Cookie', $cookie);
 		$this->assertEquals('cookie1', $cookie->getName());
 		$this->assertEquals('value1', $cookie->getValue());
