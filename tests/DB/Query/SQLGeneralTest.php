@@ -51,7 +51,7 @@ class Record_Query_SQLGeneralTest extends PHPUnit_Framework_TestCase
     {
         $mq = Forum::rawQuery();
         $this->assertType('toolib\DB\ModelQuery', $mq);
-        $this->assertEquals($mq->type(), null);
+        $this->assertEquals($mq->getType(), null);
     }
     
     /**
@@ -65,30 +65,30 @@ class Record_Query_SQLGeneralTest extends PHPUnit_Framework_TestCase
     
    
     public function dataSameSqlAndHash()
-    {   Post::model();
+    {   Post::getModel();
         return array(
             // Same query diferent literal values
             array(  // SELECT
                 Thread::rawQuery()
-                ->select(Thread::model()->fields())
+                ->select(Thread::getModel()->getFields())
                 ->leftJoin('Post', 'id', 'thread_id')
                 ->where('l.post like ?', 'not')
                 ->whereIn('l.id', array(1,2,3,4,5), 'OR')
                 ,
                 Thread::rawQuery()
-                ->select(Thread::model()->fields())
+                ->select(Thread::getModel()->getFields())
                 ->leftJoin('Post', 'id', 'thread_id')
                 ->where('l.post like ?', 'not')
                 ->whereIn('l.id', array('mak','mok','tr','gfd','asdf'), 'OR')
             ),
             array(  // INSERT
                 Thread::rawQuery()
-                ->insert(Thread::model()->fields())
+                ->insert(Thread::getModel()->getFields())
                 ->valuesArray(array(1,2,3,4))
                 ->values('a','fd','sdf','sf')
                 ,
                 Thread::rawQuery()
-                ->insert(Thread::model()->fields())
+                ->insert(Thread::getModel()->getFields())
                 ->values('a','fd','sdf','sf')
                 ->valuesArray(array('64356345','fd','sdf','sf'))
             ),
@@ -104,13 +104,13 @@ class Record_Query_SQLGeneralTest extends PHPUnit_Framework_TestCase
             // Same query different case in operators
             array(  // SELECT
                 Thread::rawQuery()
-                ->select(Thread::model()->fields())
+                ->select(Thread::getModel()->getFields())
                 ->leftJoin('Post', 'id', 'thread_id')
                 ->where('l.post LiKe ?', 'NoT')
                 ->whereIn('l.id', array(1,2,3,4,5), 'Or')
                 ,
                 Thread::rawQuery()
-                ->select(Thread::model()->fields())
+                ->select(Thread::getModel()->getFields())
                 ->leftJoin('Post', 'id', 'thread_id')
                 ->where('l.post LiKe ?', 'not')
                 ->whereIn('l.id', array('mak','mok','tr','gfd','asdf'), 'OR')

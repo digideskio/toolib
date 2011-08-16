@@ -25,72 +25,123 @@ require_once __DIR__ . '/Connection.class.php';
 require_once __DIR__ . '/Model.class.php';
 require_once __DIR__ . '/ModelQueryCache.class.php';
 
-//! Execute SQL queries on models
 /**
+ * Execute SQL queries on models.
+ * 
  * This is an sql-like interface to query on models.
  * You can insert,update,select,delete with any user-defined option
  * but only on the same model.
- * @author sque
- *
  */
 class ModelQuery
 {
-	//! Query type
+	/**
+	 * Type of this query.
+	 * @see getType()
+	 * @var string
+	 */
 	protected $query_type = NULL;
 	
-	//! Pointer to model
+	/**
+	 * Pointer to model
+	 * @var \toolib\DB\Model
+	 */
 	protected $model = NULL;
 	
-	//! SELECT retrieve fields
+	/**
+	 * SELECT retrieve fields
+	 * @var array
+	 */
 	protected $select_fields = array();
 	
-	//! UPDATE set fields
+	/**
+	 * UPDATE set fields
+	 * @var string
+	 */
 	protected $set_fields = array();
 	
-	//! INSERT fields
+	/**
+	 * INSERT fields
+	 * @var array
+	 */
 	protected $insert_fields = array();
 	
-	//! All the insert values
+	/**
+	 * All the insert values
+	 * @var array
+	 */
 	protected $insert_values = array();
 	
-	//! Limit of affected records
+	/**
+	 * Limit of affected records
+	 * @var array
+	 */
 	protected $limit = NULL;
 	
-	//! Order of affected records
+	/**
+	 * Order of affected records
+	 * @var array
+	 */
 	protected $order_by = array();
 
-	//! Group rules for retrieving data
+	/**
+	 * Group rules for retrieving data
+	 * @var array
+	 */
 	protected $group_by = array();
 
-    //! Left join table
+    /**
+     * Left join table
+     * @var array
+     */
     protected $ljoin = NULL;
 	
-	//! WHERE conditions
+	/**
+	 * WHERE conditions
+	 * @var array
+	 */
 	protected $conditions = array();
 	
-	//! Hash populated by the user instructions
+	/**
+	 * Hash populated by the user instructions
+	 * @var string
+	 */
 	protected $sql_hash = NULL;
 	
-	//! The final sql string
+	/**
+	 * The final sql string
+	 * @var string
+	 */
 	protected $sql_query = NULL;
 	
-	//! Data wrapper callback
+	/**
+	 * Data wrapper callback
+	 * @var callable
+	 */
 	protected $data_wrapper_callback = NULL;
 	
-	//! Query cache hints
+	/**
+	 * Query cache hints
+	 * @var array
+	 */
 	protected $cache_hints = NULL;
 	
-	//! Query cache
+ 	/**
+	 * Engine for caching queries
+	 * @var \toolib\DB\ModelQueryCache
+	 */
 	protected $query_cache;
 	
-	//! Execute parameters
+	/**
+	 * Query execution parameters 
+	 * @var array
+	 */
 	protected $exec_params = array();
 	
 	//! Use DB_Record::openQuery() factory to create ModelQuery objects
 	/**
 	 * @see DB_Record::openQuery() on how to create objects of this class.
-	 * @param $model Pass model object
-	 * @param $data_wrapper_callback A callback to wrap data after execution
+	 * @param \toolib\DB\Model $model Pass model object
+	 * @param callbable $data_wrapper_callback A callback to wrap data after execution
 	 */
 	final public function __construct(Model $model, $data_wrapper_callback = NULL)
 	{	
@@ -114,7 +165,7 @@ class ModelQuery
 		$this->order_by = array();
 		$this->ljoin = NULL;
 		$this->conditions = array();
-		$this->sql_hash = 'HASH:' . $this->model->table() .':';
+		$this->sql_hash = 'HASH:' . $this->model->getTable() .':';
 		$this->sql_query = NULL;
 		$this->cache_hints = NULL;
 
@@ -297,7 +348,7 @@ class ModelQuery
 		return $this;
 	}
 	
-	//! Add an "in" conditional expression on query
+	//! Add an "IN" conditional expression on query
 	/**
 	 * @param $field_name The name of the field to be checked for beeing equal with an array entity.
      * @param $values
@@ -396,7 +447,7 @@ class ModelQuery
 	 * @param $expression A field name, column reference or an expression to be evaluated for each row.
 	 * @param $direction The direction of ordering prior grouping.
      */
-	public function & group_by($expression, $direction = 'ASC')
+	public function & groupBy($expression, $direction = 'ASC')
 	{	
 	    $this->assureAlterable();
 		$this->group_by[] = array(
@@ -432,7 +483,7 @@ class ModelQuery
 	}
 	
 	//! Get the type of query
-	public function type()
+	public function getType()
 	{   
 	    return $this->query_type;
 	} 
@@ -459,16 +510,16 @@ class ModelQuery
 		);
 	         
 		if ($result['table_short'] === 'p') {
-			$result['column_sqlfield'] = $this->model->fieldInfo($column, 'sqlfield');
+			$result['column_sqlfield'] = $this->model->getFieldInfo($column, 'sqlfield');
 		} else if ($result['table_short'] === 'l') {
 			if ($this->ljoin === NULL)
 				throw new \InvalidArgumentException("You cannot use \"l\" shorthand in EXPRESION when there is no LEFT JOIN!");
-			$result['column_sqlfield'] = $this->ljoin['model']->fieldInfo($column, 'sqlfield');
+			$result['column_sqlfield'] = $this->ljoin['model']->getFieldInfo($column, 'sqlfield');
 		}
 
 		if ($result['column_sqlfield'] === NULL)
 			throw new \InvalidArgumentException(
-				"There is no field with name \"{$column}\" in model \"{$this->model->name()}\"");
+				"There is no field with name \"{$column}\" in model \"{$this->model->getName()}\"");
 	         
 		// Construct valid sql query
 		$result['query'] = (($this->ljoin !== NULL)?$result['table_short'] . '.':'') . '`' . $result['column_sqlfield'] . '`';
@@ -679,32 +730,32 @@ class ModelQuery
         
         // Add explicit relationship
         if (($this->ljoin['join_foreign_field'] !== null) && ($this->ljoin['join_local_field'] !== null)) {
-            $lfield = $this->ljoin['model']->fieldInfo($this->ljoin['join_foreign_field'], 'sqlfield');
+            $lfield = $this->ljoin['model']->getFieldInfo($this->ljoin['join_foreign_field'], 'sqlfield');
             if (!$lfield)
                 throw new \InvalidArgumentException(
                     "There is no field with name \"{$this->ljoin['join_foreign_field']}\" on model \"{$lmodel_name}\".");
-            $pfield = $this->model->fieldInfo($this->ljoin['join_local_field'], 'sqlfield');
+            $pfield = $this->model->getFieldInfo($this->ljoin['join_local_field'], 'sqlfield');
             if (!$pfield)
                 throw new \InvalidArgumentException(
-                    "There is no field with name \"{$this->ljoin['join_local_field']}\" on model \"{$this->model->name()}\".");
+                    "There is no field with name \"{$this->ljoin['join_local_field']}\" on model \"{$this->model->getName()}\".");
         } else {
             // Add implicit relationship
-            if (($pfield = $this->model->fkFieldFor($lmodel_name, true))) {
+            if (($pfield = $this->model->getFkFieldFor($lmodel_name, true))) {
                 $pfield = $pfield['sqlfield'];
-                list($lfield) = $this->ljoin['model']->pkFields();
-                $lfield = $this->ljoin['model']->fieldInfo($lfield, 'sqlfield');
-            } else if (($lfield = $this->ljoin['model']->fkFieldFor($this->model->name(), true))) {
+                list($lfield) = $this->ljoin['model']->getPkFields();
+                $lfield = $this->ljoin['model']->getFieldInfo($lfield, 'sqlfield');
+            } else if (($lfield = $this->ljoin['model']->getFkFieldFor($this->model->getName(), true))) {
                 $lfield = $lfield['sqlfield'];
-                list($pfield) = $this->model->pkFields(false);
-                $pfield = $this->model->fieldInfo($pfield, 'sqlfield');
+                list($pfield) = $this->model->getPkFields(false);
+                $pfield = $this->model->getFieldInfo($pfield, 'sqlfield');
             } else {
                 // No relationship found
                 throw new \InvalidArgumentException(
-                    "You cannot declare a left join of \"{$this->model->name()}\" ".
+                    "You cannot declare a left join of \"{$this->model->getName()}\" ".
                      "with \"{$lmodel_name}\" without explicitly defining join fields.");
             }
         }
-        return " LEFT JOIN `{$this->ljoin['model']->table()}` l ON l.`{$lfield}` = p.`{$pfield}`";
+        return " LEFT JOIN `{$this->ljoin['model']->getTable()}` l ON l.`{$lfield}` = p.`{$pfield}`";
     }
 
 	//! Generate SELECT query
@@ -716,11 +767,11 @@ class ModelQuery
 			    $fields[] = 'count(*)';
 				continue;
 			}
-			$fields[] = (($this->ljoin !== NULL)?'p.':'') . "`" . $this->model->fieldInfo($field, 'sqlfield') . "`";
+			$fields[] = (($this->ljoin !== NULL)?'p.':'') . "`" . $this->model->getFieldInfo($field, 'sqlfield') . "`";
 		}
 
 		$query .= ' ' . implode(', ', $fields);
-		$query .= ' FROM `' . $this->model->table() . '`' . (($this->ljoin !== NULL)?' p':'');
+		$query .= ' FROM `' . $this->model->getTable() . '`' . (($this->ljoin !== NULL)?' p':'');
 
         // Left join
         $query .= $this->generateLeftJoin();
@@ -743,13 +794,13 @@ class ModelQuery
 	//! Generate UPDATE query
 	private function generateUpdateQuery()
 	{	
-	    $query = 'UPDATE `' . $this->model->table() . '` SET';
+	    $query = 'UPDATE `' . $this->model->getTable() . '` SET';
 	
 		if (count($this->set_fields) === 0)
 			throw new \InvalidArgumentException("Cannot execute update() command without using set()");
 			
 		foreach($this->set_fields as $params) {
-		    if (!($sqlfield = $this->model->fieldInfo($params['field'], 'sqlfield')))
+		    if (!($sqlfield = $this->model->getFieldInfo($params['field'], 'sqlfield')))
     			throw new \InvalidArgumentException("Unknown field {$params['field']} in update() command.");
 		        
 			$set_query = "`" . $sqlfield . "` = ?";
@@ -771,13 +822,13 @@ class ModelQuery
 	//! Generate INSERT query
 	private function generateInsertQuery()
 	{
-	    $query = 'INSERT INTO `' . $this->model->table() . '`';
+	    $query = 'INSERT INTO `' . $this->model->getTable() . '`';
 	
 		if (count($this->insert_fields) === 0)
 			throw new \InvalidArgumentException("Cannot execute insert() with no fields!");
 			
 		foreach($this->insert_fields as $field)
-			$fields[] = "`" . $this->model->fieldInfo($field, 'sqlfield') . "`";
+			$fields[] = "`" . $this->model->getFieldInfo($field, 'sqlfield') . "`";
 
 		$query .= ' (' . implode(', ', $fields) . ') VALUES';
 		if (count($this->insert_values) === 0)
@@ -794,7 +845,7 @@ class ModelQuery
 	//! Analyze DELETE query
 	private function generateDeleteQuery()
 	{	
-	    $query = 'DELETE FROM `' . $this->model->table() . '`';
+	    $query = 'DELETE FROM `' . $this->model->getTable() . '`';
 		$query .= $this->generateWhereConditions();
 		
         // Order by

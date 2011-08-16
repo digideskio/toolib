@@ -104,7 +104,7 @@ class Record_Query_SQLExecuteTest extends PHPUnit_Framework_TestCase
         
         // Insert null values
         $mq = Post::rawQuery();
-        $mq->insert(Post::model()->fields())
+        $mq->insert(Post::getModel()->getFields())
             ->valuesArray(array(null, 1, null, null, null, null));
         $res = $mq->execute();
         $p = Post::open($res->insert_id);

@@ -103,11 +103,11 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		// Open() 1PK
 		$res = Forum::open(1);
 		// Pre-Open
-		$e = self::check_first_event('filter', 'op.pre.open', false);
+		$e = self::check_first_event('filter', 'pre-open', false);
 		$this->assertEquals($e->arguments['model'], 'Forum');
 		$this->assertEquals($e->filtered_value, 1);
 		// Post-Open
-		$e = self::check_last_event('notify', 'op.post.open', true);
+		$e = self::check_last_event('notify', 'post-open', true);
 		$this->assertType('array', $e->arguments['records']);
 		$this->assertEquals(count($e->arguments['records']), 1);
 		$this->assertType('Forum', $e->arguments['records'][0]);
@@ -116,7 +116,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		// openAll() 1PK
 		$res = Forum::openAll();
 		// Post-Open
-		$e = self::check_last_event('notify', 'op.post.open', true);
+		$e = self::check_last_event('notify', 'post-open', true);
 		$this->assertType('array', $e->arguments['records']);
 		$this->assertEquals(count($e->arguments['records']), 3);
 		$this->assertEquals($e->arguments['model'], 'Forum');
@@ -126,11 +126,11 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		// Open() 2PK
 		$res = Group_Members::open(array('username' => 'user1','groupname' => 'group1'));
 		// Pre-Open
-		$e = self::check_first_event('filter', 'op.pre.open', false);
+		$e = self::check_first_event('filter', 'pre-open', false);
 		$this->assertEquals($e->arguments['model'], 'Group_Members');
 		$this->assertEquals($e->filtered_value, array('username' => 'user1','groupname' => 'group1'));
 		// Post-Open
-		$e = self::check_last_event('notify', 'op.post.open', true);
+		$e = self::check_last_event('notify', 'post-open', true);
 		$this->assertType('array', $e->arguments['records']);
 		$this->assertEquals(count($e->arguments['records']), 1);
 		$this->assertType('Group_Members', $e->arguments['records'][0]);
@@ -139,7 +139,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		// openAll() 2PK
 		$res = Group_Members::openAll();
 		// Post-Open
-		$e = self::check_last_event('notify', 'op.post.open', true);
+		$e = self::check_last_event('notify', 'post-open', true);
 		$this->assertType('array', $e->arguments['records']);
 		$this->assertEquals(count($e->arguments['records']), 8);
 		$this->assertEquals($e->arguments['model'], 'Group_Members');
@@ -153,22 +153,22 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		// Create() 1PK
 		$f = Forum::create(array('title' => 'test'));
 		// Pre-Create
-		$e = self::check_first_event('filter', 'op.pre.create', false);
+		$e = self::check_first_event('filter', 'pre-create', false);
 		$this->assertEquals($e->arguments['model'], 'Forum');
 		$this->assertEquals($e->filtered_value, array('title' => 'test'));
 		// Post-Create
-		$e = self::check_last_event('notify', 'op.post.create', true);
+		$e = self::check_last_event('notify', 'post-create', true);
 		$this->assertType('Forum', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $f);
 
 		// Create() 2PK
 		$gm = Group_Members::create(array('username' => 'user5', 'groupname' => 'group1'));
 		// Pre-Create
-		$e = self::check_first_event('filter', 'op.pre.create', false);
+		$e = self::check_first_event('filter', 'pre-create', false);
 		$this->assertEquals($e->arguments['model'], 'Group_Members');
 		$this->assertEquals($e->filtered_value, array('username' => 'user5', 'groupname' => 'group1'));
 		// Post-Create
-		$e = self::check_last_event('notify', 'op.post.create', true);
+		$e = self::check_last_event('notify', 'post-create', true);
 		$this->assertType('Group_Members', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $gm);
 
@@ -177,44 +177,44 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		SampleSchema::build();
 	}
 
-	public function testSaveEvents()
+	public function testUpdateEvents()
 	{
-		// Save() 1PK
+		// Update() 1PK
 		$f = Forum::open(1);
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
-		$f->save();
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
+		$f->update();
 		$this->assertEquals(self::$events, array());
 		$f->title = 'new title';
-		$res = $f->save();
-		// Pre-Save
-		$e = self::check_first_event('filter', 'op.pre.save', false);
+		$res = $f->update();
+		// Pre-Update
+		$e = self::check_first_event('filter', 'pre-update', false);
 		$this->assertEquals($e->arguments['model'], 'Forum');
 		$this->assertEquals($e->arguments['record'], $f);
 		$this->assertEquals($e->arguments['old_values'], array('title' => 'The first'));
 		$this->assertEquals($e->filtered_value, false);
-		// Post-Save
-		$e = self::check_last_event('notify', 'op.post.save', true);
+		// Post-Update
+		$e = self::check_last_event('notify', 'post-update', true);
 		$this->assertType('Forum', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $f);
 		$this->assertTrue($res);
 
-		// Save() 2PK
+		// Update() 2PK
 		$gm = Group_Members::open(array('username' => 'user1','groupname' => 'group1'));
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
-		$gm->save();
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
+		$gm->update();
 		$this->assertEquals(self::$events, array());
 		$gm->groupname = 'group3';
-		$res = $gm->save();
-		// Pre-Save
-		$e = self::check_first_event('filter', 'op.pre.save', false);
+		$res = $gm->update();
+		// Pre-update
+		$e = self::check_first_event('filter', 'pre-update', false);
 		$this->assertEquals($e->arguments['model'], 'Group_Members');
 		$this->assertEquals($e->arguments['record'], $gm);
 		$this->assertEquals($e->arguments['old_values'], array('groupname' => 'group1'));
 		$this->assertEquals($e->filtered_value, false);
-		// Post-Save
-		$e = self::check_last_event('notify', 'op.post.save', true);
+		// Post-Update
+		$e = self::check_last_event('notify', 'post-update', true);
 		$this->assertType('Group_Members', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $gm);
 		$this->assertTrue($res);
@@ -228,32 +228,32 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 	{
 		// delete() 1PK
 		$f = Forum::open(1);
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
 		$res = $f->delete();
 		// Pre-Delete
-		$e = self::check_first_event('filter', 'op.pre.delete', false);
+		$e = self::check_first_event('filter', 'pre-delete', false);
 		$this->assertEquals($e->arguments['model'], 'Forum');
 		$this->assertEquals($e->arguments['record'], $f);
 		$this->assertEquals($e->filtered_value, false);
 		// Post-delete
-		$e = self::check_last_event('notify', 'op.post.delete', true);
+		$e = self::check_last_event('notify', 'post-delete', true);
 		$this->assertType('Forum', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $f);
 		$this->assertTrue($res);
 
 		// delete() 2PK
 		$gm = Group_Members::open(array('username' => 'user1','groupname' => 'group1'));
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
 		$res = $gm->delete();
 		// Pre-Delete
-		$e = self::check_first_event('filter', 'op.pre.delete', false);
+		$e = self::check_first_event('filter', 'pre-delete', false);
 		$this->assertEquals($e->arguments['model'], 'Group_Members');
 		$this->assertEquals($e->arguments['record'], $gm);
 		$this->assertEquals($e->filtered_value, false);
 		// Post-delete
-		$e = self::check_last_event('notify', 'op.post.delete', true);
+		$e = self::check_last_event('notify', 'post-delete', true);
 		$this->assertType('Group_Members', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $gm);
 		$this->assertTrue($res);
@@ -269,68 +269,68 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$filter_open_set_2 = create_function('$e', '$e->filtered_value = 2;');
 
 		// Filter false for forum
-		Forum::events()->connect('op.pre.open', $filter_open_cancel);
+		Forum::events()->connect('pre-open', $filter_open_cancel);
 		$res = Forum::open(1);
-		self::check_first_event('filter', 'op.pre.open', true);
+		self::check_first_event('filter', 'pre-open', true);
 		$this->assertFalse($res);
 
-		// Group_Members op.pre.open should be left intact
+		// Group_Members pre-open should be left intact
 		$gm = Group_Members::open(array('username' => 'user1','groupname' => 'group1'));
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
 		$this->assertType('Group_Members', $gm);
 
-		Forum::events()->disconnect('op.pre.open', $filter_open_cancel);
+		Forum::events()->disconnect('pre-open', $filter_open_cancel);
 
 		// Filter open 2nd for forum
-		Forum::events()->connect('op.pre.open', $filter_open_set_2);
+		Forum::events()->connect('pre-open', $filter_open_set_2);
 		$res = Forum::open(1);
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
 		$this->assertType('Forum', $res);
 		$this->assertEquals($res->id, 2);
 
-		// Group_Members op.pre.open should be left intact
+		// Group_Members pre-open should be left intact
 		$gm = Group_Members::open(array('username' => 'user1','groupname' => 'group1'));
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
 		$this->assertType('Group_Members', $gm);
 
-		Forum::events()->disconnect('op.pre.open', $filter_open_set_2);
+		Forum::events()->disconnect('pre-open', $filter_open_set_2);
 	}
 
-	public function testFilterSave()
+	public function testFilterUpdate()
 	{
-		$filter_save_cancel = create_function('$e', '$e->filtered_value = true;');
-		$filter_save_set_2 = create_function('$e', '$e->arguments[\'record\']->title = 2;');
+		$filter_update_cancel = create_function('$e', '$e->filtered_value = true;');
+		$filter_update_set_2 = create_function('$e', '$e->arguments[\'record\']->title = 2;');
 
 		// Filter cancel for forum
-		Forum::events()->connect('op.pre.save', $filter_save_cancel);
+		Forum::events()->connect('pre-update', $filter_update_cancel);
 		$f = Forum::open(1);
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
-		$res = $f->save();
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
+		$res = $f->update();
 		$this->assertFalse($res);
-		$f->title = 'save-1';
-		$this->assertFalse($f->save());
-		self::check_first_event('filter', 'op.pre.save', false);
+		$f->title = 'update-1';
+		$this->assertFalse($f->update());
+		self::check_first_event('filter', 'pre-update', false);
 
-		Forum::events()->disconnect('op.pre.save', $filter_save_cancel);
+		Forum::events()->disconnect('pre-update', $filter_update_cancel);
 
 		// Filter change title for forum
-		Forum::events()->connect('op.pre.save', $filter_save_set_2);
+		Forum::events()->connect('pre-update', $filter_update_set_2);
 		$f = Forum::open(1);
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
-		$res = $f->save();
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
+		$res = $f->update();
 		$this->assertFalse($res);
-		$f->title = 'save-1';
-		$this->assertTrue($f->save());
+		$f->title = 'update-1';
+		$this->assertTrue($f->update());
 		$this->assertEquals($f->title, 2);
-		self::check_first_event('filter', 'op.pre.save', false);
-		self::check_first_event('notify', 'op.post.save', true);
+		self::check_first_event('filter', 'pre-update', false);
+		self::check_first_event('notify', 'post-update', true);
 
-		Forum::events()->disconnect('op.pre.save', $filter_save_set_2);
+		Forum::events()->disconnect('pre-update', $filter_update_set_2);
 
 		// Recreate Database
 		SampleSchema::destroy();
@@ -342,15 +342,15 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$filter_delete_cancel = create_function('$e', '$e->filtered_value = true;');
 
 		// Filter cancel for forum
-		Forum::events()->connect('op.pre.delete', $filter_delete_cancel);
+		Forum::events()->connect('pre-delete', $filter_delete_cancel);
 		$f = Forum::open(1);
-		self::check_first_event('filter', 'op.pre.open', false);
-		self::check_first_event('notify', 'op.post.open', true);
+		self::check_first_event('filter', 'pre-open', false);
+		self::check_first_event('notify', 'post-open', true);
 		$res = $f->delete();
 		$this->assertFalse($res);
-		self::check_first_event('filter', 'op.pre.delete', false);
+		self::check_first_event('filter', 'pre-delete', false);
 
-		Forum::events()->disconnect('op.pre.delete', $filter_delete_cancel);
+		Forum::events()->disconnect('pre-delete', $filter_delete_cancel);
 
 		// Recreate Database
 		SampleSchema::destroy();
@@ -362,22 +362,22 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$filter_create_cancel = create_function('$e', '$e->filtered_value = false;');
 		$filter_create_set_test5 = create_function('$e', '$e->filtered_value = array("title" => "5");');
 		// Filter cancel for forum
-		Forum::events()->connect('op.pre.create', $filter_create_cancel);
+		Forum::events()->connect('pre-create', $filter_create_cancel);
 		$f = Forum::create(array('title' => 'test'));
 		$this->assertFalse($f);
-		self::check_first_event('filter', 'op.pre.create', true);
+		self::check_first_event('filter', 'pre-create', true);
 
-		Forum::events()->disconnect('op.pre.create',$filter_create_cancel);
+		Forum::events()->disconnect('pre-create',$filter_create_cancel);
 
 		// Filter cancel for forum
-		Forum::events()->connect('op.pre.create', $filter_create_set_test5);
+		Forum::events()->connect('pre-create', $filter_create_set_test5);
 		$f = Forum::create(array('title' => 'test'));
 		$this->assertType('Forum',  $f);
 		$this->assertEquals($f->title, '5');
-		self::check_first_event('filter', 'op.pre.create', false);
-		self::check_first_event('notify', 'op.post.create', true);
+		self::check_first_event('filter', 'pre-create', false);
+		self::check_first_event('notify', 'post-create', true);
 
-		Forum::events()->disconnect('op.pre.create', $filter_create_set_test5);
+		Forum::events()->disconnect('pre-create', $filter_create_set_test5);
 		// Recreate Database
 		SampleSchema::destroy();
 		SampleSchema::build();

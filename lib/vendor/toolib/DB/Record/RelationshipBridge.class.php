@@ -39,18 +39,18 @@ class RelationshipBridge
     public function __construct($local_model, $bridge_model_name, $foreign_model_name, $local_value)
     {   
         // Construct relationship array
-        $bridge_model = $bridge_model_name::model();
-        $foreign_model = $foreign_model_name::model();
+        $bridge_model = $bridge_model_name::getModel();
+        $foreign_model = $foreign_model_name::getModel();
 
         $rel = array();
-		$rel['local_model_name'] = $local_model->name();
+		$rel['local_model_name'] = $local_model->getName();
 		$rel['bridge_model_name'] = $bridge_model_name;    		
 		$rel['foreign_model_name'] = $foreign_model_name;
-		    $pks = $local_model->pkFields();
+		    $pks = $local_model->getPkFields();
 	    $rel['local2bridge_field'] = $pks[0];
-	    $rel['bridge2local_field'] = $bridge_model->fkFieldFor($local_model->name());
-	    $rel['bridge2foreign_field'] = $bridge_model->fkFieldFor($foreign_model_name);
-	        $pks = $foreign_model->pkFields();
+	    $rel['bridge2local_field'] = $bridge_model->getFkFieldFor($local_model->getName());
+	    $rel['bridge2foreign_field'] = $bridge_model->getFkFieldFor($foreign_model_name);
+	        $pks = $foreign_model->getPkFields();
 	    $rel['foreign2bridge_field'] = $pks[0];
 	    $rel['local_bridge_value'] = $local_value;
         

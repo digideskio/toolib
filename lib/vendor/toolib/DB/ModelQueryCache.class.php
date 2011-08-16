@@ -53,10 +53,10 @@ class ModelQueryCache
 	//! Open a model's query cache
 	static public function open($model)
 	{
-		if (isset(self::$query_cache_repo[$model->name()]))
-			return self::$query_cache_repo[$model->name()];
+		if (isset(self::$query_cache_repo[$model->getName()]))
+			return self::$query_cache_repo[$model->getName()];
 		
-		return self::$query_cache_repo[$model->name()] = new ModelQueryCache($model);
+		return self::$query_cache_repo[$model->getName()] = new ModelQueryCache($model);
 	}
 
 	//! The model object
@@ -80,11 +80,11 @@ class ModelQueryCache
 		$this->model = $model;
 		
 		// Check model for query settings
-		if (eval("return isset({$model->name()}::\$query_cache_ttl);"))
-			$this->setQueryCacheTtl(get_static_var($model->name(), 'query_cache_ttl'));
+		if (eval("return isset({$model->getName()}::\$query_cache_ttl);"))
+			$this->setQueryCacheTtl(get_static_var($model->getName(), 'query_cache_ttl'));
 			
-		if (eval("return isset({$model->name()}::\$query_cache);"))
-			$this->setQueryCache(get_static_var($model->name(), 'query_cache'));
+		if (eval("return isset({$model->getName()}::\$query_cache);"))
+			$this->setQueryCache(get_static_var($model->getName(), 'query_cache'));
 	}
 	
 	//! Set model specific query cache
@@ -160,13 +160,13 @@ class ModelQueryCache
 	//! Get the invalidation tracker key
 	private function invalidationTrackerKey()
 	{
-		return 'QUERYCACHE[' . $this->model->name() . '][INVAL-TRACKER]';
+		return 'QUERYCACHE[' . $this->model->getName() . '][INVAL-TRACKER]';
 	}
 	
 	//! Generate the cache key
 	private function cacheKey($query, & $args)
 	{	
-		return 'QUERYCACHE[' . $this->model->name() .
+		return 'QUERYCACHE[' . $this->model->getName() .
 			'][QUERY]' . $query->hash() .
 			'(' . implode(',', $args) . ')';
 	}
@@ -250,7 +250,7 @@ class ModelQueryCache
 		$itracker = $this->getInvalidationTracker();
 
 		// Search itrackers	
-		foreach($itracker[$query->type()]['*'] as $idx => $cache_key) {
+		foreach($itracker[$query->getType()]['*'] as $idx => $cache_key) {
 			if ($cache_key != NULL)
 				$this->invalidateQuery($itracker, $cache_key);	
 		}
@@ -274,7 +274,7 @@ class ModelQueryCache
 			return false;
 		
 		// Select pushes data in cache
-		if ($query->type() === 'select')
+		if ($query->getType() === 'select')
 			return $this->process_select_query($query, $args, $results);
 			
 		// Others invalidates data in cache

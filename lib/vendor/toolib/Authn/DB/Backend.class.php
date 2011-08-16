@@ -109,6 +109,6 @@ class Backend implements \toolib\Authn\Backend
             $new_password = call_user_func($this->options['hash_function'], $new_password, $user);
 
         $user->{$this->options['field_password']} = $new_password;
-        return $user->save();
+        return $user->update();
     }
 }

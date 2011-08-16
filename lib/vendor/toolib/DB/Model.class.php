@@ -22,21 +22,30 @@
 namespace toolib\DB;
 
 /**
- * Repository for model information
+ * Management of Models.
  */
 class Model
 {
-	//! An array with all models
+	/**
+	 * An array with all models
+	 * @var array
+	 */
 	static private $models = array();
 	
-	//! The model cache
+	/**
+	 * Model caching engine
+	 * @var \toolib\Cache
+	 */
 	static private $model_cache = NULL;
 	
-	//! Database time zone
-	static public $database_time_zone = 'UTC';
-	
-	//! Open a model from models pool
 	/**
+	 * Database time zone
+	 * @var string
+	 */
+	static public $database_time_zone = 'UTC';
+	 
+	/**
+	 * Open a model from models pool
 	 * @return \toolib\DB\Model
 	 *  - @b Object with model information
 	 *  - @b NULL if model was not found.
@@ -62,14 +71,13 @@ class Model
 		return NULL;
 	}
 	
-	//! Create a new model
 	/**
-	 * This is used from Record on first usage.
-	 * @param string $model_name
-	 * @param string $table
-	 * @param array $fields
-	 * @param array $relationships
-	 * @return toolib\DB\Model Object of the model.
+	 * Create a new uniquily identified model. This is used from Record on first usage.
+	 * @param string $model_name The name of the model
+	 * @param string $table The database table that is stored at.
+	 * @param array $fields Array with field information.
+	 * @param array $relationships Array with relationships informations.
+	 * @return \toolib\DB\Model Object of the model.
 	 */
 	static public function create($model_name, $table, $fields, $relationships)
 	{	
@@ -87,8 +95,8 @@ class Model
 		return $md;
 	}
 	
-	//! Check if a model exists
 	/**
+	 * Check if a model exists
 	 * @return boolean
 	 *  - @b true if model exists
 	 *  - @b if model does not exists.
@@ -98,17 +106,17 @@ class Model
 		return isset(self::$models[$model_name]);
 	}
 	
-	//! Define the model cache storage
 	/** 
-	 * @param Cache $cache Instance of a Cache repository
+	 * Define the model cache storage
+	 * @param \toolib\Cache $cache Instance of a Cache repository
 	 */
 	static public function setModelCache($cache)
 	{
 		self::$model_cache = $cache;
 	}
 	
-	//! Get the model cache
 	/**
+	 * Get the model cache
 	 * @return \toolib\Cache
 	 *  - Instance of the cache object.
 	 *  - @b null if cache is disabled.
@@ -118,7 +126,10 @@ class Model
 	    return self::$model_cache;
     }
 	
-	//! The actual meta data
+	/**
+	 * Models actual meta data
+	 * @var array
+	 */
 	private $meta_data = NULL;
 		
 	//! Create a Model object
@@ -179,27 +190,27 @@ class Model
 		// Add more statistical data
 		$this->meta_data['field_names'] = array_keys($this->meta_data['fields']);
 	}
-	
-	//! The name of the model
+
 	/**
-	 * @return string The name of this model.
+	 * Get the name of this model.
+	 * @return string
 	 */
-	public function name()
+	public function getName()
 	{
 	    return $this->meta_data['model'];
     }
-	
-	//! Name of table associated with the model
+
 	/**
-	 * @return string The actual database table name.
+	 * Get the table name associated with this model
+	 * @return string
 	 */
-	public function table()
+	public function getTable()
 	{
 	    return $this->meta_data['table'];
     }
 	
-	//! Get all fields of this model
 	/**
+	 * Get all fields of this model.
 	 * @param boolean $fields_info
 	 *  - @b true To get all fields information.
 	 *  - @b false To get only the name of the fields.
@@ -207,7 +218,7 @@ class Model
 	 *  - @b associative @b array with fields and their info or
 	 *  - @b array with field names.  
 	 */
-	public function fields($fields_info = false)
+	public function getFields($fields_info = false)
 	{
 	    if ($fields_info === false)
 			return array_keys($this->meta_data['fields']);
@@ -215,8 +226,8 @@ class Model
 			return $this->meta_data['fields'];
 	}
 	
-	//! Get primary key fields of this model
 	/**
+	 * Get primary key fields of this model
 	 * @param boolean $fields_info
 	 *  - @b true To get all fields information.
 	 *  - @b false To get only the name of the fields.
@@ -224,15 +235,15 @@ class Model
 	 *  - @b associative @b array with fields and their info or
 	 *  - @b array with field names.  
 	 */
-	public function pkFields($fields_info = false)
+	public function getPkFields($fields_info = false)
 	{
 	    if ($fields_info === false)
 			return array_keys($this->meta_data['pk']);
 		return $this->meta_data['pk'];
 	}
 
-	//! Get auto_increment key fields of this model
 	/**
+	 * Get auto_increment key fields of this model
 	 * @param boolean $fields_info
 	 *  - @b true To get all fields information.
 	 *  - @b false To get only the name of the fields.
@@ -240,15 +251,15 @@ class Model
 	 *  - @b associative @b array with fields and their info or
 	 *  - @b array with field names.  
 	 */
-	public function aiFields($fields_info = false)
+	public function getAiFields($fields_info = false)
 	{
 	    if ($fields_info === false)
 			return array_keys($this->meta_data['ai']);
 		return $this->meta_data['ai'];
 	}
 
-	//! Get foreign key fields of this model
 	/**
+	 * Get foreign key fields of this model
 	 * @param boolean $fields_info
 	 *  - @b true To get all fields information.
 	 *  - @b false To get only the name of the fields.
@@ -256,15 +267,15 @@ class Model
 	 *  - @b associative @b array with fields and their info or
 	 *  - @b array with field names.  
 	 */
-	public function fkFields($fields_info = false)
+	public function getFkFields($fields_info = false)
 	{
 	    if ($fields_info === false)
 			return array_keys($this->meta_data['fk']);
 		return $this->meta_data['fk'];
 	}
 
-	//! Find the foreign key that references to a foreign model
 	/**
+	 * Find the foreign key that references to a foreign model
 	 * @param string $model The model that fk references to.
 	 * @param boolean $fields_info
 	 *   - @b true To get all fields information.
@@ -274,7 +285,7 @@ class Model
 	 *  - @b string The name of the field.
 	 *  - @b null If there is no foreign key for this model or on any error.
 	 */
-	public function fkFieldFor($model, $field_info = false)
+	public function getFkFieldFor($model, $field_info = false)
 	{  
 	    foreach($this->meta_data['fk'] as $fk)
 	    {
@@ -287,8 +298,8 @@ class Model
 	    return NULL;
 	}
 	
-	//! Check if there is a field
 	/**
+	 * Check if there is a field
 	 * @return boolean
 	 *  - @b true if field exist
 	 *  - @b false if the name is unknown.
@@ -298,15 +309,14 @@ class Model
 	    return isset($this->meta_data['fields'][$name]);
     }
 	
-	//! Query fields properties
 	/**
-	 * Ask for a property of a field or all of them.
+	 * Get one or all properties of a field.
 	 * @param string $name The name of the field as it was defined in model
 	 * @param string $property Specify property by name or pass NULL to get all properties in an array.
 	 * @return string The string with the property value or an associative array with all properties.
      * @throws \InvalidArgumentException if the $property was unknown.
 	 */
-	public function fieldInfo($name, $property = NULL)
+	public function getFieldInfo($name, $property = NULL)
 	{
 		if (!isset($this->meta_data['fields'][$name]))
 			return NULL;
@@ -317,12 +327,12 @@ class Model
 		return $this->meta_data['fields'][$name][$property];
 	}
 	
-	//! Get a field's friendly name based on sqlfield value
 	/**
+	 * Get a field's friendly name based on sqlfield value
 	 * @param string $sqlfield The name of field as it is defined in sql table.
-	 * @return string @b FieldName The name of the field or @b NULL if it was not found
+	 * @return string The name of the field or @b NULL if it was not found
 	 */
-	public function fieldNameBySqlfield($sqlfield)
+	public function getFieldNameBySqlfield($sqlfield)
 	{
 	    foreach($this->meta_data['fields'] as $field)
 			if ($field['sqlfield'] === $sqlfield)
@@ -330,17 +340,17 @@ class Model
 		return NULL;
 	}
 	
-	//! Cast data db -> user 
 	/**
+	 * Unpack data from database to runtime enviroment.
 	 * @param string $field_name The name of the field that data belongs to.
-	 * @param $db_data The data to be casted
-	 * @return The data casted to @e user format based on the @e type of the field.
+	 * @param $db_data The data to be unpacked.
+	 * @return The data converted to @e runtime format based on the @e type of the field.
 	 * @throws \InvalidArgumentException if $field_name is not valid
 	 */
-	public function userFieldData($field_name, $db_data)
+	public function unpackFieldData($field_name, $db_data)
 	{	
-		if (($field = $this->fieldInfo($field_name)) === NULL)
-			throw new \InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
+		if (($field = $this->getFieldInfo($field_name)) === NULL)
+			throw new \InvalidArgumentException("There is no field in model {$this->getName()} with name $field_name");
 
 		// Short exit for generic
 		if ($field['type'] === 'generic')
@@ -364,39 +374,39 @@ class Model
 		return $db_data;
 	}
 	
-	//! Cast data user -> db 
 	/**
+	 * Pack data from runtime enviroment to database format.
 	 * @param string $field_name The name of the field that data belongs to.
-	 * @param $user_data The data to be casted
+	 * @param $runtime_data The data to converted
 	 * @return The data casted to @e db format based on the @e type of the field.
 	 * @throws \InvalidArgumentException if $field_name is not valid
 	 */
-	public function dbFieldData($field_name, $user_data)
+	public function packFieldData($field_name, $runtime_data)
 	{
-		if (($field = $this->fieldInfo($field_name)) === NULL)
-			throw new \InvalidArgumentException("There is no field in model {$this->name()} with name $field_name");
+		if (($field = $this->getFieldInfo($field_name)) === NULL)
+			throw new \InvalidArgumentException("There is no field in model {$this->getName()} with name $field_name");
 
         // Short exit for null
-        if ($user_data === null)
+        if ($runtime_data === null)
             return null;
             
 		// Short exit for generic
 		if ($field['type'] === 'generic')
-			return (string) $user_data;
+			return (string) $runtime_data;
 			
 		if ($field['type'] === 'serialized')
-			return serialize($user_data);
+			return serialize($runtime_data);
 		else if ($field['type'] === 'datetime') {   
-			return $user_data->setTimeZone(new \DateTimeZone(self::$database_time_zone))
+			return $runtime_data->setTimeZone(new \DateTimeZone(self::$database_time_zone))
 				->format(DATE_ISO8601);
         }
 		else if ($field['type'] === 'relationship')
 			return $description;
-		return (string) $user_data;
+		return (string) $runtime_data;
 	}
 	
-	//! Check if there is a relationship with name
 	/**
+	 * Check if there is a relationship with name
 	 * @param string $name The name of the relationship
 	 * @return boolean
 	 *  - @b true if it exists.
@@ -407,9 +417,8 @@ class Model
 	    return isset($this->meta_data['relationships'][$name]);
     }
 	
-	//! All the relationships of this model
 	/**
-	 * 
+	 * Get all the relationships of this model
 	 * @param boolean $info
 	 *   - @b true To get all relationships information.
 	 *   - @b false To get only the name of the relationships.
@@ -417,7 +426,7 @@ class Model
 	 *  - @b associative @b array All the information of the field.
 	 *  - @b array with the relationship names.
 	 */
-	public function relationships($info = false)
+	public function getRelationships($info = false)
 	{  
 	    if ($info === false)
 			return array_keys($this->meta_data['relationships']);
@@ -425,14 +434,13 @@ class Model
 			return $this->meta_data['relationships'];
 	}
 	
-	//! Query relationships properties
 	/**
-	 * Ask for a property of a field or all of them.
-	 * @param string $name The name of the field as it was defined in model
+	 * Get one or all properties of a relationship.
+	 * @param string $name The name of the relationship as it was defined in model
 	 * @param string $property Specify property by name or pass NULL to get all properties in an array.
 	 * @return The string with the property value or an associative array with all properties.
 	 */
-	public function relationshipInfo($name, $property = NULL)
+	public function getRelationshipInfo($name, $property = NULL)
 	{
 		if (!isset($this->meta_data['relationships'][$name]))
 			return NULL;
@@ -443,7 +451,6 @@ class Model
 		return $this->meta_data['relationships'][$name][$property];
 	}
 	
-	//! Push in model's private cache
 	/**
 	 * Push something in model's private cache
 	 * @param string $key A key that must be unique inside the model
@@ -455,10 +462,9 @@ class Model
 	    if (self::$model_cache === NULL)
 			return false;
 		
-		return self::$model_cache->set('dbmodel[' . $this->name() . ']' . $key, $obj);
+		return self::$model_cache->set('dbmodel[' . $this->getName() . ']' . $key, $obj);
 	}
 	
-	//! Fetch from model's private cache
 	/**
 	 * Fetch something from model's private cache
 	 * @param string $key The key of the slot in model's cache
@@ -471,7 +477,7 @@ class Model
 		if (self::$model_cache === NULL)
 			return NULL;
 
-		$obj = self::$model_cache->get('dbmodel[' . $this->name() . ']' . $key, $rsucc);
+		$obj = self::$model_cache->get('dbmodel[' . $this->getName() . ']' . $key, $rsucc);
 		if ($rsucc) {
 		    $succ = true;
 			return $obj;
@@ -480,7 +486,6 @@ class Model
 		return NULL;
 	}
 	
-	//! Invalidates something in model's private cache
 	/**
 	 * Invalidate (delete) something from model's private cache
 	 * @param string $key The key of the slot in model's private cache

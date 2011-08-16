@@ -161,7 +161,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 	{
 		// Raw query with single primary-key
 		$mq = User::rawQuery()
-		->select(User::model()->fields())
+		->select(User::getModel()->getFields())
 		->limit(4);
 		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute();
@@ -175,7 +175,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 
 		// Open all with multi primary-key
 		$mq = Group_Members::rawQuery()
-		->select(Group_Members::model()->fields())
+		->select(Group_Members::getModel()->getFields())
 		->limit(3);
 		$gms = $mq->execute();
 		$this->assertType('array', $gms);
@@ -190,7 +190,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 
 		// Open query with parameters on single pk
 		$mq = User::rawQuery()
-		->select(User::model()->fields())
+		->select(User::getModel()->getFields())
 		->where('username like ?');
 		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute('user%');
@@ -204,7 +204,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 
 		// Open query with parameters on multi pk
 		$mq = Group_Members::rawQuery()
-		->select(Group_Members::model()->fields())
+		->select(Group_Members::getModel()->getFields())
 		->where('username like ?');
 		$gms = $mq->execute('user%');
 		$this->assertType('array', $gms);
@@ -257,17 +257,17 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($u->username, 'user1');
 		$this->assertEquals($u->enabled, 1);
 
-		// Empty save must fail
-		$this->assertFalse($u->save());
+		// Empty update must fail
+		$this->assertFalse($u->update());
 
-		// Change and save
+		// Change and update
 		$u->enabled = 0;
 		$this->assertEquals($u->enabled, 0);
-		$this->assertTrue($u->save());
+		$this->assertTrue($u->update());
 		$this->assertEquals($u->enabled, 0);
 
-		// Empty save must fail
-		$this->assertFalse($u->save());
+		// Empty update must fail
+		$this->assertFalse($u->update());
 
 		// Re open and validate data
 		$u = User::open('user1');
@@ -278,7 +278,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		// Update pk
 		$u->username = 'user-new';
 		$this->assertEquals($u->username, 'user-new');
-		$this->assertTrue($u->save());
+		$this->assertTrue($u->update());
 		$this->assertEquals($u->username, 'user-new');
 
 		// Create a new record with old primary key
@@ -289,8 +289,8 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$u2 = User::create($data);
 		$this->assertType('User', $u2);
 
-		// Trying to resave old
-		$this->assertFalse($u->save());
+		// Trying to reupdating old
+		$this->assertFalse($u->update());
 
 		// Recreate Database
 		SampleSchema::destroy();
@@ -305,13 +305,13 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($gm->username, 'user3');
 		$this->assertEquals($gm->groupname, 'group1');
 
-		// Empty save must fail
-		$this->assertFalse($gm->save());
+		// Empty update must fail
+		$this->assertFalse($gm->update());
 
-		// Change and save
+		// Change and update
 		$gm->groupname = 'group4';
 		$this->assertEquals($gm->groupname, 'group4');
-		$this->assertTrue($gm->save());
+		$this->assertTrue($gm->update());
 		$this->assertEquals($gm->groupname, 'group4');
 
 		// Create a new record with old primary key
@@ -321,8 +321,8 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$gm2 = Group_Members::create($data);
 		$this->assertType('Group_Members', $gm2);
 
-		// Empty save must fail
-		$this->assertFalse($gm->save());
+		// Empty update must fail
+		$this->assertFalse($gm->update());
 
 		// Re open and validate data
 		$gm = Group_Members::open(array('username' => 'user3', 'groupname' => 'group4'));

@@ -27,39 +27,38 @@ require_once __DIR__ . '/ModelQuery.class.php';
 require_once __DIR__ . '/Record/RelationshipMany.class.php';
 require_once __DIR__ . '/Record/RelationshipBridge.class.php';
 
-use toolib\EventDispatcher;
+use \toolib\EventDispatcher;
+use \toolib\DB\ModelQuery;
 
-//! Class implementating Record concept
+/**
+ * Base class for declaring models and managing records of model.
+ */
 class Record
 {
-	//! Array with record constructors
-	static protected $model_constr = array();
-
-	//! Array with dynamic relationships
+	/**
+	 * Array with dynamic relationships
+	 * @var array
+	 */ 
 	static protected $dynamic_relationships = array();
 
-	//! Array with events dispatchers of DB Records
+	/**
+	 * Array with events dispatchers of DB Records
+	 * @var array
+	 */ 
 	static protected $event_dispatchers = array();
 	
-	//! Initialize model based on the structure of derived class
+	/**
+	 * Initialize model based on the structure of derived class
+	 */
 	static private function initModel($model_name)
 	{
-		// Create model constructor
-		if (!isset(self::$model_constr[$model_name]))
-			self::$model_constr[$model_name] = create_function('$sql_data, $model', 
-				'$records = array();
-				$model_name = $model->name();
-				foreach($sql_data as $key => $rec)
-					$records[] =  new $model_name($model, $rec);
-				return $records;');
-		
 		// Open model if it exists
 		if (($md = Model::open($model_name)) !== NULL)
 			return $md;
 
 		$fields = $model_name::$fields;
 		$table = property_exists($model_name, 'table')?$model_name::$table:
-		    $model_name::get_table();
+		    $model_name::getTable();
 		$rels = isset($model_name::$relationships)
 			?$model_name::$relationships
 			:array();
@@ -77,13 +76,13 @@ class Record
 		
 		return Model::create($model_name, $table, $fields, $rels);
 	}
-	
-	//! Perform arbitary query on model and get raw sql results
+	 
 	/**
+	 * Perform arbitary query on model and get raw sql results
+	 * 
 	 * Get a raw query object for this model, whose results will
 	 * be in the form of raw data structured in arrays.
-	 * @return @b ModelQuery instance for the model of 
-	 * this class.
+	 * @return \toolib\DB\ModelQuery A complete query interface for this model.
      */
 	static public function rawQuery($model_name = NULL)
 	{
@@ -95,12 +94,9 @@ class Record
 		return new ModelQuery($model);
 	}
 	
-	//! Perform a query and return model objects of this query
 	/**
-	 * Perfrom a @b select query on this model and get an
-	 * of objects of the caller model.
-	 * @return ModelQuery instance for the caller model
-	 *  initialized in select mode that will return caller objects.
+	 * Request a query interface that on execution will return Records.
+	 * @return \toolib\DB\ModelQuery Query interface for the caller model.
 	 */
 	static public function openQuery($model_name = NULL)
 	{
@@ -109,15 +105,21 @@ class Record
 		
 		$model = self::initModel($model_name);
 		
-		$query = new ModelQuery($model, self::$model_constr[$model_name]);
-		return $query->select($model->fields());
+		$query = new ModelQuery($model, function($sql_data, $model){ 
+			$records = array();
+			$model_name = $model->getName();
+			foreach($sql_data as $key => $rec)
+				$records[] =  new $model_name($model, $rec);
+			return $records;
+		});
+		return $query->select($model->getFields());
 	}
 
-	//! Get the model of this record
 	/**
-	 * @return Model informational object.
+	 * Get the model information object.
+	 * @return \toolib\DB\Model informational object.
 	 */
-	static public function model($model_name = NULL)
+	static public function getModel($model_name = NULL)
 	{	
 		if ($model_name === NULL)
 			$model_name = get_called_class();
@@ -125,18 +127,19 @@ class Record
 		return self::initModel($model_name);
 	}
 
-	//! Get the model event handler
 	/**
+	 * Get the model event handler
+	 * 
 	 * Events are announced through an EventDispatcher object per model.
 	 * The following events are valid:
-	 *  - @b op.pre.open: Filter before execution of open().
-	 *  - @b op.post.open: Notify after execution of open().
-	 *  - @b op.pre.create: Filter before execution of create().
-	 *  - @b op.post.create: Notify after execution of create().
-	 *  - @b op.pre.delete: Filter before execution of delete().
-	 *  - @b op.post.delete: Notify after execution of delete().
-	 *  - @b op.pre.save: Filter before execution of save().
-	 *  - @b op.post.save: Notify after executeion of save().
+	 *  - @b pre-open: Filter before execution of open().
+	 *  - @b post-open: Notify after execution of open().
+	 *  - @b pre-create: Filter before execution of create().
+	 *  - @b post-create: Notify after execution of create().
+	 *  - @b pre-delete: Filter before execution of delete().
+	 *  - @b post-delete: Notify after execution of delete().
+	 *  - @b pre-update: Filter before execution of update().
+	 *  - @b post-update: Notify after executeion of update().
 	 * .
 	 * @return \toolib\EventDispatcher Dispatcher for this model.
 	 */
@@ -148,14 +151,14 @@ class Record
         if (!isset(self::$event_dispatchers[$model_name]))
             self::$event_dispatchers[$model_name] = new EventDispatcher(
                 array(
-                    'op.post.open',
-                    'op.post.create',
-                    'op.post.delete',
-                    'op.post.save',
-                    'op.pre.open',
-                    'op.pre.create',
-                    'op.pre.delete',
-                    'op.pre.save'
+                    'post-open',
+                    'post-create',
+                    'post-delete',
+                    'post-update',
+                    'pre-open',
+                    'pre-create',
+                    'pre-delete',
+                    'pre-update'
                 )
             );
 
@@ -178,7 +181,9 @@ class Record
         return self::$event_dispatchers[$model_name]->filter($event_name, $value, $args);
     }
 
-	//! Declare 1-to-many relationship
+	/**
+	 * Declare 1-to-many relationship
+	 */ 
 	static public function oneToMany($many_model_name, $one_rel_name, $many_rel_name)
 	{
 	    $model_name = get_called_class();
@@ -241,14 +246,14 @@ class Record
         // Event notification
         self::filterEvent(
             $model_name,
-            'op.pre.open',
+            'pre-open',
             $primary_keys,
             array('model' => $model_name));
         if ($primary_keys === false)
             return false;
             
 		// Check parameters
-		$pkFields = $model->pkFields(false);
+		$pkFields = $model->getPkFields(false);
 
 		// 1 value to array
 		if (!is_array($primary_keys))
@@ -274,7 +279,7 @@ class Record
         // Event notification
         self::notifyEvent(
             $model_name,
-            'op.post.open',
+            'post-open',
             array('records' => $records, 'model' => $model_name));
         
 		return $records[0];
@@ -310,13 +315,16 @@ class Record
         // Event notification
         self::notifyEvent(
             $model_name,
-            'op.post.open',
+            'post-open',
             array('records' => $records, 'model' => $model_name));
 
         return $records;
 	}
 	
-	//! Count records of model
+	/**
+	 * Count records of model
+	 * @return The total records.
+	 */
 	static public function count($model_name = NULL)
 	{
 	    if ($model_name === NULL)
@@ -340,7 +348,7 @@ class Record
 	 * @param $args Associative array with new records parameters. Key is the
 	 *  is the field name and value the desired value. Any missing field is
 	 *  set the "default" value that was defined on the module otherwise is not defined.
-	 * @return - @b Object of the new model record.
+	 * @return \toolib\DB\Record - @b Object of the new model record.
 	 *  - @b false on any kind of error.
 	 */
 	static public function create($args = array(), $model_name = NULL)
@@ -354,7 +362,7 @@ class Record
 		// Event notification
         self::filterEvent(
             $model_name,
-            'op.pre.create',
+            'pre-create',
             $args,
             array('model' => $model_name));
         if ($args === false)
@@ -363,13 +371,13 @@ class Record
 		// Prepare values
 		$insert_args = array();
 		$values = array();
-		foreach($model->fields(true) as $field_name => $field) {	
+		foreach($model->getFields(true) as $field_name => $field) {	
 			if (isset($args[$field_name]))
-				$values[$field_name] = $model->dbFieldData($field_name, $args[$field_name]);
+				$values[$field_name] = $model->packFieldData($field_name, $args[$field_name]);
 		    else if ($field['ai'])
 				continue;	// There is no default values for AI fields
-			else if ($field['default'] != FALSE)
-				$values[$field_name] = $model->dbFieldData($field_name, $field['default']);
+			else if ($field['default'] != false)
+				$values[$field_name] = $model->packFieldData($field_name, $field['default']);
 			else if ($field['pk'])
 				throw new RuntimeException("You cannot create a {$model_name} object  without defining ". 
 					"non auto increment primary key '{$field['name']}'");
@@ -384,27 +392,27 @@ class Record
 			->insert(array_keys($values))
 			->valuesArray($insert_args);
 		
-		if (($ret = $q->execute()) === FALSE)
+		if (($ret = $q->execute()) === false)
 			return false;
 	
 		// Fill autoincrement fields
-		if (count($model->aiFields()) > 0) {
-		    $ai = $model->aiFields(false);
+		if (count($model->getAiFields()) > 0) {
+		    $ai = $model->getAiFields(false);
 			$values[$ai[0]] = Connection::getLastInsertId();
 		}
 		
 		// If we have all the attributes of model, directly create object,
 		// otherwise open object from database.
-		if (count($values) === count($model->fields())) {
+		if (count($values) === count($model->getFields())) {
 			// Translate data to sql based key
 			$sql_fields = array();
 			foreach($values as $field_name => $value)
-				$sql_fields[$model->fieldInfo($field_name, 'sqlfield')] = $value;			
+				$sql_fields[$model->getFieldInfo($field_name, 'sqlfield')] = $value;			
 
 			$new_object = new $model_name($model, $sql_fields);
 		} else {
 		    // Open data based on primary key.
-		    foreach($model->pkFields() as $pk_name)
+		    foreach($model->getPkFields() as $pk_name)
 			    $pk_values[$pk_name] = $values[$pk_name];
 			    
             $new_object = $model_name::open($pk_values);
@@ -413,25 +421,36 @@ class Record
         // Event notification
         self::notifyEvent(
             $model_name,
-            'op.post.create',
+            'post-create',
             array('record' => $new_object, 'model' => $model_name));
 
         return $new_object;
 	}
 	
-	//! Data values of this instance
+	/**
+	 * Data values of this instance
+	 * @var array
+	 */
 	protected $fields_data = array();
 	
-	//! Cache used for cachings casts
+	/**
+	 * Cache used for cachings casts
+	 * @var array
+	 */
 	protected $data_cast_cache = array();
 	
-	//! Track dirty fields for delta updates
+	/**
+	 * Track dirty fields for delta updates
+	 * @var array
+	 */
 	protected $dirty_fields = array();
 	
-	//! Model meta data pointer
+	/**
+	 * Model meta data pointer
+	 * @var \toolib\DB\Model
+	 */
 	protected $model = NULL;
 	
-	//! Final constructor of Record 
 	/**
 	 * Constructor is declared final to prohibit direct instantiantion
 	 * of this class.
@@ -447,21 +466,21 @@ class Record
 	    $this->model = & $model;
 	
 		// Populate fields data
-		foreach($model->fields(true) as $field_name => $field) {
+		foreach($model->getFields(true) as $field_name => $field) {
 		    $this->fields_data[$field_name] = (isset($sql_data[$field['sqlfield']]))?$sql_data[$field['sqlfield']]:NULL;
 			$this->data_cast_cache[$field_name] = NULL;			
 		}
 	}
 	
-	//! Save changes in database
 	/**
-	 * Dump all changes of this object in the database. Record
-	 * will update only @i dirty fields.
+	 * Dump all changes of this object in the database.
+	 * 
+	 * Only the dirty fields will be updated.
 	 * @return - @b true If the object had dirty fields and the database
 	 *      was updated succesfully.
 	 *  - @b false If no update in database was performed.
 	 */
-	public function save()
+	public function update()
 	{	
 		if(count($this->dirty_fields) === 0)
 			return false;	// No changes
@@ -469,16 +488,16 @@ class Record
 		// Event notification
 		$cancel = false;
         self::filterEvent(
-            $this->model->name(),
-            'op.pre.save',
+            $this->model->getName(),
+            'pre-update',
             $cancel,
-            array('model' => $this->model->name(), 'record' => $this, 'old_values' => $this->dirty_fields));
+            array('model' => $this->model->getName(), 'record' => $this, 'old_values' => $this->dirty_fields));
         if ($cancel)
             return false;            
 
 		// Create update query
 		$update_args = array();
-		$q = self::rawQuery($this->model->name())
+		$q = self::rawQuery($this->model->getName())
 			->update()
 			->limit(1);
 
@@ -491,7 +510,7 @@ class Record
 		// Add Where clause based on primary keys.
 		// Note: We must use old values if pk are changed 
 		// otherwise we will write over a wrong record.
-		foreach($this->model->pkFields() as $field_name => $pk) {
+		foreach($this->model->getPkFields() as $field_name => $pk) {
 		    $q->where("{$pk} = ?");
 		    if (isset($this->dirty_fields[$pk]))
 		        $update_args[] = $this->dirty_fields[$pk];
@@ -509,15 +528,16 @@ class Record
 
         // Event notification
         self::notifyEvent(
-            $this->model->name(),
-            'op.post.save',
-            array('record' => $this, 'model' => $this->model->name()));
+            $this->model->getName(),
+            'post-update',
+            array('record' => $this, 'model' => $this->model->getName()));
             
 		return true;
 	}
-	
-	//! Delete this record
+	 
 	/**
+	 * Request to delete this record from database.
+	 * 
 	 * It will delete the record from database. However the object
 	 * will not be destroyed so be carefull to dump it after deletion.
      * @return - @b true If the record was succesfully deleted.
@@ -528,17 +548,17 @@ class Record
         // Event notification
 		$cancel = false;
         self::filterEvent(
-            $this->model->name(),
-            'op.pre.delete',
+            $this->model->getName(),
+            'pre-delete',
             $cancel,
-            array('model' => $this->model->name(), 'record' => $this)
+            array('model' => $this->model->getName(), 'record' => $this)
         );
         if ($cancel)
             return false;
             
 		// Create delete query
 		$delete_args = array();
-		$q = self::rawQuery($this->model->name())
+		$q = self::rawQuery($this->model->getName())
 			->delete()
 			->limit(1);
 		
@@ -555,9 +575,9 @@ class Record
 
         // Post-Event notification
         self::notifyEvent(
-            $this->model->name(),
-            'op.post.delete',
-            array('record' => $this, 'model' => $this->model->name()));
+            $this->model->getName(),
+            'post-delete',
+            array('record' => $this, 'model' => $this->model->getName()));
 
 		return true;
 	}
@@ -568,10 +588,10 @@ class Record
 		$values = array();
 
 		if ($assoc)
-			foreach($this->model->pkFields() as $pk)
+			foreach($this->model->getPkFields() as $pk)
 				$values[$pk] = $this->fields_data[$pk];
 		else
-			foreach($this->model->pkFields() as $pk)
+			foreach($this->model->getPkFields() as $pk)
 				$values[] = $this->fields_data[$pk];
 		return $values;
 	}
@@ -600,18 +620,18 @@ class Record
 	{
 		if ($this->model->hasField($name)) {
 			// Check for data
-			return $this->model->userFieldData(
+			return $this->model->unpackFieldData(
 				$name,
 				$this->fields_data[$name]
 			);
 		}
 		
 		if ($this->model->hasRelationship($name)) {
-			$rel = $this->model->relationshipInfo($name);
+			$rel = $this->model->getRelationshipInfo($name);
 			
 			if ($rel['type'] === 'one') {
 				return self::open(
-					$this->__get($this->model->fkFieldFor($rel['foreign_model'])),
+					$this->__get($this->model->getFkFieldFor($rel['foreign_model'])),
 					$rel['foreign_model']
 				);
 			}
@@ -638,8 +658,8 @@ class Record
 		
 		// Oops!
 		$trace = debug_backtrace();
-		throw new \InvalidArgumentException("{$this->model->name()}(Record)->{$name}" . 
-			" is not valid field of model {$this->model->name()}, requested at {$trace[0]['file']} ".
+		throw new \InvalidArgumentException("{$this->model->getName()}(Record)->{$name}" . 
+			" is not valid field of model {$this->model->getName()}, requested at {$trace[0]['file']} ".
 			" on line {$trace[0]['line']}");
 	}
 	
@@ -652,25 +672,25 @@ class Record
 			
 			// Set data
 			return $this->fields_data[$name] = 
-				$this->model->dbFieldData(
+				$this->model->packFieldData(
 					$name,
 					$value
 				);
 		}
 		
 		if ($this->model->hasRelationship($name)) {
-			$rel = $this->model->relationshipInfo($name);
+			$rel = $this->model->getRelationshipInfo($name);
 			
 			if ($rel['type'] == 'one') {
 				if (is_object($value)) {
 					$fm = Model::open($rel['foreign_model']);
-					$pks = $fm->pkFields();
+					$pks = $fm->getPkFields();
 					$this->__set(
-					    $this->model->fkFieldFor($rel['foreign_model']),
+					    $this->model->getFkFieldFor($rel['foreign_model']),
 					    $value->__get($pks[0]));
 				} else {
 					$this->__set(
-					    $this->model->fkFieldFor($rel['foreign_model']),
+					    $this->model->getFkFieldFor($rel['foreign_model']),
 					    $value
 					);
 				}
@@ -685,12 +705,15 @@ class Record
 		
 		// Oops!
 	    $trace = debug_backtrace();
-		throw new \InvalidArgumentException("{$this->model->name()}(Record)->{$name}" . 
-			" is not valid field of model {$this->model->name()}, requested at {$trace[0]['file']} ".
+		throw new \InvalidArgumentException("{$this->model->getName()}(Record)->{$name}" . 
+			" is not valid field of model {$this->model->getName()}, requested at {$trace[0]['file']} ".
 			" on line {$trace[0]['line']}");
 	}
 
-	//! Validate if a field is set
+	/**
+	 * Check if a field or relationship exists.
+	 * @param string $name The name of field or relationship
+	 */
 	public function __isset($name)
 	{   
 		if (($this->model->hasField($name))

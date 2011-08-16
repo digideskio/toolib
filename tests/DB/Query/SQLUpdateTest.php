@@ -80,7 +80,7 @@ class Record_Query_SQLUpdateTest extends PHPUnit_Framework_TestCase
         $mq = Post::rawQuery();
         $mq->update()
             ->set('post')
-            ->group_by('post')  // Drop group by post in update
+            ->groupBy('post')  // Drop group by post in update
             ->orderBy('id');
         $this->assertEquals('UPDATE `posts` SET `posted_text` = ? ORDER BY `id` ASC', $mq->sql());
 

@@ -68,7 +68,7 @@ class Record_Query_SQLDeleteTest extends PHPUnit_Framework_TestCase
         $mq = Post::rawQuery();
         $mq->delete()
             ->where('post = ?')
-            ->group_by('post')  // Drop group by post in delete
+            ->groupBy('post')  // Drop group by post in delete
             ->orderBy('id');
         $this->assertEquals('DELETE FROM `posts` WHERE `posted_text` = ? ORDER BY `id` ASC', $mq->sql());
     }

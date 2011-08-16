@@ -20,16 +20,8 @@
  */
 
 
-require_once __DIR__ . '/../lib/vendor/toolib/ClassLoader.class.php';
 require_once __DIR__ . '/../lib/SplClassLoader.class.php';
 
 $loader = new SplClassLoader('toolib', __DIR__ . '/../lib/vendor');
 $loader->setFileExtension('.class.php');
 $loader->register();
-
-// Register phplibs
-/*$loader = new ClassLoader();
-$loader->register_directory(__DIR__ . '/../lib/vendor/toolib');
-$loader->set_file_extension('.class.php');
-$loader->register();
-*/

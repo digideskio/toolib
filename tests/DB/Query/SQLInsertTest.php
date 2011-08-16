@@ -50,7 +50,7 @@ class Record_Query_SQLInsertTest extends PHPUnit_Framework_TestCase
     public function testInsertValues()
     {
         $mq = Thread::rawQuery();
-        $mq->insert(Thread::model()->fields())
+        $mq->insert(Thread::getModel()->getFields())
             ->valuesArray(array(1, 2, 'title', '2002-10-01'));
         $this->assertEquals('INSERT INTO `threads` (`thread_id`, `forum_id`, `title`, `datetime`) ' .
             'VALUES (?, ?, ?, ?)', $mq->sql());
@@ -80,7 +80,7 @@ class Record_Query_SQLInsertTest extends PHPUnit_Framework_TestCase
     public function testInvalid1Insert()
     {
         Thread::rawQuery()
-            ->insert(Thread::model()->fields())
+            ->insert(Thread::getModel()->getFields())
             ->valuesArray(array(1,2,3));
     }
     
@@ -90,7 +90,7 @@ class Record_Query_SQLInsertTest extends PHPUnit_Framework_TestCase
     public function testInvalid2Insert()
     {
         Thread::rawQuery()
-            ->insert(Thread::model()->fields())
+            ->insert(Thread::getModel()->getFields())
             ->values(1,2,3);
     }
 }
