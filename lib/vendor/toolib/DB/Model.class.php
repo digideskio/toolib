@@ -36,7 +36,7 @@ class Model
 	 * Model caching engine
 	 * @var \toolib\Cache
 	 */
-	static private $model_cache = NULL;
+	static private $model_cache = null;
 	
 	/**
 	 * Database time zone
@@ -57,8 +57,8 @@ class Model
 			return self::$models[$model_name];
 			
 		// If model caching is disabled, quit
-		if (self::$model_cache === NULL)
-			return NULL;
+		if (self::$model_cache === null)
+			return null;
 		
 		// Check cache
 		$md = self::$model_cache->get('model-' . $model_name, $succ);
@@ -68,11 +68,11 @@ class Model
 		}
 		
 		// Otherwise return false
-		return NULL;
+		return null;
 	}
 	
 	/**
-	 * Create a new uniquily identified model. This is used from Record on first usage.
+	 * Create a new uniquely identified model. This is used from Record on first usage.
 	 * @param string $model_name The name of the model
 	 * @param string $table The database table that is stored at.
 	 * @param array $fields Array with field information.
@@ -89,7 +89,7 @@ class Model
 		self::$models[$model_name] = $md;
 		
 		// Save in model cache
-		if (self::$model_cache !== NULL)
+		if (self::$model_cache !== null)
 			self::$model_cache->set('model-' . $model_name, $md);
 		
 		return $md;
@@ -130,65 +130,68 @@ class Model
 	 * Models actual meta data
 	 * @var array
 	 */
-	private $meta_data = NULL;
+	private $meta_data = null;
 		
 	//! Create a Model object
 	final private function __construct($model_name, $table, $fields, $relationships)
 	{
-		$info = array('pk' => array(), 'ai' => array(), 'fk' => array());
-		
-		// Validate and copy all fields
-		$filtered_fields = array();
-		foreach($fields as $field_name => $field) {
-				
-		    // Check if it was given as number entry or associative entry
-			if (is_numeric($field_name) && is_string($field)) {
-				$field_name = $field; 
-				$field = array();
-			}
-
-			// Setup default values of fields
-			$default_field_options = array(
-				'name' => $field_name,
-				'sqlfield' => $field_name,	
-				'type' => 'generic',
-				'pk' => false,
-				'ai' => false,
-				'default' => NULL,
-				'unique' => false,
-				'fk' => false
-			);
-			$filtered_field = array_merge($default_field_options, $field);
-			
-			// Find key(s)
-			if ($filtered_field['pk']) {
-				$filtered_field['unique'] = true;
-				$info['pk'][$filtered_field['name']] = $filtered_field;
-				if ($filtered_field['ai'])
-					$info['ai'][$filtered_field['name']] = $filtered_field;
-			} else if ($filtered_field['ai']) {
-				$filtered_field['ai'] = false;
-			}
-
-			if ($filtered_field['fk'] != false)
-			    $info['fk'][$filtered_field['name']] = $filtered_field;
-			
-			$filtered_fields[$field_name] = $filtered_field;
-		}
-		
-		// Store data in meta database
+		// Initialize meta information
 		$this->meta_data = array(
-			'fields' => $filtered_fields, 
+			'fields' => array(),
+			'field_names' => array(), 
 			'table' => $table,
 			'relationships' => $relationships,
 			'model' => $model_name,
-			'pk' => $info['pk'],
-			'ai' => $info['ai'],
-			'fk' => $info['fk']
+			'pk' => array(),
+			'ai' => array(),
+			'fk' => array()
 		);
 		
-		// Add more statistical data
-		$this->meta_data['field_names'] = array_keys($this->meta_data['fields']);
+		// Insert all pre-set fields
+		foreach($fields as $name => $options) {				
+		    // Check if it was given as number entry or associative entry
+			if (is_numeric($name) && is_string($options))
+				$this->addField($options, array());
+			else 
+				$this->addField($name, $options);
+		}
+	}
+	
+	/**
+	 * Add dynamically a new field on this model
+	 * @param string $name The name of the field
+	 * @param array $options Options of field
+	 */
+	public function addField($name, $options)
+	{
+		// Setup default values of fields
+		$normalized_options = array_merge(array(
+			'name' => $name,
+			'sqlfield' => $name,	
+			'type' => 'generic',
+			'pk' => false,
+			'ai' => false,
+			'default' => null,
+			'unique' => false,
+			'fk' => false
+		), $options);
+		
+		
+		// Find key(s)
+		if ($normalized_options['pk']) {
+			$normalized_options['unique'] = true;
+			$this->meta_data['pk'][$name] = $normalized_options;
+			if ($normalized_options['ai'])
+				$this->meta_data['ai'][$name] = $normalized_options;
+		} else if ($normalized_options['ai']) {
+			$normalized_options['ai'] = false;
+		}
+
+		if ($normalized_options['fk'] != false)
+		    $this->meta_data['fk'][$name] = $normalized_options;
+		
+		$this->meta_data['fields'][$name] = $normalized_options;
+		$this->meta_data['field_names'][] = $name;
 	}
 
 	/**
@@ -295,7 +298,7 @@ class Model
 	            else
 	                return $fk['name'];
 	    }
-	    return NULL;
+	    return null;
 	}
 	
 	/**
@@ -316,11 +319,11 @@ class Model
 	 * @return string The string with the property value or an associative array with all properties.
      * @throws \InvalidArgumentException if the $property was unknown.
 	 */
-	public function getFieldInfo($name, $property = NULL)
+	public function getFieldInfo($name, $property = null)
 	{
 		if (!isset($this->meta_data['fields'][$name]))
-			return NULL;
-		if ($property === NULL)
+			return null;
+		if ($property === null)
 			return $this->meta_data['fields'][$name];
 		if (!isset($this->meta_data['fields'][$name][$property]))
 			throw \InvalidArgumentException("There is no field property with name $property");
@@ -337,19 +340,19 @@ class Model
 	    foreach($this->meta_data['fields'] as $field)
 			if ($field['sqlfield'] === $sqlfield)
 				return $field['name'];
-		return NULL;
+		return null;
 	}
 	
 	/**
 	 * Unpack data from database to runtime enviroment.
-	 * @param string $field_name The name of the field that data belongs to.
+	 * @param string $name The name of the field that data belongs to.
 	 * @param $db_data The data to be unpacked.
 	 * @return The data converted to @e runtime format based on the @e type of the field.
 	 * @throws \InvalidArgumentException if $field_name is not valid
 	 */
 	public function unpackFieldData($field_name, $db_data)
 	{	
-		if (($field = $this->getFieldInfo($field_name)) === NULL)
+		if (($field = $this->getFieldInfo($field_name)) === null)
 			throw new \InvalidArgumentException("There is no field in model {$this->getName()} with name $field_name");
 
 		// Short exit for generic
@@ -383,7 +386,7 @@ class Model
 	 */
 	public function packFieldData($field_name, $runtime_data)
 	{
-		if (($field = $this->getFieldInfo($field_name)) === NULL)
+		if (($field = $this->getFieldInfo($field_name)) === null)
 			throw new \InvalidArgumentException("There is no field in model {$this->getName()} with name $field_name");
 
         // Short exit for null
@@ -440,11 +443,11 @@ class Model
 	 * @param string $property Specify property by name or pass NULL to get all properties in an array.
 	 * @return The string with the property value or an associative array with all properties.
 	 */
-	public function getRelationshipInfo($name, $property = NULL)
+	public function getRelationshipInfo($name, $property = null)
 	{
 		if (!isset($this->meta_data['relationships'][$name]))
-			return NULL;
-		if ($property === NULL)
+			return null;
+		if ($property === null)
 			return $this->meta_data['relationships'][$name];
 		if (!isset($this->meta_data['relationships'][$name][$property]))
 			throw \InvalidArgumentException("There is no relationship property with name $property");
@@ -459,7 +462,7 @@ class Model
 	 */
 	public function cachePush($key, $obj)
 	{
-	    if (self::$model_cache === NULL)
+	    if (self::$model_cache === null)
 			return false;
 		
 		return self::$model_cache->set('dbmodel[' . $this->getName() . ']' . $key, $obj);
@@ -474,8 +477,8 @@ class Model
 	public function cacheFetch($key, & $succ)
 	{
 	    $succ = false;
-		if (self::$model_cache === NULL)
-			return NULL;
+		if (self::$model_cache === null)
+			return null;
 
 		$obj = self::$model_cache->get('dbmodel[' . $this->getName() . ']' . $key, $rsucc);
 		if ($rsucc) {
@@ -483,7 +486,7 @@ class Model
 			return $obj;
 		}
 		
-		return NULL;
+		return null;
 	}
 	
 	/**
@@ -492,7 +495,7 @@ class Model
 	 */
 	public function cacheInvalidate($key)
 	{
-		if (self::$model_cache === NULL)
+		if (self::$model_cache === null)
 			return false;
 			
 		return self::$model_cache->delete($key);

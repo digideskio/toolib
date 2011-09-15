@@ -53,7 +53,7 @@ class Record
 	static private function initModel($model_name)
 	{
 		// Open model if it exists
-		if (($md = Model::open($model_name)) !== NULL)
+		if (($md = Model::open($model_name)) !== null)
 			return $md;
 
 		$fields = $model_name::$fields;
