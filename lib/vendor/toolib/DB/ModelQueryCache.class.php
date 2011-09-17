@@ -78,13 +78,14 @@ class ModelQueryCache
 	final private function __construct($model)
 	{
 		$this->model = $model;
+		$model_name = $model->getName();
 		
 		// Check model for query settings
-		if (eval("return isset({$model->getName()}::\$query_cache_ttl);"))
-			$this->setQueryCacheTtl(get_static_var($model->getName(), 'query_cache_ttl'));
+		if (isset($model_name::$query_cache_ttl))
+			$this->setQueryCacheTtl($model_name::$query_cache_ttl);
 			
-		if (eval("return isset({$model->getName()}::\$query_cache);"))
-			$this->setQueryCache(get_static_var($model->getName(), 'query_cache'));
+		if (isset($model_name::$query_cache))
+			$this->setQueryCache($model_name::$query_cache);
 	}
 	
 	//! Set model specific query cache

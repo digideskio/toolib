@@ -137,9 +137,8 @@ class ModelQuery
 	 */
 	protected $exec_params = array();
 	
-	//! Use DB_Record::openQuery() factory to create ModelQuery objects
 	/**
-	 * @see DB_Record::openQuery() on how to create objects of this class.
+	 * Use \toolib\DB\Record::openQuery() factory to create ModelQuery objects
 	 * @param \toolib\DB\Model $model Pass model object
 	 * @param callbable $data_wrapper_callback A callback to wrap data after execution
 	 */
@@ -152,7 +151,10 @@ class ModelQuery
 		$this->reset();		
 	}
 	
-	//! Reset query so that it can be used again
+	/**
+	 * Reset query so that it can be used again
+	 * @return \toolib\DB\ModelQuery
+	 */
 	public function & reset()
 	{	
 	    // Reset all values to default
@@ -172,7 +174,6 @@ class ModelQuery
 		return $this; 
 	}
 	
-	//! Check if statement is alterable
 	/**
 	 * Alterable means that there can be more options on the query. 
 	 * @return
@@ -184,14 +185,19 @@ class ModelQuery
 	    return ($this->sql_query === NULL);
     }
 	
-	//! Check if it i alterable otherwise throw exception
+	/**
+	 * Check if it i alterable otherwise throw exception
+	 */
 	private function assureAlterable()
 	{
 	    if (!$this->isAlterable())
 			throw new \RuntimeException('This ModelQuery instance is no longer alterable!');
 	}
 	
-	//! Start a deletion on model
+	/**
+	 * Start a deletion on model
+	 * @return \toolib\DB\ModelQuery
+	 */
 	public function & delete()
 	{	
 	    $this->assureAlterable();
@@ -205,7 +211,10 @@ class ModelQuery
 		return $this; 
 	}
 	
-	//! Start an update on model
+	/**
+	 * Start an update on model
+	 * @return \toolib\DB\ModelQuery
+	 */
 	public function & update()
 	{	
 	    $this->assureAlterable();
@@ -219,9 +228,10 @@ class ModelQuery
 		return $this; 
 	}
 	
-	//! Start a selection query on model
-	/*
-	 * @param $fields @b Array of field names that you want to fetch values from.
+	/**
+	 * Start a selection query on model
+	 * @param array $fields Field names that you want to fetch values from.
+	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & select($fields)
 	{	
@@ -237,9 +247,10 @@ class ModelQuery
 		return $this;
 	}
 	
-	//! Start an insertation query on model
 	/**
-	 * @param $fields @b Array of field names that you will provide values for.
+	 * Start an insertation query on model
+	 * @param Array $fields Field names that you will provide values for.
+	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & insert($fields)
 	{	
@@ -255,10 +266,11 @@ class ModelQuery
 		return $this;
 	}
 	
-	//! Define values of insert command as an array
 	/**
-	 * @param $values_array An array of values for adding one record. The values must be
+	 * Define values of insert command as an array
+	 * @param array $values_array Values for adding one record. The values must be
 	 *  in the same order as the fields where declared in insert().
+	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & valuesArray($values)
 	{	
@@ -279,9 +291,10 @@ class ModelQuery
 		return $this;
 	}
 	
-	//! Define values of insert command as arguments
 	/**
+	 * Define values of insert command as arguments.
 	 * Same as valuesArray(), only this one you pass the values as function arguments
+	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & values()
 	{	
@@ -289,10 +302,11 @@ class ModelQuery
 		return $this->valuesArray($args);
 	}
 	
-	//! Set a field value
 	/**
-	 * @param $field The field to set its value to a new one
-	 * @param $value [Default = false] Optional literal value to push in dynamic parameters.
+	 * Set a field value
+	 * @param string $field The field to set its value to a new one
+	 * @param mixed $value [Default = false] Optional literal value to push in dynamic parameters.
+	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & set($field, $value = false)
 	{	
@@ -307,9 +321,9 @@ class ModelQuery
 		return $this;
 	}
 
-	//! Add a general conditional expresion on query
 	/**
-	 * @param $exp A single operand expression between fields and dynamic parameters (exclamation mark).
+	 * Add a general conditional expresion on query
+	 * @param string $exp A single operand expression between fields and dynamic parameters (exclamation mark).
 	 *  If you want to pass a literal value, use combination of dynamic (?) and pushExecParam().\n
      *  @b Examples:
      *  - @code 'title = ?' @endcode
@@ -331,6 +345,7 @@ class ModelQuery
      *  - @code 'OR NOT' @endcode
      *  - @code 'XOR NOT' @endcode
      *  .
+     * @return \toolib\DB\ModelQuery
      */
 	public function & where($exp, $bool_op = 'AND')
 	{	
@@ -348,10 +363,10 @@ class ModelQuery
 		return $this;
 	}
 	
-	//! Add an "IN" conditional expression on query
 	/**
-	 * @param $field_name The name of the field to be checked for beeing equal with an array entity.
-     * @param $values
+	 * Add an "IN" conditional expression on query
+	 * @param string $field_name The name of the field to be checked for beeing equal with an array entity.
+     * @param array $values
      *  - @b integer The number of dynamic values
      *  - @b array An static values to pass on where clause.
      *  .
@@ -366,6 +381,7 @@ class ModelQuery
      *  - @code 'OR NOT' @endcode
      *  - @code 'XOR NOT' @endcode
      *  .
+     * @return \toolib\DB\ModelQuery
      */
     public function & whereIn($field_name, $values, $bool_op = 'AND')
     {
@@ -386,15 +402,16 @@ class ModelQuery
 		return $this;
     }
 
-	//! Declare left join table (for extra criteria only)
 	/**
+	 * Declare left join table (for extra criteria only).
 	 * After declaring left join you can use it in criteria by refering to it with "l" shortcut.
 	 * Example l.title = ?
-	 * @param $model_name The left joined model.
-	 * @param $primary_field [Default: null] The local field of the join.
-	 * @param $joined_field [Default: null] The foreing field of the join.
+	 * @param string $model_name The left joined model.
+	 * @param string $primary_field [Default: null] The local field of the join.
+	 * @param string  $joined_field [Default: null] The foreing field of the join.
 	 * @note If there is a declared relationship between this model and the left join, you can
-	 *  ommit $primary_field and $joined_field as it can implicitly join on the declared reference key.
+	 *  ommit string  $primary_field and $joined_field as it can implicitly join on the declared reference key.
+	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & leftJoin($model_name, $primary_field = null, $joined_field = null)
 	{   
@@ -413,10 +430,11 @@ class ModelQuery
 	    return $this;
 	}
 
-	//! Limit the records affected by this query
 	/**
-	 *  @param $length The number of records to be retrieved or affected
-	 *  @param $offset The offset of records that query will start to retrive or affect.
+	 * Limit the records affected by this query
+	 *  @param number $length The number of records to be retrieved or affected
+	 *  @param number $offset The offset of records that query will start to retrive or affect.
+	 *  @return \toolib\DB\ModelQuery
 	 */
 	public function & limit($length, $offset = NULL)
 	{	
@@ -426,10 +444,11 @@ class ModelQuery
 		return $this;
 	}
 	
-	//! Add an order by rule in query
 	/**
-	 * @param $expression A field name, column reference or an expression to be evaluated for each row.
-	 * @param $direction The direction of ordering.
+	 * Add an order by rule in query
+	 * @param string $expression A field name, column reference or an expression to be evaluated for each row.
+	 * @param string $direction The direction of ordering.
+	 * @return \toolib\DB\ModelQuery
      */
 	public function & orderBy($expression, $direction = 'ASC')
 	{	
@@ -442,10 +461,11 @@ class ModelQuery
 		return $this;
 	}
 
-	//! Add a group by by rule in query
 	/**
-	 * @param $expression A field name, column reference or an expression to be evaluated for each row.
-	 * @param $direction The direction of ordering prior grouping.
+	 * Add a group by by rule in query
+	 * @param string $expression A field name, column reference or an expression to be evaluated for each row.
+	 * @param string $direction The direction of ordering prior grouping.
+	 * @return \toolib\DB\ModelQuery
      */
 	public function & groupBy($expression, $direction = 'ASC')
 	{	
@@ -459,7 +479,11 @@ class ModelQuery
 	}
 
 
-	//! Set the callback wrapper function
+	/**
+	 * Set the callback wrapper function
+	 * @param callable $callback
+	 * @return \toolib\DB\ModelQuery
+	 */
 	public function & setDataWrapper($callback)
 	{   
 	    $this->assureAlterable();
@@ -467,14 +491,21 @@ class ModelQuery
 	    return $this;
 	}
 	
-	//! Push an execute parameter
+	/**
+	 * Push an execute parameter 
+	 * @param mixed $value
+	 * @return \toolib\DB\ModelQuery
+	 */
 	public function & pushExecParam($value)
 	{	    
 	    $this->exec_params[] = $value;
 		return $this;
 	}
 	
-	//! Push an array of execute parameters
+	/**
+	 * Push an array of execute parameters
+	 * @param array $values
+	 */
 	public function & pushExecParams($values)
 	{
 	    foreach($values as $v)
@@ -482,24 +513,27 @@ class ModelQuery
 	    return $this;
 	}
 	
-	//! Get the type of query
+	/**
+	 * Get the type of query
+	 */
 	public function getType()
 	{   
 	    return $this->query_type;
 	} 
 	
-	//! Get query hash
+	/**
+	 * Get query hash
+	 */
 	public function hash()
 	{
 	    return $this->sql_hash;
     }
 
-    //! Analayze column reference
     /**
-    * Analyze an already parsed column reference.
-    *  @param $table_shorthand The table shorthand of the column ("p" or "l").
-    *  @param $column The column friendly name as parsed.
-    */
+     * Analyze an already parsed column reference.
+     * @param string $table_shorthand The table shorthand of the column ("p" or "l").
+     * @param string $column The column friendly name as parsed.
+     */
     private function analyzeColumnReference($table_shorthand, $column)
     {
     	$result = array(
@@ -526,8 +560,9 @@ class ModelQuery
 		return $result;
     }
 	
-	
-	//! Analyze single expresison side value
+	/**
+	 * Analyze single expresison side value
+	 */
 	private function analyzeExpSideValue(& $cond, $side, $string)
 	{
 	    $matched = preg_match_all(
@@ -553,7 +588,12 @@ class ModelQuery
 	    }
 	}
 	
-	//! Analyze single expression of the form l-Value OP r-Value
+	/**
+	 * Analyze single expression of the form l-Value OP r-Value
+	 * @param unknown_type $cond
+	 * @param unknown_type $expression
+	 * @throws \InvalidArgumentException
+	 */
 	private function analyzeSingleExpression(& $cond, $expression)
 	{
         $matched = 
@@ -592,7 +632,10 @@ class ModelQuery
         $cond['query'] = "{$cond['lvalue']} {$cond['op']} {$cond['rvalue']}";
 	}
 	
-	//! Analyze WHERE conditions and return query
+	/**
+	 * Analyze WHERE conditions and return query
+	 * @return \toolib\DB\ModelQuery
+	 */
 	private function generateWhereConditions()
 	{	
 	    $query = '';
@@ -631,7 +674,9 @@ class ModelQuery
 		return $query;
 	}
 	
-	//! Generate LIMIT clause
+	/**
+	 * Generate LIMIT clause
+	 */
 	private function generateLimit()
 	{   
 	    // No limit
@@ -645,7 +690,10 @@ class ModelQuery
         return " LIMIT {$this->limit['length']}";
     }
     
-    //! Analyze * BY clause
+    /**
+     * Analyze * BY clause
+     * @param unknown_type $by_rules
+     */
     private function analyzeByRules($by_rules)
     {
         if (empty($by_rules))
@@ -698,7 +746,9 @@ class ModelQuery
         return implode(', ', $gen_rules);
     }
     
-    //! Generate ORDER BY clause
+    /**
+     * Generate ORDER BY clause
+     */
     private function generateOrderBy()
     {
         $rules = $this->analyzeByRules($this->order_by);
@@ -707,7 +757,9 @@ class ModelQuery
         return ' ORDER BY ' . $rules;
     }
     
-    // Generate GROUP BY
+    /**
+     * Generate GROUP BY
+     */
     private function generateGroupBy()
     {
         $rules = $this->analyzeByRules($this->group_by);
@@ -715,7 +767,10 @@ class ModelQuery
             return '';
         return ' GROUP BY ' . $rules;
     }
-    
+
+    /**
+     * @throws \InvalidArgumentException
+     */
     private function generateLeftJoin()
     {
         if ($this->ljoin === NULL)
@@ -758,7 +813,9 @@ class ModelQuery
         return " LEFT JOIN `{$this->ljoin['model']->getTable()}` l ON l.`{$lfield}` = p.`{$pfield}`";
     }
 
-	//! Generate SELECT query
+	/**
+	 * Generate SELECT query
+	 */
 	private function generateSelectQuery()
 	{
 	    $query = 'SELECT';
@@ -791,7 +848,9 @@ class ModelQuery
 		return $query;
 	}
 	
-	//! Generate UPDATE query
+	/**
+	 * Generate UPDATE query
+	 */
 	private function generateUpdateQuery()
 	{	
 	    $query = 'UPDATE `' . $this->model->getTable() . '` SET';
@@ -819,7 +878,9 @@ class ModelQuery
 		return $query;
 	}
 	
-	//! Generate INSERT query
+	/**
+	 * Generate INSERT query
+	 */
 	private function generateInsertQuery()
 	{
 	    $query = 'INSERT INTO `' . $this->model->getTable() . '`';
@@ -842,7 +903,9 @@ class ModelQuery
 		return $query;
 	}
 	
-	//! Analyze DELETE query
+	/**
+	 * Analyze DELETE query
+	 */
 	private function generateDeleteQuery()
 	{	
 	    $query = 'DELETE FROM `' . $this->model->getTable() . '`';
@@ -858,7 +921,11 @@ class ModelQuery
 	}
 
 
-	//! Get cache hint for caching query results
+	/**
+	 * Get cache hint for caching query results
+	 * @return array of properties
+	 *  - cachable : If this result can be cached.
+	 */
 	public function cacheHints()
 	{   
 	    // Return if it is already generated
@@ -882,11 +949,11 @@ class ModelQuery
 	    return $this->cache_hints;
 	}
 	
-	//! Create the sql command for this query
 	/**
+	 * Create the sql command for this query
 	 * Executing sql() will make query non-alterable and fixed,
 	 * however you can use execute() multiple times.
-	 * @return The string with SQL command.
+	 * @return string The string with SQL command.
 	 */
 	public function sql()
 	{	
@@ -928,8 +995,9 @@ class ModelQuery
 		return $this->sql_query;
 	}
 	
-	//! Force preparation of statement
 	/**
+	 * Force preparation of statement.
+	 * 
 	 * Prepare this statement if it is not yet. Otherwise don't do nothing.
 	 * @note Statements are prepared automatically at execution time.
 	 * @return NULL
@@ -940,7 +1008,10 @@ class ModelQuery
 			return Connection::prepare($this->sql_hash, $this->sql());
 	}
 	
-	//! Execute statement and return the results
+	/**
+	 * Execute statement and return the results
+	 * @return mixed The output data.
+	 */
 	public function execute()
 	{	
 	    // Merge pushed parameters with functions
