@@ -79,30 +79,22 @@ class Record
 	 * be in the form of raw data structured in arrays.
 	 * @return \toolib\DB\ModelQuery A complete query interface for this model.
      */
-	static public function rawQuery($model_name = NULL)
+	static public function rawQuery()
 	{
-	    if ($model_name === NULL)
-			$model_name = get_called_class();
-		
-		$model = self::initModel($model_name);
-		
-		return new ModelQuery($model);
+		return new ModelQuery(self::initModel(get_called_class()));
 	}
 	
 	/**
 	 * @brief Request a query interface that on execution will return Records.
 	 * @return \toolib\DB\ModelQuery Query interface for the caller model.
 	 */
-	static public function openQuery($model_name = NULL)
+	static public function openQuery()
 	{
-	    if ($model_name === NULL)
-			$model_name = get_called_class();
-		
+		$model_name = get_called_class();
 		$model = self::initModel($model_name);
 		
-		$query = new ModelQuery($model, function($sql_data, $model){ 
+		$query = new ModelQuery($model, function($sql_data, $model) use($model_name){ 
 			$records = array();
-			$model_name = $model->getName();
 			foreach($sql_data as $key => $rec)
 				$records[] =  new $model_name($model, $rec);
 			return $records;
@@ -114,12 +106,9 @@ class Record
 	 * @brief Get the model information object.
 	 * @return \toolib\DB\Model informational object.
 	 */
-	static public function getModel($model_name = NULL)
+	static public function getModel()
 	{	
-		if ($model_name === NULL)
-			$model_name = get_called_class();
-
-		return self::initModel($model_name);
+		return self::initModel(get_called_class());
 	}
 
 	/**
@@ -138,11 +127,9 @@ class Record
 	 * .
 	 * @return \toolib\EventDispatcher Dispatcher for this model.
 	 */
-    static public function events($model_name = NULL)
+    static public function events()
     {
-        if ($model_name === NULL)
-            $model_name = get_called_class();
-
+		$model_name = get_called_class();
         if (!isset(self::$event_dispatchers[$model_name]))
             self::$event_dispatchers[$model_name] = new EventDispatcher(
                 array(
@@ -236,10 +223,9 @@ class Record
 	 * $n = News::open(14);
 	 * @endcode
 	*/
-	public static function open($primary_keys, $model_name = NULL)
+	public static function open($primary_keys)
 	{
-		if ($model_name === NULL)
-			$model_name = get_called_class();
+		$model_name = get_called_class();
 
 		// Initialize model
 		$model = self::initModel($model_name);
@@ -265,7 +251,7 @@ class Record
 			return false;
 
 		// Execute query and check return value
-		$q = self::openQuery($model_name);
+		$q = static::openQuery();
 		$select_args = array();
 		foreach($pkFields as $pk_name) {
 			$q->where('? = p.' .$pk_name);
@@ -300,16 +286,15 @@ class Record
 	 * $all_news = News::openAll();
 	 * @endcode
 	 */
-	public static function openAll($model_name = NULL)
+	public static function openAll()
 	{
-	    if ($model_name === NULL)
-			$model_name = get_called_class();
+	    $model_name = get_called_class();
 
 		// Initialize model
 		$model = self::initModel($model_name);
 		
 		// Execute query and check return value
-		$records = self::openQuery($model_name)
+		$records = $model_name::openQuery()
 			->execute();
 
         // Event notification
@@ -325,16 +310,15 @@ class Record
 	 * @brief Count records of model
 	 * @return The total records.
 	 */
-	static public function count($model_name = NULL)
+	static public function count()
 	{
-	    if ($model_name === NULL)
-			$model_name = get_called_class();
+		$model_name = get_called_class();
 
 		// Initialize model
 		$model = self::initModel($model_name);
 		
 		// Execute query and check return value
-		$res = self::rawQuery($model_name)
+		$res = $model_name::rawQuery()
 			->select(array('count(*)'))
 			->execute();
 		
@@ -350,10 +334,9 @@ class Record
 	 * @return \toolib\DB\Record - @b Object of the new model record.
 	 *  - @b false on any kind of error.
 	 */
-	static public function create($args = array(), $model_name = NULL)
+	static public function create($args = array())
 	{
-	    if ($model_name === NULL)
-			$model_name = get_called_class();
+		$model_name = get_called_class();
 
 	    // Initialize model
 		$model = self::initModel($model_name);
@@ -387,7 +370,7 @@ class Record
 		}
 		
 		// Prepare query
-		$q = self::rawQuery($model_name)
+		$q = static::rawQuery()
 			->insert(array_keys($values))
 			->valuesArray($insert_args);
 		
@@ -408,13 +391,13 @@ class Record
 			foreach($values as $field_name => $value)
 				$sql_fields[$model->getFieldInfo($field_name, 'sqlfield')] = $value;			
 
-			$new_object = new $model_name($model, $sql_fields);
+			$new_object = new static($model, $sql_fields);
 		} else {
 		    // Open data based on primary key.
 		    foreach($model->getPkFields() as $pk_name)
 			    $pk_values[$pk_name] = $values[$pk_name];
 			    
-            $new_object = $model_name::open($pk_values);
+            $new_object = static::open($pk_values);
         }
 
         // Event notification
@@ -484,19 +467,21 @@ class Record
 		if(count($this->dirty_fields) === 0)
 			return false;	// No changes
 
+		$model_name = $this->model->getName();
+		
 		// Event notification
 		$cancel = false;
         self::filterEvent(
-            $this->model->getName(),
+            $model_name ,
             'pre-update',
             $cancel,
-            array('model' => $this->model->getName(), 'record' => $this, 'old_values' => $this->dirty_fields));
+            array('model' => $model_name , 'record' => $this, 'old_values' => $this->dirty_fields));
         if ($cancel)
             return false;            
 
 		// Create update query
 		$update_args = array();
-		$q = self::rawQuery($this->model->getName())
+		$q = static::rawQuery()
 			->update()
 			->limit(1);
 
@@ -527,9 +512,9 @@ class Record
 
         // Event notification
         self::notifyEvent(
-            $this->model->getName(),
+            $model_name ,
             'post-update',
-            array('record' => $this, 'model' => $this->model->getName()));
+            array('record' => $this, 'model' => $model_name));
             
 		return true;
 	}
@@ -544,20 +529,22 @@ class Record
 	 */
 	public function delete()
 	{	
+		$model_name = $this->model->getName();
+		
         // Event notification
-		$cancel = false;
+		$cancel = false;		
         self::filterEvent(
-            $this->model->getName(),
+            $model_name,
             'pre-delete',
             $cancel,
-            array('model' => $this->model->getName(), 'record' => $this)
+            array('model' => $model_name, 'record' => $this)
         );
         if ($cancel)
             return false;
             
 		// Create delete query
 		$delete_args = array();
-		$q = self::rawQuery($this->model->getName())
+		$q = static::rawQuery()
 			->delete()
 			->limit(1);
 		
@@ -574,9 +561,9 @@ class Record
 
         // Post-Event notification
         self::notifyEvent(
-            $this->model->getName(),
+            $model_name,
             'post-delete',
-            array('record' => $this, 'model' => $this->model->getName()));
+            array('record' => $this, 'model' => $model_name));
 
 		return true;
 	}
@@ -635,9 +622,8 @@ class Record
 			$rel = $this->model->getRelationshipInfo($name);
 			
 			if ($rel['type'] === 'one') {
-				return self::open(
-					$this->__get($this->model->getFkFieldFor($rel['foreign_model'])),
-					$rel['foreign_model']
+				return $rel['foreign_model']::open(
+					$this->__get($this->model->getFkFieldFor($rel['foreign_model']))					
 				);
 			}
 			if ($rel['type'] === 'many') {	

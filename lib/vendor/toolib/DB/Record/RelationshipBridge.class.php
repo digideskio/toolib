@@ -88,7 +88,8 @@ class RelationshipBridge
             $this->rel_params['bridge2local_field'] => $this->rel_params['local_bridge_value'],
             $this->rel_params['bridge2foreign_field'] => current($keys)
         );
-        return Record::create($params, $this->rel_params['bridge_model_name']);
+        $bridge_model_name = $this->rel_params['bridge_model_name'];
+        return $bridge_model_name::create($params);
     }
 
     /**
@@ -102,7 +103,8 @@ class RelationshipBridge
             $this->rel_params['bridge2local_field'] => $this->rel_params['local_bridge_value'],
             $this->rel_params['bridge2foreign_field'] => current($keys)
         );
-        if (($bridge_record = Record::open($params, $this->rel_params['bridge_model_name'])) === FALSE)
+        $bridge_model_name = $this->rel_params['bridge_model_name'];
+        if (($bridge_record = $bridge_model_name::open($params)) === FALSE)
             return false;
 
         return $bridge_record->delete();
