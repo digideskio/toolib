@@ -19,6 +19,9 @@
  *  
  */
 
+/**
+ * @brief Module implementing ORM concept over mysql.
+ */
 namespace toolib\DB;
 
 require_once __DIR__. '/../EventDispatcher.class.php';
@@ -26,54 +29,82 @@ require_once __DIR__ . '/../Exceptions.lib.php';
 
 use toolib\NotConnectedException;
 
-//! Interact with the connection to database
 /**
- * An easy way to organize prepared statements and execute them
- * with centralized error handling. It support optional delayed connection
- * and/or delayed prepation to increase overall perfromance.
+ * @brief Interface to manage database connection.
+ * 
+ * Supports delayed connection, prepared statements,
+ * delayed preparation and centralized error handling.
  */
 class Connection
 {
-    //! Connection handler
+    /**
+     * @brief Connection handler
+     * @var \MySQLi
+     */
     static private $dbconn = null;
     
-    //! Connection options
+    /**
+     * @brief Connection options
+     * @var array
+     */
     static private $connection_options = null;
 
-    //! The array with all statemenets
+    /**
+     * @brief The array with all statemenets
+     * @var array
+     */
     static private $stmts;
 
-    //! Set error handler function
+    /**
+     * @brief Set error handler function
+     * @var callable
+     */
     static private $error_handler_func;
 
-    //! Delayed preparation flag
+    /**
+     * @brief Delayed preparation flag
+     * @var boolean
+     */
     static private $delayed_preparation;
     
-    //! Delayed connection flag
+    /**
+     * @brief Delayed connection flag
+     * @var boolean
+     */
     static private $delayed_connection;
 
-    //! Events dispatcher
+    /**
+     * @brief Events dispatcher
+     * @var \toolib\EventDispatcher
+     */
     static private $events = null;
 
-    //! Packet size when sending binary packets
+    /**
+     * @brief Packet size when sending binary packets
+     * @var number
+     */
     static private $max_packet_allowed = null;
     
-    //! Queries that must be run after connection
+    /**
+     * @brief Queries that must be run after connection
+     * @var array
+     */
     static private $initialization_queries = array();
 
-    //! Get the events dispatcher of DB_Conn
     /**
-    * Events are announced through an EventDispatcher object. The following
-    * events are valid:
-    *  - @b connected: Executed after DB_Conn has been connected.
-    *  - @b disconnected: Executed when DB_Conn has been disconnected.
-    *  - @b error : Executed on any error that has been emitted from DB_Conn.
-    *  - @b query: Perform a direct query on the connection.
-    *  - @b stmt.declared: Request preparation of a statement.
-    *  - @b stmt.prepared: A requested statement was prepared.
-    *  - @b stmt.executed: A prepared statement was executed.
-    * .
-    * @return \toolib\EventDispatcher The object with all events
+     * @brief Get the events of this object.
+     *  
+     * Events are announced through an EventDispatcher object. The following
+     * events are valid:
+     *  - @b connected: Executed after a completed connection.
+     *  - @b disconnected: Executed after disconnection.
+     *  - @b error : Executed on any internal error.
+     *  - @b query: Perform a direct query on the connection.
+     *  - @b stmt.declared: Request preparation of a statement.
+     *  - @b stmt.prepared: A requested statement was prepared.
+     *  - @b stmt.executed: A prepared statement was executed.
+     * .
+     * @return \toolib\EventDispatcher The object with all events.
     */
     static public function events()
     {   
@@ -91,8 +122,9 @@ class Connection
         return self::$events;
     }
 
-    //! Initialize db connection
     /**
+     * @brief Initialize db connection.
+     * 
 	 * @param string $server The dns or ip of the server to connect at.
 	 * @param string $user The user to use for authentication.
 	 * @param string $pass The password that will be used for authentication.
@@ -133,8 +165,9 @@ class Connection
         return true;
     }
     
-    //! Execute queries that initialize connection
     /**
+     * @brief Execute queries that initialize connection.
+     * 
      * The execution of this querie may be postponed until the actual
      * connection is done. It is used for queries that initialize
      * connection, like setting up time_zone, character set. etc.
@@ -154,7 +187,9 @@ class Connection
     	return true;
     }
     
-    //! Assures that the connection is initialized
+    /**
+     * @brief Assures that the connection is initialized
+     */
     static private function assureConnect()
     {
     	if (is_object(self::$dbconn))
@@ -187,8 +222,9 @@ class Connection
         return true;
     } 
 
-    //! Disconnect db connection
     /**
+     * @brief Disconnect db connection.
+     * 
      * @return boolean
      * 	- @b false If there was any error.
      *	- @b true If everything went ok. 
@@ -203,8 +239,8 @@ class Connection
         return true;
     }
 
-    //! Check if it is connected
     /**
+     * @brief Check if it is connected
 	 * @return boolean
 	 *	- @b true if it is connected.
 	 *	- @b false if disconnected.
@@ -214,8 +250,8 @@ class Connection
         return (self::$dbconn !== null);
     }
 
-    //! Get the max_packet_allowed for this connection
     /**
+     * @brief Get the max_packet_allowed for this connection
      * @return integer The max_allowed_packet that is asked from te server.
      */
     static public function getMaxAllowedPacket()
@@ -227,8 +263,8 @@ class Connection
     	return self::$max_packet_allowed = $res[0][0]; 
     }
     
-    //! Change the default character set of the connection
     /**
+     * @brief Change the default character set of the connection
      * @param string $charset The default charset to be used for this connection
      * @throws NotConnectedException if there is no connection.
      */
@@ -245,8 +281,8 @@ class Connection
         return true;
     }
 
-    //! Get the mysqli connection object
     /**
+     * @brief Get the mysqli connection object
      * @throws NotConnectedException if there is no connection.
      * @return mysqli Object of the link used for tihs connection.
      */
@@ -259,8 +295,8 @@ class Connection
         return self::$dbconn;
     }
 
-    //! Escape a string for mysql usage
     /**
+     * @brief Escape a string for mysql usage
      * @param stirng $str The string to be escaped.
      * @throws NotConnectedException if there is no connection.
      */
@@ -273,11 +309,11 @@ class Connection
         return self::$dbconn->real_escape_string($str);
     }
 
-    //! Get the id generated by the last insert command.
     /**
-    * @throws NotConnectedException if there is no connection.
-    * @return integer The actual number or null on error.
-    */
+     * @brief Get the id generated by the last insert command.
+     * @throws NotConnectedException if there is no connection.
+     * @return integer The actual number or null on error.
+     */
     static public function getLastInsertId()
     {   
         if (self::$dbconn === null)
@@ -287,7 +323,9 @@ class Connection
         return self::$dbconn->insert_id;
     }
 
-    //! It does the actual statement prepartion (used for delayed prepartion)
+    /**
+     * @brief It does the actual statement prepartion (used for delayed prepartion)
+     */
     static private function assurePreparation($key)
     {
         // Check if it must be prepared now
@@ -306,14 +344,13 @@ class Connection
         return true;
     }
 
-    //! Check if a statement key is used
     /**
-	 * Check if this key is already used in prepared statements
+	 * @brief Check if this key is already used in prepared statements
 	 * @param string $key The key to be checked
 	 * @return boolean
 	 *	- @b true if it is already used.
 	 *	- @b false if it is not used.
-	 * @throws NotConnectedException if DB_Conn is not connected
+	 * @throws NotConnectedException if it is not connected
 	 */
     static public function isKeyUsed($key)
     {   
@@ -323,8 +360,8 @@ class Connection
         return isset(self::$stmts[$key]);
     }
 
-    //! Prepare a statment and save it internally
     /**
+     * @brief Prepare a statment and save it internally
 	 * @note prepare() will not actually compile statement
 	 *   unless delayed_preparation is set to false at connect().
 	 * @note If the query is wrong, the slot will be released automatically
@@ -362,13 +399,13 @@ class Connection
         return true;
     }
 
-    //! Release a prepared statement
     /**
+     * @brief Release a prepared statement
 	 * @param string $key The unique name that was used on prepare().
 	 * @return boolean
 	 *	- @b true If the statement was found released.
 	 *	- @b false on any error
-	 * @throws NotConnectedException if DB_Conn is not connected
+	 * @throws NotConnectedException if it is not connected
 	 */
     static public function release($key)
     {   
@@ -395,8 +432,8 @@ class Connection
         return true;
     }
 
-    //! Prepare multiple statements with one call.
     /**
+     * @brief Prepare multiple statements with one call.
 	 * @param array $statements All statement in associative array(key => statement, key => statement)..
 	 * @throws NotConnectedException if there is no connection.
 	 * @return boolean
@@ -416,8 +453,8 @@ class Connection
         return true;
     }
 
-    //! Raise an error
     /**
+     * @brief Raise an error
      * @param string $msg The error message
      */
     static private function raiseError($msg)
@@ -429,8 +466,8 @@ class Connection
         trigger_error($msg);
     }
 
-    //! Execute a direct query in database and return result set
     /**
+     * @brief Execute a direct query in database and return result set.
 	 * @param string $query The command to be executed on server
 	 * @throws NotConnectedException if there is no connection.
 	 * @return MySQLi_Result
@@ -445,7 +482,7 @@ class Connection
 
         // Query db connection
         if (!$res = self::$dbconn->query($query)) {
-            self::raiseError('DB_Conn::query(' . $query . ') error on executing query.' . self::$dbconn->error);
+            self::raiseError('toolib\DB\Connection::query(' . $query . ') error on executing query.' . self::$dbconn->error);
             return false;
         }
     
@@ -454,9 +491,9 @@ class Connection
         return $res;
     }
 
-    //! Execute a direct query in database and get all results immediatly
     /**
-	 * @param string $query The command to be executed on server
+     * @brief Execute a direct query in database and get all results immediatly
+     * @param string $query The command to be executed on server
 	 * @return array
 	 *	- An array with all records. Each record is an array with field values ordered
 	 * by column order and by column name.
@@ -465,9 +502,14 @@ class Connection
 	 */
     static public function queryFetchAll($query)
     {   
-        if (!$res = self::query($query))
-            return false;
+		if (!$res = self::query($query))
+			return false;
 
+		/* mysqlnd Elegant solution
+			$results = $res->fetch_all();
+			$res->free_result();
+		*/
+            
         $results = array();
         while($row = $res->fetch_array())
             $results[] = $row;
@@ -476,8 +518,8 @@ class Connection
         return $results;
     }
 
-    //! A macro for binding and executing a statement
     /**
+     * @brief A macro for binding and executing a statement
 	 * @param string $key The key of the statement that was used to prepare.
 	 * @param array $param_data An associative array with all data that will be passed as parameters to prepared statement.
 	 * 	Key of array must be the order of parameter in the statement or the name of parameter if it was declared
@@ -499,8 +541,8 @@ class Connection
 
         // Check if statement exist
         if (!isset(self::$stmts[$key])) {
-            self::raiseError('DB_Conn::execute("' . $key . '") The supplied statement ".
-           	        "must first be prepared using DB_Conn::prepare().');
+            self::raiseError('toolib\DB\Connection::execute("' . $key . '") The supplied statement ".
+           	        "must first be prepared using toolib\DB\Connection::prepare().');
             return false;
         }
 
@@ -559,8 +601,8 @@ class Connection
         return self::$stmts[$key]['handler'];
     }
 
-    //! A macro for executing a statement and getting all results in one query
     /**
+     * @brief A macro for executing a statement and getting all results in one query.
 	 * @note This function is not slower than getting manually one-by-one rows and loading in memory.
 	 * 	To use this function check the documentation of execute().
 	 * @param string $key The key of the statement that was used to prepare.

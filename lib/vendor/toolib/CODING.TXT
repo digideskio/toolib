@@ -2,13 +2,13 @@
 Coding Guidelines
 -----------------------
 
-Current Revision: R3
+Current Revision: R4
 
  1. Comments must all have left asterisk
  	/**
  	 * Never omit left asterisk
  	 */
- 	 
+ 	
     1.1 All function arguments must have type specifier
         /**
          * @param string $path The effective path of the cookie.
@@ -18,13 +18,15 @@ Current Revision: R3
         Note that the class's namespace must be resolvable, otherwise
         specify the full path of class.
         /**
-         * @return Cookie
+         * @return \toolib\Http\Cookie
          *   - Cookie object with all data for this cookie
          *   - @b false if this cookie was not found.
          * .
          */
     1.3 All public variables that refer to an object must document
         their class in phpDoc format.
+        
+    1.4 Use doxygen @brief on first line, for a short description.
  
  2. Global functions must be named based on these rules
  	- all lowercase

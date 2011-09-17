@@ -31,24 +31,24 @@ use \toolib\EventDispatcher;
 use \toolib\DB\ModelQuery;
 
 /**
- * Base class for declaring models and managing records of model.
+ * @brief Base class for declaring models and managing records of model.
  */
 class Record
 {
 	/**
-	 * Array with dynamic relationships
+	 * @brief Array with dynamic relationships
 	 * @var array
 	 */ 
 	static protected $dynamic_relationships = array();
 
 	/**
-	 * Array with events dispatchers of DB Records
+	 * @brief Array with events dispatchers of DB Records
 	 * @var array
 	 */ 
 	static protected $event_dispatchers = array();
 	
 	/**
-	 * Initialize model based on the structure of derived class
+	 * @brief Initialize model based on the structure of derived class
 	 */
 	static private function initModel($model_name)
 	{
@@ -73,7 +73,7 @@ class Record
 	}
 	 
 	/**
-	 * Perform arbitary query on model and get raw sql results
+	 * @brief Perform arbitary query on model and get raw sql results
 	 * 
 	 * Get a raw query object for this model, whose results will
 	 * be in the form of raw data structured in arrays.
@@ -90,7 +90,7 @@ class Record
 	}
 	
 	/**
-	 * Request a query interface that on execution will return Records.
+	 * @brief Request a query interface that on execution will return Records.
 	 * @return \toolib\DB\ModelQuery Query interface for the caller model.
 	 */
 	static public function openQuery($model_name = NULL)
@@ -111,7 +111,7 @@ class Record
 	}
 
 	/**
-	 * Get the model information object.
+	 * @brief Get the model information object.
 	 * @return \toolib\DB\Model informational object.
 	 */
 	static public function getModel($model_name = NULL)
@@ -123,7 +123,7 @@ class Record
 	}
 
 	/**
-	 * Get the model event handler
+	 * @brief Get the model event handler
 	 * 
 	 * Events are announced through an EventDispatcher object per model.
 	 * The following events are valid:
@@ -160,7 +160,9 @@ class Record
         return self::$event_dispatchers[$model_name];
     }
 
-    //! Notify an event listener
+    /**
+     * @brief Notify an event listener 
+     */
     static private function notifyEvent($model_name, $event_name, $args)
     {
         if (!isset(self::$event_dispatchers[$model_name]))
@@ -168,7 +170,9 @@ class Record
         return self::$event_dispatchers[$model_name]->notify($event_name, $args);
     }
 
-    //! Filter through an event listener
+    /**
+     * @brief  Filter through an event listener
+     */
     static private function filterEvent($model_name, $event_name, & $value, $args)
     {
         if (!isset(self::$event_dispatchers[$model_name]))
@@ -177,7 +181,7 @@ class Record
     }
 
 	/**
-	 * Declare 1-to-many relationship
+	 * @brief Declare 1-to-many relationship
 	 */ 
 	static public function oneToMany($many_model_name, $one_rel_name, $many_rel_name)
 	{
@@ -189,8 +193,10 @@ class Record
 	    self::$dynamic_relationships[$many_model_name][$one_rel_name] =
 	        array('type' => 'one', 'foreign_model' => $model_name);
 	}
-
-	//! Declare 1-to-many relationship
+	
+	/**
+	 * @brief Declare 1-to-many relationship	 
+	 */
 	static public function manyToMany($foreign_model_name, $bridge_model_name, $foreign_rel_name, $local_rel_name)
 	{
 	    $model_name = get_called_class();
@@ -207,8 +213,8 @@ class Record
 	    );
 	}
 	
-	//! Open the record based on its primary key
 	/**
+	 * @brief Open the record based on its primary key
 	 * 
 	 * It will query database table for a record with the supplied primary key. It will
 	 * read the data and return an Record object for this record.
@@ -279,10 +285,10 @@ class Record
 		return $records[0];
 	}
 	
-	//! Open all records of this table
 	/**
-	 * It will query database table and return all the records of the table.
+	 * @brief Open all records of this table
 	 * 
+	 * It will query database table and return all the records of the table.
 	 * @param string $called_class This parameter must be @b ALWAYS NULL. It would be better
 	 * 	if you never used it all, as it is a reserved one for internal use to emulate
 	 * 	"Late static binding" on PHP version earlier than PHP5.3
@@ -316,7 +322,7 @@ class Record
 	}
 	
 	/**
-	 * Count records of model
+	 * @brief Count records of model
 	 * @return The total records.
 	 */
 	static public function count($model_name = NULL)
@@ -337,7 +343,7 @@ class Record
 	}	
 	
 	/**
-	 * Insert a new record in database and get the reference objetc.
+	 * @brief Insert a new record in database and get the reference objetc.
 	 * @param $args Associative array with new records parameters. Key is the
 	 *  is the field name and value the desired value. Any missing field is
 	 *  set the "default" value that was defined on the module otherwise is not defined.
@@ -421,31 +427,31 @@ class Record
 	}
 	
 	/**
-	 * Data values of this instance
+	 * @brief Data values of this instance
 	 * @var array
 	 */
 	protected $fields_data = array();
 	
 	/**
-	 * Cache used for cachings casts
+	 * @brief Cache used for cachings casts
 	 * @var array
 	 */
 	protected $data_cast_cache = array();
 	
 	/**
-	 * Track dirty fields for delta updates
+	 * @brief Track dirty fields for delta updates
 	 * @var array
 	 */
 	protected $dirty_fields = array();
 	
 	/**
-	 * Model meta data pointer
+	 * @brief Model meta data pointer
 	 * @var \toolib\DB\Model
 	 */
 	protected $model = NULL;
 	
 	/**
-	 * Constructor is declared final to prohibit direct instantiantion
+	 * @brief Constructor is declared final to prohibit direct instantiantion
 	 * of this class.
 	 * @remarks
 	 * You DON'T use @b new to create objects manually instead use create()
@@ -466,9 +472,9 @@ class Record
 	}
 	
 	/**
-	 * Dump all changes of this object in the database.
+	 * @brief Dump all changes of this object in the database.
 	 * 
-	 * Only the dirty fields will be updated.
+	 * @note Only the dirty fields will be updated.
 	 * @return - @b true If the object had dirty fields and the database
 	 *      was updated succesfully.
 	 *  - @b false If no update in database was performed.
@@ -529,7 +535,7 @@ class Record
 	}
 	 
 	/**
-	 * Request to delete this record from database.
+	 * @brief Request to delete this record from database.
 	 * 
 	 * It will delete the record from database. However the object
 	 * will not be destroyed so be carefull to dump it after deletion.
@@ -576,7 +582,7 @@ class Record
 	}
 
 	/**
-	 * Get the key values of this record
+	 * @brief Get the key values of this record
 	 */
 	public function getKeyValues()
 	{	
@@ -586,7 +592,7 @@ class Record
 	}
 	
 	/**
-	 * Get all the field data to an array.
+	 * @brief Get all the field data to an array.
 	 * @return array Associative array with all data.
 	 */
 	public function getArray()
@@ -663,7 +669,7 @@ class Record
 	}
 	
 	/**
-	 * Set the value of a field
+	 * @brief Set the value of a field
 	 */
 	public function __set($name, $value)
 	{
@@ -712,7 +718,7 @@ class Record
 	}
 
 	/**
-	 * Check if a field or relationship exists.
+	 * @brief Check if a field or relationship exists.
 	 * @param string $name The name of field or relationship
 	 */
 	public function __isset($name)
@@ -725,7 +731,7 @@ class Record
 	
 	
 	/**
-	 * Serialization implementation	
+	 * @brief Serialization implementation	
 	 */
 	public function __sleep()
 	{
@@ -733,7 +739,7 @@ class Record
 	}
 	
 	/**
-	 * Unserilization implementation
+	 * @brief Unserialization implementation
 	 */
 	public function __wakeup()
 	{	

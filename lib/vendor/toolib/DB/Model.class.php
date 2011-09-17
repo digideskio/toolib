@@ -22,30 +22,34 @@
 namespace toolib\DB;
 
 /**
- * Management of Models.
+ * @brief Implements model concept and manager of models.
+ * 
+ * Query model information or dynamically change model structure.
+ * To describe a model, subclass \\toolib\\DB\\Record.To access a model request
+ * from \\toolib\\DB\\Record::getModel() of the subclass. 
  */
 class Model
 {
 	/**
-	 * An array with all models
+	 * @brief An array with all models
 	 * @var array
 	 */
 	static private $models = array();
 	
 	/**
-	 * Model caching engine
+	 * @brief Model caching engine
 	 * @var \toolib\Cache
 	 */
 	static private $model_cache = null;
 	
 	/**
-	 * Database time zone
+	 * @brief Database time zone
 	 * @var string
 	 */
 	static public $database_time_zone = 'UTC';
 	 
 	/**
-	 * Open a model from models pool
+	 * @brief Open a model from models pool
 	 * @return \toolib\DB\Model
 	 *  - @b Object with model information
 	 *  - @b NULL if model was not found.
@@ -72,7 +76,7 @@ class Model
 	}
 	
 	/**
-	 * Create a new uniquely identified model. This is used from Record on first usage.
+	 * @brief Create a new uniquely identified model. This is used from Record on first usage.
 	 * @param string $model_name The name of the model
 	 * @param string $table The database table that is stored at.
 	 * @param array $fields Array with field information.
@@ -96,7 +100,7 @@ class Model
 	}
 	
 	/**
-	 * Check if a model exists
+	 * @brief Check if a model exists
 	 * @return boolean
 	 *  - @b true if model exists
 	 *  - @b if model does not exists.
@@ -107,7 +111,7 @@ class Model
 	}
 	
 	/** 
-	 * Define the model cache storage
+	 * @brief Define the model cache storage
 	 * @param \toolib\Cache $cache Instance of a Cache repository
 	 */
 	static public function setModelCache($cache)
@@ -116,7 +120,7 @@ class Model
 	}
 	
 	/**
-	 * Get the model cache
+	 * @brief Get the model cache
 	 * @return \toolib\Cache
 	 *  - Instance of the cache object.
 	 *  - @b null if cache is disabled.
@@ -127,14 +131,13 @@ class Model
     }
 	
 	/**
-	 * Models actual meta data
+	 * @brief Models actual meta data
 	 * @var array
 	 */
 	private $meta_data = null;
 		
 	/**
-	 * Create a Model object
-	 * 
+	 * @brief Create a Model object
 	 */ 
 	final private function __construct($model_name, $table, $fields, $relationships)
 	{
@@ -154,7 +157,7 @@ class Model
 	}
 	
 	/**
-	 * Add dynamically a new field on this model
+	 * @brief Add dynamically a new field on this model
 	 * @param string $name The name of the field
 	 * @param array $options Options of field
 	 * @return \toolib\DB\Model The same object ($this).
@@ -193,7 +196,7 @@ class Model
 	}
 	
 	/**
-	 * Add multiple fields from an array
+	 * @brief Add multiple fields from an array
 	 * @param array $fields To add options on a field
 	 *  put the name of field on the key of record and an array
 	 *  of options on the value of record.
@@ -211,7 +214,7 @@ class Model
 	}
 
 	/**
-	 * Get the name of this model.
+	 * @brief Get the name of this model.
 	 * @return string
 	 */
 	public function getName()
@@ -220,7 +223,7 @@ class Model
     }
 
 	/**
-	 * Get the table name associated with this model
+	 * @brief Get the table name associated with this model
 	 * @return string
 	 */
 	public function getTable()
@@ -229,7 +232,7 @@ class Model
     }
     
 	/**
-	 * Set the table name associated with this model
+	 * @brief Set the table name associated with this model
 	 * @return string
 	 */
 	public function setTable($table)
@@ -238,7 +241,7 @@ class Model
     }
 	
 	/**
-	 * Get all fields of this model.
+	 * @brief Get all fields of this model.
 	 * @param boolean $fields_info
 	 *  - @b true To get all fields information.
 	 *  - @b false To get only the name of the fields.
@@ -255,7 +258,7 @@ class Model
 	}
 	
 	/**
-	 * Get primary key fields of this model
+	 * @brief Get primary key fields of this model
 	 * @param boolean $fields_info
 	 *  - @b true To get all fields information.
 	 *  - @b false To get only the name of the fields.
@@ -271,7 +274,7 @@ class Model
 	}
 
 	/**
-	 * Get auto_increment key fields of this model
+	 * @brief Get auto_increment key fields of this model
 	 * @param boolean $fields_info
 	 *  - @b true To get all fields information.
 	 *  - @b false To get only the name of the fields.
@@ -287,7 +290,7 @@ class Model
 	}
 
 	/**
-	 * Get foreign key fields of this model
+	 * @brief Get foreign key fields of this model
 	 * @param boolean $fields_info
 	 *  - @b true To get all fields information.
 	 *  - @b false To get only the name of the fields.
@@ -303,7 +306,7 @@ class Model
 	}
 
 	/**
-	 * Find the foreign key that references to a foreign model
+	 * @brief Find the foreign key that references to a foreign model
 	 * @param string $model The model that fk references to.
 	 * @param boolean $fields_info
 	 *   - @b true To get all fields information.
@@ -327,7 +330,7 @@ class Model
 	}
 	
 	/**
-	 * Check if there is a field
+	 * @brief Check if there is a field
 	 * @return boolean
 	 *  - @b true if field exist
 	 *  - @b false if the name is unknown.
@@ -338,7 +341,7 @@ class Model
     }
 	
 	/**
-	 * Get one or all properties of a field.
+	 * @brief Get one or all properties of a field.
 	 * @param string $name The name of the field as it was defined in model
 	 * @param string $property Specify property by name or pass NULL to get all properties in an array.
 	 * @return string The string with the property value or an associative array with all properties.
@@ -356,7 +359,7 @@ class Model
 	}
 	
 	/**
-	 * Get a field's friendly name based on sqlfield value
+	 * @brief Get a field's friendly name based on sqlfield value
 	 * @param string $sqlfield The name of field as it is defined in sql table.
 	 * @return string The name of the field or @b NULL if it was not found
 	 */
@@ -369,7 +372,7 @@ class Model
 	}
 	
 	/**
-	 * Unpack data from database to runtime enviroment.
+	 * @brief Unpack data from database to runtime enviroment.
 	 * @param string $name The name of the field that data belongs to.
 	 * @param $db_data The data to be unpacked.
 	 * @return The data converted to @e runtime format based on the @e type of the field.
@@ -403,7 +406,7 @@ class Model
 	}
 	
 	/**
-	 * Pack data from runtime enviroment to database format.
+	 * @brief Pack data from runtime enviroment to database format.
 	 * @param string $field_name The name of the field that data belongs to.
 	 * @param $runtime_data The data to converted
 	 * @return The data casted to @e db format based on the @e type of the field.
@@ -434,7 +437,7 @@ class Model
 	}
 	
 	/**
-	 * Check if there is a relationship with name
+	 * @brief Check if there is a relationship with name
 	 * @param string $name The name of the relationship
 	 * @return boolean
 	 *  - @b true if it exists.
@@ -446,7 +449,7 @@ class Model
     }
 	
 	/**
-	 * Get all the relationships of this model
+	 * @brief Get all the relationships of this model
 	 * @param boolean $info
 	 *   - @b true To get all relationships information.
 	 *   - @b false To get only the name of the relationships.
@@ -463,7 +466,7 @@ class Model
 	}
 	
 	/**
-	 * Get one or all properties of a relationship.
+	 * @brief Get one or all properties of a relationship.
 	 * @param string $name The name of the relationship as it was defined in model
 	 * @param string $property Specify property by name or pass NULL to get all properties in an array.
 	 * @return The string with the property value or an associative array with all properties.
@@ -480,10 +483,10 @@ class Model
 	}
 	
 	/**
-	 * Push something in model's private cache
+	 * @brief Push something in model's private cache
 	 * @param string $key A key that must be unique inside the model
 	 * @param $obj The object to push
-	 * @return boolean @b trueif it was cached succesfully.
+	 * @return boolean @b true if it was cached succesfully.
 	 */
 	public function cachePush($key, $obj)
 	{
@@ -494,7 +497,7 @@ class Model
 	}
 	
 	/**
-	 * Fetch something from model's private cache
+	 * @brief Fetch something from model's private cache
 	 * @param string $key The key of the slot in model's cache
 	 * @param [out] boolean $succ A by ref boolean that will hold the result of the action 
 	 * @return The object that was found inside the cache, or @b NULL if it was not found.
@@ -515,7 +518,7 @@ class Model
 	}
 	
 	/**
-	 * Invalidate (delete) something from model's private cache
+	 * @brief Invalidate (delete) something from model's private cache
 	 * @param string $key The key of the slot in model's private cache
 	 */
 	public function cacheInvalidate($key)

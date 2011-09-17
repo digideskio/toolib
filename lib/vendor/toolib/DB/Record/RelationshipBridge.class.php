@@ -19,30 +19,35 @@
  *  
  */
 
+/**
+ * @brief Helper classes for the \\toolib\\DB\\Record.
+ */
 namespace toolib\DB\Record;
 use toolib\DB\Record;
 
 /**
- * Object handling collection from N-to-M relationship.
+ * @brief Collection for N-to-M relationship (with bridge table).
  * 
- * This object is constructed when requesting a relationship from a DB_Record.
- * Check DB_Record for more information on how to construct it.
+ * This object is constructed when requesting a relationship from a \\toolib\\DB\\Record.
  */
 class RelationshipBridge
 {
     /**
-     * Relationship options
+     * @brief Relationship options
      * @var array
      */
     private $rel_params;
 
     /**
-     * Query object
+     * @brief Query object
      * @var \toolib\DB\ModelQuery
      */
     private $query;
     
-    //! Construct relationship
+     
+     /**
+      * @brief Construct relationship 
+      */     
     public function __construct($local_model, $bridge_model_name, $foreign_model_name, $local_value)
     {   
         // Construct relationship array
@@ -72,6 +77,7 @@ class RelationshipBridge
     }
 
     /**
+     * @brief Add foreign record on this collection.
      * @param \toolib\DB\Record $record
      * @return \toolib\DB\Record
      */
@@ -86,6 +92,7 @@ class RelationshipBridge
     }
 
     /**
+     * @brief Remove a foreign record from this collection.
      * @param \toolib\DB\Record $record The record to remove from bridge table
      */
     public function remove(\toolib\DB\Record $record)
@@ -102,7 +109,7 @@ class RelationshipBridge
     }
 
 	/**
-	 * Get all records of this relationship
+	 * @brief Get all records of this relationship
 	 * @return array of \toolib\DB\Record
 	 */ 
 	public function all()
@@ -111,7 +118,7 @@ class RelationshipBridge
 	}
 
     /**
-	 * Perform a subquery on this relationship
+	 * @brief Perform a subquery on this relationship
 	 * @return \toolib\DB\ModelQuery
 	 */ 
 	public function subquery()

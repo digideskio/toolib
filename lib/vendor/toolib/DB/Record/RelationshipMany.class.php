@@ -23,26 +23,27 @@ namespace toolib\DB\Record;
 use toolib\DB\Record;
 
 /**
- * Object handling collection from 1-to-M relationship.
+ * @brief Collection for 1-to-M relationship.
  * 
- * This object is constructed when requesting a relationship from a DB_Record.
- * Check DBRecord for more information on how to construct it.
+ * This object is constructed when requesting a relationship from a \\toolib\\DB\\Record.
  */
 class RelationshipMany
 {
     /**
-     * Relationship options
+     * @brief Relationship options
      * @var array
      */
     private $rel_params;
 
     /**
-     * Query object
+     * @brief Query object
      * @var \toolib\DB\ModelQuery
      */
     private $query;
     
-    //! Construct relationship handler
+    /**
+     * @brief Construct relationship handler 
+     */
 	public function __construct($local_model, $foreign_model_name, $field_value)
 	{	
 		// Construct query object
@@ -59,7 +60,7 @@ class RelationshipMany
 	}
 
 	/**
-	 * Get all records of this relationship
+	 * @brief Get all records of this relationship
 	 * @return array of \toolib\DB\Record
 	 */ 
 	public function all()
@@ -68,7 +69,7 @@ class RelationshipMany
 	}
 
     /**
-	 * Perform a subquery on this relationship
+	 * @brief Perform a subquery on this relationship
 	 * @return \toolib\DB\ModelQuery
 	 */ 
 	public function subquery()
@@ -77,7 +78,7 @@ class RelationshipMany
 	}
 
 	/**
-	 * Get one only member with a specific primary key
+	 * @brief Get one only member with a specific primary key
 	 * @param mixed $primary_key String of primary key value, or array of values
 	 */
 	public function get($primary_key)

@@ -26,119 +26,118 @@ require_once __DIR__ . '/Model.class.php';
 require_once __DIR__ . '/ModelQueryCache.class.php';
 
 /**
- * Execute SQL queries on models.
+ * @brief Execute SQL queries on models.
  * 
  * This is an sql-like interface to query on models.
- * You can insert,update,select,delete with any user-defined option
- * but only on the same model.
+ * You can insert, update, select, delete with any user-defined option.
  */
 class ModelQuery
 {
 	/**
-	 * Type of this query.
+	 * @brief Type of this query.
 	 * @see getType()
 	 * @var string
 	 */
 	protected $query_type = NULL;
 	
 	/**
-	 * Pointer to model
+	 * @brief Pointer to model
 	 * @var \toolib\DB\Model
 	 */
 	protected $model = NULL;
 	
 	/**
-	 * SELECT retrieve fields
+	 * @brief SELECT retrieve fields
 	 * @var array
 	 */
 	protected $select_fields = array();
 	
 	/**
-	 * UPDATE set fields
+	 * @brief UPDATE set fields
 	 * @var string
 	 */
 	protected $set_fields = array();
 	
 	/**
-	 * INSERT fields
+	 * @brief INSERT fields
 	 * @var array
 	 */
 	protected $insert_fields = array();
 	
 	/**
-	 * All the insert values
+	 * @brief All the insert values
 	 * @var array
 	 */
 	protected $insert_values = array();
 	
 	/**
-	 * Limit of affected records
+	 * @brief Limit of affected records
 	 * @var array
 	 */
 	protected $limit = NULL;
 	
 	/**
-	 * Order of affected records
+	 * @brief Order of affected records
 	 * @var array
 	 */
 	protected $order_by = array();
 
 	/**
-	 * Group rules for retrieving data
+	 * @brief Group rules for retrieving data
 	 * @var array
 	 */
 	protected $group_by = array();
 
     /**
-     * Left join table
+     * @brief Left join table
      * @var array
      */
     protected $ljoin = NULL;
 	
 	/**
-	 * WHERE conditions
+	 * @brief WHERE conditions
 	 * @var array
 	 */
 	protected $conditions = array();
 	
 	/**
-	 * Hash populated by the user instructions
+	 * @brief Hash populated by the user instructions
 	 * @var string
 	 */
 	protected $sql_hash = NULL;
 	
 	/**
-	 * The final sql string
+	 * @brief The final sql string
 	 * @var string
 	 */
 	protected $sql_query = NULL;
 	
 	/**
-	 * Data wrapper callback
+	 * @brief Data wrapper callback
 	 * @var callable
 	 */
 	protected $data_wrapper_callback = NULL;
 	
 	/**
-	 * Query cache hints
+	 * @brief Query cache hints
 	 * @var array
 	 */
 	protected $cache_hints = NULL;
 	
  	/**
-	 * Engine for caching queries
+	 * @brief Engine for caching queries
 	 * @var \toolib\DB\ModelQueryCache
 	 */
 	protected $query_cache;
 	
 	/**
-	 * Query execution parameters 
+	 * @brief Query execution parameters 
 	 * @var array
 	 */
 	protected $exec_params = array();
 	
 	/**
-	 * Use \toolib\DB\Record::openQuery() factory to create ModelQuery objects
+	 * @brief Use \toolib\DB\Record::openQuery() factory to create ModelQuery objects
 	 * @param \toolib\DB\Model $model Pass model object
 	 * @param callbable $data_wrapper_callback A callback to wrap data after execution
 	 */
@@ -152,7 +151,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Reset query so that it can be used again
+	 * @brief Reset query so that it can be used again
 	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & reset()
@@ -175,7 +174,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Alterable means that there can be more options on the query. 
+	 * @brief Alterable means that there can be more options on the query. 
 	 * @return
 	 *  - @b true if query is alterable
 	 *  - @b false if the query is closed for changes. 
@@ -186,7 +185,7 @@ class ModelQuery
     }
 	
 	/**
-	 * Check if it i alterable otherwise throw exception
+	 * @brief Check if it i alterable otherwise throw exception
 	 */
 	private function assureAlterable()
 	{
@@ -195,7 +194,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Start a deletion on model
+	 * @brief Start a deletion on model
 	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & delete()
@@ -212,7 +211,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Start an update on model
+	 * @brief Start an update on model
 	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & update()
@@ -229,7 +228,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Start a selection query on model
+	 * @brief Start a selection query on model
 	 * @param array $fields Field names that you want to fetch values from.
 	 * @return \toolib\DB\ModelQuery
 	 */
@@ -248,7 +247,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Start an insertation query on model
+	 * @brief Start an insertation query on model
 	 * @param Array $fields Field names that you will provide values for.
 	 * @return \toolib\DB\ModelQuery
 	 */
@@ -267,7 +266,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Define values of insert command as an array
+	 * @brief Define values of insert command as an array
 	 * @param array $values_array Values for adding one record. The values must be
 	 *  in the same order as the fields where declared in insert().
 	 * @return \toolib\DB\ModelQuery
@@ -292,7 +291,8 @@ class ModelQuery
 	}
 	
 	/**
-	 * Define values of insert command as arguments.
+	 * @brief Define values of insert command as arguments.
+	 * 
 	 * Same as valuesArray(), only this one you pass the values as function arguments
 	 * @return \toolib\DB\ModelQuery
 	 */
@@ -303,7 +303,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Set a field value
+	 * @brief Set a field value
 	 * @param string $field The field to set its value to a new one
 	 * @param mixed $value [Default = false] Optional literal value to push in dynamic parameters.
 	 * @return \toolib\DB\ModelQuery
@@ -322,7 +322,7 @@ class ModelQuery
 	}
 
 	/**
-	 * Add a general conditional expresion on query
+	 * @brief Add a general conditional expresion on query
 	 * @param string $exp A single operand expression between fields and dynamic parameters (exclamation mark).
 	 *  If you want to pass a literal value, use combination of dynamic (?) and pushExecParam().\n
      *  @b Examples:
@@ -364,7 +364,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Add an "IN" conditional expression on query
+	 * @brief Add an "IN" conditional expression on query
 	 * @param string $field_name The name of the field to be checked for beeing equal with an array entity.
      * @param array $values
      *  - @b integer The number of dynamic values
@@ -403,7 +403,8 @@ class ModelQuery
     }
 
 	/**
-	 * Declare left join table (for extra criteria only).
+	 * @brief Declare left join table (for extra criteria only).
+	 * 
 	 * After declaring left join you can use it in criteria by refering to it with "l" shortcut.
 	 * Example l.title = ?
 	 * @param string $model_name The left joined model.
@@ -431,10 +432,10 @@ class ModelQuery
 	}
 
 	/**
-	 * Limit the records affected by this query
-	 *  @param number $length The number of records to be retrieved or affected
-	 *  @param number $offset The offset of records that query will start to retrive or affect.
-	 *  @return \toolib\DB\ModelQuery
+	 * @brief Limit the records affected by this query
+	 * @param number $length The number of records to be retrieved or affected
+	 * @param number $offset The offset of records that query will start to retrive or affect.
+	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & limit($length, $offset = NULL)
 	{	
@@ -445,7 +446,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Add an order by rule in query
+	 * @brief Add an order by rule in query
 	 * @param string $expression A field name, column reference or an expression to be evaluated for each row.
 	 * @param string $direction The direction of ordering.
 	 * @return \toolib\DB\ModelQuery
@@ -462,7 +463,7 @@ class ModelQuery
 	}
 
 	/**
-	 * Add a group by by rule in query
+	 * @brief Add a group by by rule in query
 	 * @param string $expression A field name, column reference or an expression to be evaluated for each row.
 	 * @param string $direction The direction of ordering prior grouping.
 	 * @return \toolib\DB\ModelQuery
@@ -480,7 +481,7 @@ class ModelQuery
 
 
 	/**
-	 * Set the callback wrapper function
+	 * @brief Set the callback wrapper function
 	 * @param callable $callback
 	 * @return \toolib\DB\ModelQuery
 	 */
@@ -492,7 +493,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Push an execute parameter 
+	 * @brief Push an execute parameter 
 	 * @param mixed $value
 	 * @return \toolib\DB\ModelQuery
 	 */
@@ -503,8 +504,9 @@ class ModelQuery
 	}
 	
 	/**
-	 * Push an array of execute parameters
+	 * @brief Push an array of execute parameters
 	 * @param array $values
+	 * @return \toolib\DB\ModelQuery
 	 */
 	public function & pushExecParams($values)
 	{
@@ -514,7 +516,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Get the type of query
+	 * @brief Get the type of query
 	 */
 	public function getType()
 	{   
@@ -522,7 +524,7 @@ class ModelQuery
 	} 
 	
 	/**
-	 * Get query hash
+	 * @brief Get query hash
 	 */
 	public function hash()
 	{
@@ -530,7 +532,7 @@ class ModelQuery
     }
 
     /**
-     * Analyze an already parsed column reference.
+     * @brief Analyze an already parsed column reference.
      * @param string $table_shorthand The table shorthand of the column ("p" or "l").
      * @param string $column The column friendly name as parsed.
      */
@@ -561,7 +563,7 @@ class ModelQuery
     }
 	
 	/**
-	 * Analyze single expresison side value
+	 * @brief Analyze single expresison side value
 	 */
 	private function analyzeExpSideValue(& $cond, $side, $string)
 	{
@@ -589,7 +591,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Analyze single expression of the form l-Value OP r-Value
+	 * @brief Analyze single expression of the form l-Value OP r-Value
 	 * @param unknown_type $cond
 	 * @param unknown_type $expression
 	 * @throws \InvalidArgumentException
@@ -633,7 +635,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Analyze WHERE conditions and return query
+	 * @brief Analyze WHERE conditions and return query
 	 * @return \toolib\DB\ModelQuery
 	 */
 	private function generateWhereConditions()
@@ -675,7 +677,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Generate LIMIT clause
+	 * @brief Generate LIMIT clause
 	 */
 	private function generateLimit()
 	{   
@@ -691,7 +693,7 @@ class ModelQuery
     }
     
     /**
-     * Analyze * BY clause
+     * @brief Analyze * BY clause
      * @param unknown_type $by_rules
      */
     private function analyzeByRules($by_rules)
@@ -747,7 +749,7 @@ class ModelQuery
     }
     
     /**
-     * Generate ORDER BY clause
+     * @brief Generate ORDER BY clause
      */
     private function generateOrderBy()
     {
@@ -758,7 +760,7 @@ class ModelQuery
     }
     
     /**
-     * Generate GROUP BY
+     * @brief Generate GROUP BY
      */
     private function generateGroupBy()
     {
@@ -814,7 +816,7 @@ class ModelQuery
     }
 
 	/**
-	 * Generate SELECT query
+	 * @brief Generate SELECT query
 	 */
 	private function generateSelectQuery()
 	{
@@ -849,7 +851,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Generate UPDATE query
+	 * @brief Generate UPDATE query
 	 */
 	private function generateUpdateQuery()
 	{	
@@ -879,7 +881,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Generate INSERT query
+	 * @brief Generate INSERT query
 	 */
 	private function generateInsertQuery()
 	{
@@ -904,7 +906,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Analyze DELETE query
+	 * @brief Analyze DELETE query
 	 */
 	private function generateDeleteQuery()
 	{	
@@ -922,7 +924,7 @@ class ModelQuery
 
 
 	/**
-	 * Get cache hint for caching query results
+	 * @brief Get cache hint for caching query results
 	 * @return array of properties
 	 *  - cachable : If this result can be cached.
 	 */
@@ -950,7 +952,8 @@ class ModelQuery
 	}
 	
 	/**
-	 * Create the sql command for this query
+	 * @brief Create the sql command for this query.
+	 * 
 	 * Executing sql() will make query non-alterable and fixed,
 	 * however you can use execute() multiple times.
 	 * @return string The string with SQL command.
@@ -996,7 +999,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Force preparation of statement.
+	 * @brief Force preparation of statement.
 	 * 
 	 * Prepare this statement if it is not yet. Otherwise don't do nothing.
 	 * @note Statements are prepared automatically at execution time.
@@ -1009,7 +1012,7 @@ class ModelQuery
 	}
 	
 	/**
-	 * Execute statement and return the results
+	 * @brief Execute statement and return the results
 	 * @return mixed The output data.
 	 */
 	public function execute()
