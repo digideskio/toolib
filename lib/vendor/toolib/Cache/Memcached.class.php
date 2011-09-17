@@ -23,14 +23,19 @@ namespace toolib\Cache;
 
 require_once(__DIR__ . '/../Cache.class.php');
 
-//! Implementation using PECL/Memcached interface
+/**
+ * @brief Implementation using PECL/Memcached interface
+ */
 class Memcached extends \toolib\Cache
 {
-	//! Memcached object
+	/**
+	 * @brief Memcached object
+	 * @var \Memcached
+	 */
 	public $memc;
 	
-	//! Construct a new memcached caching engine.
 	/**
+	 * @brief Construct a new memcached caching engine.
 	 * @param string $host The ip/dns of memcached server.
 	 * @param integer $port The listening port of server.
 	 */	 

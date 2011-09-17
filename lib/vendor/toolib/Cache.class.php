@@ -23,24 +23,24 @@ namespace toolib;
 
 require_once(dirname(__FILE__) . '/./functions.lib.php');
 
-//! Abstract interface for caching engines
 /**
+ * @brief Abstract interface for caching engines
+ *  * 
  * To create a custom engine subclass Cache class
  * and populate all abstract methods.
  * 
  * Cache module ships with the following caching engine implementations
- * - Apc
- * - Memcached
- * - File
- * - Sqlite
+ * - \\toolib\\Cache\\Apc
+ * - \\toolib\\Cache\\Memcached
+ * - \\toolib\\Cache\\File
+ * - \\toolib\\Cache\\Sqlite
  * .
  * @author sque
  */
 abstract class Cache
 {
-	//! Set an entry in cache database
 	/**
-	 * Add or replace the value of a key in cache database
+	 * @brief Add or replace the value of a key in cache database 
 	 * @param string $key Unique identifier of the cache entry
 	 * @param $value Value of cache entry
 	 * @param integer $ttl Maximum time, in seconds, that this entry will be valid
@@ -50,12 +50,12 @@ abstract class Cache
 	 */
 	abstract public function set($key, $value, $ttl = 0);
 	
-	//! Set multiple entries
 	/**
-	 * This is like set() but it stores multiple entries at
-	 * the same time. Some engines (like memcached) supports
-	 * acceleration of this action. For the rest of the engines
-	 * it will be emulated, without a significant performance penalty.
+	 * @brief Like set() but store multiple entries at once.
+	 * 
+	 * Some engines (like memcached) supports acceleration of this action.
+	 * For the rest of the engines it will be emulated, 
+	 * without a significant performance penalty.
 	 * @param array $values Associative array of key-value pairs to
 	 *  be stored in cache db.
 	 * @param integer $ttl Maximum time, in seconds, that all these entry will be valid
@@ -65,10 +65,11 @@ abstract class Cache
 	 */
 	abstract public function setMulti($values, $ttl = 0);
 	
-	//! Add new entry in cache database
 	/**
-	 * Add a @b new value in database. This function will fail if
-	 * there is already an entry with the same key. 
+	 * @brief Add a @b new value in database.
+	 * 
+	 * This function will fail if there is already an
+	 * entry with the same key. 
 	 * @param string $key Unique identifier of the cache entry
 	 * @param $value Value of cache entry.
 	 * @param integer $ttl Maximum time, in seconds, that this entry will be valid
@@ -78,9 +79,9 @@ abstract class Cache
 	 */
 	abstract public function add($key, $value, $ttl = 0);
 	
-	//! Read an entry from cache database
+
 	/**
-	 * Retrieve an entry from cache db based on its key.
+	 * @brief Retrieve an entry from cache db based on its key.
 	 * @param string $key Unique identifier of the cache entry
 	 * @param [out] boolean $succeded By reference variable to store
 	 * the result status of the function.
@@ -96,8 +97,9 @@ abstract class Cache
 	 */
 	abstract public function get($key, & $succeded);
 	
-	//! Read multiple entries from cache database
 	/**
+	 * @brief Read multiple entries from cache database
+	 * 
 	 * This works like get() but with multiple entries at
 	 * the same time. Some engines (like memcached) supports
 	 * acceleration of this action. For the rest of the engines
@@ -108,9 +110,8 @@ abstract class Cache
 	 */
 	abstract public function getMulti($keys);
 	
-	//! Delete an entry from cache database
 	/**
-	 * Delete an entry based on its key.
+	 * @brief Delete an entry from database based on its key.
 	 * @param string $key Unique identifier of the cache entry
 	 * @return boolean
 	 * - @b true if entry was found and deleted
@@ -119,8 +120,9 @@ abstract class Cache
 	 */
 	abstract public function delete($key);
 	
-	//! Empty cache from all entries
 	/**
+	 * @brief Empty cache from all entries.
+	 * 
 	 * It will delete all entries from the cache.
 	 * database.
 	 * @return boolean

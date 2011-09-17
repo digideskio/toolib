@@ -20,17 +20,21 @@
  */
 
 namespace toolib\Cache;
-
 require_once(__DIR__ . '/../Cache.class.php');
 
-//! Implementation for SQLite caching
+/**
+ * @brief Implementation for SQLite caching
+ */
 class Sqlite extends \toolib\Cache
 {
-    //! The sqlite connection handle
+    /**
+     * @brief The sqlite connection handle
+     * @var resource
+     */
 	public $dbhandle;
 	
-	//! Construct a new sqlite based caching engine
 	/**
+	 * @brief Construct a new sqlite based caching engine
 	 * @param string $db The file name of the database to open/create.
 	 */
 	public function __construct($db)

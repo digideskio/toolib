@@ -23,7 +23,9 @@ namespace toolib\Cache;
 
 require_once(__DIR__ . '/../Cache.class.php');
 
-//! Implementation for filesystem caching
+/**
+ * @brief Implementation for filesystem caching
+ */
 class File extends \toolib\Cache
 {
 	//! Directory to save cache files
@@ -37,8 +39,8 @@ class File extends \toolib\Cache
 	    return $this->directory . '/' . $this->file_prefix . md5($key);
 	}
 	
-	//! Construct a new file-based cache engine
 	/**
+	 * @brief Construct a new file-based cache engine
 	 * @param string $directory
 	 *  - A valid directory path to store cached objects.
 	 *  - @b null If you want to use system's temporary directory.

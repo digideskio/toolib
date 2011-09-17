@@ -19,17 +19,23 @@
  *  
  */
 
+/**
+ * @brief All caching engines implementations.
+ */
 namespace toolib\Cache;
 
 require_once(__DIR__ . '/../Cache.class.php');
 
-//! Implementation for APC cache engine
+/**
+ * @brief Implementation for APC cache engine
+ */
 class Apc extends \toolib\Cache
 {
+	
 	private $apc_key_prefix;
 	
-	//! Construct a new APC (sub)storage.
 	/**
+	 * @brief Construct a new APC (sub)storage.
 	 * @param string $apc_key_prefix Because APC is by designed shared memory inside all
 	 *  executed scripts of apache, you can prefix the key values with a unique string.
 	 * @param boolean $serialize_data A flag to serialize/unserialize data before
