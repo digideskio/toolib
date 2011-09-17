@@ -70,7 +70,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate('user1', 'password1');
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
-        $this->assertEquals($res->get_record(), User_plain::open('user1'));
+        $this->assertEquals($res->getRecord(), User_plain::open('user1'));
     }
 
     public function testPlainIdReUse()
@@ -92,7 +92,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate('user1', 'password1');
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
-        $this->assertEquals($res->get_record(), User_id::open(1));
+        $this->assertEquals($res->getRecord(), User_id::open(1));
     }
 
     public function testMd5User()
@@ -114,7 +114,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate('user1', 'password1');
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
-        $this->assertEquals($res->get_record(), User_md5::open('user1'));
+        $this->assertEquals($res->getRecord(), User_md5::open('user1'));
     }
 
     public function testSha1User()
@@ -136,7 +136,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate('user1', 'password1');
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
-        $this->assertEquals($res->get_record(), User_sha1::open('user1'));
+        $this->assertEquals($res->getRecord(), User_sha1::open('user1'));
     }
 
     /**
@@ -156,7 +156,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate($username, $password);
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
-        $this->assertEquals($res->get_record(), User_plain::open($username));
+        $this->assertEquals($res->getRecord(), User_plain::open($username));
     }
 
     /**
@@ -178,7 +178,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate($username, $password);
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
-        $this->assertEquals($res->get_record(), User_id::open($count));
+        $this->assertEquals($res->getRecord(), User_id::open($count));
     }
 
 
@@ -200,7 +200,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate($username, $password);
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
-        $this->assertEquals($res->get_record(), User_md5::open($username));
+        $this->assertEquals($res->getRecord(), User_md5::open($username));
     }
 
     /**
@@ -221,7 +221,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate($username, $password);
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
-        $this->assertEquals($res->get_record(), User_sha1::open($username));
+        $this->assertEquals($res->getRecord(), User_sha1::open($username));
     }
 
     /**
@@ -248,7 +248,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         }
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
-        $this->assertEquals($res->get_record(), User_plain::open($username));
+        $this->assertEquals($res->getRecord(), User_plain::open($username));
     }
 
     /**
@@ -275,7 +275,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         }
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
-        $this->assertEquals($res->get_record(), User_md5::open($username));
+        $this->assertEquals($res->getRecord(), User_md5::open($username));
     }
 
     public function testResetPlainPwd()
@@ -299,7 +299,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate('user1', 'passwordnew');
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
-        $this->assertEquals($res->get_record(), User_plain::open('user1'));
+        $this->assertEquals($res->getRecord(), User_plain::open('user1'));
 
         // Rebuild
         Authn_SampleSchema::destroy();
@@ -327,7 +327,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate('user1', 'passwordnew');
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
-        $this->assertEquals($res->get_record(), User_id::open(1));
+        $this->assertEquals($res->getRecord(), User_id::open(1));
 
         // Rebuild
         Authn_SampleSchema::destroy();
@@ -357,7 +357,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate('user1', 'passwordnew');
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
-        $this->assertEquals($res->get_record(), User_md5::open('user1'));
+        $this->assertEquals($res->getRecord(), User_md5::open('user1'));
 
         // Rebuild
         Authn_SampleSchema::destroy();
@@ -386,7 +386,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $res = $auth->authenticate('user1', 'passwordnew');
         $this->assertType('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
-        $this->assertEquals($res->get_record(), User_sha1::open('user1'));
+        $this->assertEquals($res->getRecord(), User_sha1::open('user1'));
 
         // Rebuild
         Authn_SampleSchema::destroy();

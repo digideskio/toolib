@@ -19,20 +19,28 @@
  *  
  */
 
-
+namespace toolib\Authn\Ldap;
 require_once( dirname(__FILE__) . '/../Identity.class.php');
 
-//! Implementation of Authn_Identity for Authn_Backend_LDAP
-class Authn_Identity_LDAP implements Authn_Identity
+/**
+  * @brief Implementation of identity for \\toolib\\Authn\\Ldap\\Backend.
+ */
+class Identity implements \toolib\Authn\Identity
 {
-    //! An associative array with all user attributes
-    private $user_attribs;
+    /**
+     * @brief An associative array with all user attributes
+     * @var array
+     */	
+	private $user_attribs;
 
-    //! The name of the attribute that will be used as idenity's id.
+    /**
+     * @brief The name of the attribute that will be used as idenity's id.
+     * @var string
+     */
     private $id_attribute;
     
-    //! The object is constructed by Authn_Backend_LDAP
     /**
+     * @brief The object is constructed by \toolib\Authn\Ldap\Backend
      * @param $user_attribs Associative array with all attributes of user in LDAP catalog.
      * @param $id_attribute The name of the attribute that will be used as idenity's id.
      */
@@ -42,36 +50,42 @@ class Authn_Identity_LDAP implements Authn_Identity
         $this->id_attribute = $id_attribute;
         
         // Check that there is an id attribute
-        if (! $this->get_attribute($this->id_attribute))
+        if (! $this->getAttribute($this->id_attribute))
             throw new RuntimeException("There is no attirubute with name \"{$this->id_attribute}\"!");
     }
 
-    //! Get the Distinguished Name of this identity
+    /**
+     * @brief Get the Distinguished Name of this identity
+     */
     public function dn()
     {   
-        return $this->get_attribute('distinguishedname');
+        return $this->getAttribute('distinguishedname');
     }
 
-    //! Get the principalName of this identity
-    public function principalName()
-    {   
-        return $this->get_attribute('userprincipalname');
-    }
-    
-    //! Get the SAM Account Name of this identity
-    public function sam_account_name()
-    {
-        return $this->get_attribute('samaccountname');
-    }
-    
-    //! Get an attribute from users attributes
     /**
+     * @brief Get the principalName of this identity
+     */
+    public function getPrincipalName()
+    {   
+        return $this->getAttribute('userprincipalname');
+    }
+    
+    /**
+     * @brief Get the SAM Account Name of this identity
+     */
+    public function getSamAccountName()
+    {
+        return $this->getAttribute('samaccountname');
+    }
+    
+    /**
+     * @brief Get an attribute from users attributes
      * @param $name The name of the attribute
      * @return
      *  - The value of attribute.
      *  - @b false on any kind of error.
      */
-    public function get_attribute($name)
+    public function getAttribute($name)
     {
         if (!isset($this->user_attribs[$name]))
             return false;
@@ -82,8 +96,6 @@ class Authn_Identity_LDAP implements Authn_Identity
     
     public function id()
     {
-        return $this->get_attribute($this->id_attribute);
+        return $this->getAttribute($this->id_attribute);
     }
 }
-
-?>

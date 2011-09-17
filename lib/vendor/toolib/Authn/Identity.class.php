@@ -21,9 +21,13 @@
 
 namespace toolib\Authn;
 
-//! Interface representing authentication identity
+/**
+ * @brief Interface representing authentication identity
+ */
 interface Identity
 {
-    //! The id of this identity
+    /**
+     * @brief Get the per implementation id of this identity
+     */
     public function id();
 }

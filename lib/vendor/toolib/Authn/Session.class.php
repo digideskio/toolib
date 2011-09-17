@@ -24,11 +24,13 @@ namespace toolib\Authn;
 
 require_once __DIR__ . '/Identity.class.php';
 
-//! Interface for authentication session storage
+/**
+ * @brief Interface for authentication session storage
+ */
 interface Session
 {
-    //! Set the current session identity
     /**
+     * @brief Set the current session identity
      * @param $identity The identity object to save
      * @param $ttl 
      *  - Time in seconds that this identity will be online.
@@ -37,14 +39,16 @@ interface Session
      */
     public function setIdentity(Identity $identity, $ttl = null);
 
-    //! Get the current session identity
     /**
-     * @return 
+     * @brief Get the current session identity
+     * @return \toolib\Authn\Identity
      *  - @b Authn_Identity object if one is signed on.
      *  - @b false If no identity online.
      */
     public function getIdentity();
 
-    //! Clear any identity from this session
+    /**
+     * @brief Clear any identity from this session
+     */
     public function clearIdentity();
 }

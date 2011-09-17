@@ -20,32 +20,45 @@
  */
 
 
+/**
+ * @brief Database support package.
+ */
 namespace toolib\Authn\DB;
 
 require_once __DIR__ . '/../Backend.class.php';
 require_once __DIR__ . '/Identity.class.php';
 
-//! Implementation for database backend
 /**
- * Authentication based on DB_Record implementation.
+ * @brief Implementation for database backend
+ * 
+ * Authentication based on \toolib\DB package.
  * The database models must first be declared before using this class.
  */
 class Backend implements \toolib\Authn\Backend
 {
-    //! The normalized options of this instance.
+    /**
+     * @brief The normalized options of this instance.
+     * @var array
+     */
     private $options = array();
 
-    //! The model query object that will be used for authentication.
+    /**
+     * @brief The model query object that will be used for authentication.
+     * @var array
+     */
     private $model_query = array();
 
-    //! Get the options of this instance.
+    /**
+     * @brief Get the options of this instance.
+     * @return array
+     */
     public function getOptions()
     {
         return $this->options;
     }
 
-    //! Create an instance of this backend
     /**
+     * @brief Create an instance of this backend
      * @param $options An associative array of options.
      *  - @b query_user [@b *] A DB_RecordModelQuery prepared to select records based on username.
      *  - @b field_username [@b *] The field that is the username.
@@ -88,8 +101,8 @@ class Backend implements \toolib\Authn\Backend
         return new Identity($records[0]->{$this->options['field_username']}, $this, $records[0]);
     }
 
-    //! Reset the password of an identity
     /**
+     * @brief Reset the password of an identity
      * @param $id The username of the identity.
      * @param $new_password The new effective password of identity after reset.
      * @return

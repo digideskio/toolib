@@ -24,7 +24,9 @@ namespace toolib\Authn\DB;
 
 require_once __DIR__ . '/../Identity.class.php';
 
-//! Implementation of Authn_Identity for Authn_Backend_DB .
+/**
+ * @brief Implementation of identity for \\toolib\\Authn\\DB\\Backend.
+ */
 class Identity implements \toolib\Authn\Identity
 {
     private $record;
@@ -33,8 +35,8 @@ class Identity implements \toolib\Authn\Identity
 
     private $authority;
 
-    //! The object is constructed by \toolib\Authn\DB\Backend
     /**
+     * @brief The object is constructed by \toolib\Authn\DB\Backend
      * @param $id The unique id of this identity.
      * @param $authority The Authn_Backend_DB that created this identity.
      * @param $record The database record of this user.
@@ -51,8 +53,8 @@ class Identity implements \toolib\Authn\Identity
         return $this->id;
     }
 
-    //! Reset password of this identity
     /**
+     * @brief Reset password of this identity
      * @param $password The new password to be set for this identity
      * @return
      *  - @b true If the password was changed succesfully.
@@ -63,8 +65,11 @@ class Identity implements \toolib\Authn\Identity
         return $this->authority->resetPassword($this->id(), $password);
     }
     
-    //! Get the database record of this user
-    public function get_record()
+    /**
+     * @brief Get the database record of this user
+     * @return \toolib\DB\Record
+     */
+    public function getRecord()
     {
         return $this->record;
     }

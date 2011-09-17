@@ -19,32 +19,44 @@
  *  
  */
 
-
-namespace toolib\Authn\Backend;
+/**
+ * @brief Ldap support package.
+ */
+namespace toolib\Authn\Ldap;
+use toolib\Authn\Ldap\Identity;
 
 require_once __DIR__ . '/../Backend.class.php';
-require_once __DIR__ . '/../Identity/LDAP.class.php';
+require_once __DIR__ . '/Identity.class.php';
 
-class LDAP implements Backend
+/**
+ * @brief Implementation for Ldap backend 
+ */
+class Backend implements \toolib\Authn\Backend
 {
-    //! The normalized options of this instance.
+    /**
+     * @brief The normalized options of this instance.
+     * @var array
+     */
     private $options = array();
 
-    //! Get the options of this instance.
+    /**
+     * @brief Get the options of this instance.
+     */
     public function getOptions()
     {
         return $this->options;
     }
 
-    //! Create an instance of ldap backend
     /**
+     * @brief Create an instance of ldap backend
      * @param $options An associative array of options.
-     *  - @b url [@b *] The url to connect on server.
-     *  - @b baseDN [@b *] The baseDN to search for users.
-     *  - @b id_attribute [Default: userprincipalname] The attribute of user object that represents its unique id.
-     *  - @b force_protocol_version [Default: null] Force a specfic version of communication protocol.
-     *  - @b default_domain [Default: null] A domain to be postfixed in username before validating username.
-     *  [@b *] mandatory field.
+     * - @b url [@b *] The url to connect on server.
+     * - @b baseDN [@b *] The baseDN to search for users.
+     * - @b id_attribute [Default: userprincipalname] The attribute of user object that represents its unique id.
+     * - @b force_protocol_version [Default: null] Force a specfic version of communication protocol.
+     * - @b default_domain [Default: null] A domain to be postfixed in username before validating username.
+     * [@b *] mandatory field.
+     * .
      * @throws InvalidArgumentException If one of the mandatory fields is missing.
      */
     public function __construct($options = array())
@@ -52,7 +64,7 @@ class LDAP implements Backend
         if (! isset(
             $options['url'],
             $options['baseDN'])
-        )   throw new InvalidArgumentException('Missing mandatory options for Authn_Backend_LDAP!');
+        )   throw new \InvalidArgumentException('Missing mandatory options for Authn_Backend_LDAP!');
 
         // Merge with default options and save
         $this->options = array_merge(array(
@@ -89,6 +101,6 @@ class LDAP implements Backend
         if ((!$users) || ($users['count'] != 1))
             return false;
 
-        return new Id\LDAP($users[0], $this->options['id_attribute']);
+        return new Identity($users[0], $this->options['id_attribute']);
     }
 }

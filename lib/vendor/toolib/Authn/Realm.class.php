@@ -27,56 +27,75 @@ require_once __DIR__ . '/Backend.class.php';
 require_once __DIR__ . '/Session.class.php';
 require_once __DIR__ . '/Session/Native.class.php';
 
-//! Static singleton authentication realm
+/**
+ * @brief Static singleton authentication realm
+ */
 class Realm
 {
-    //! The authentication backend that will be used
+    /**
+     *  The authentication backend that will be used
+     * @var \toolib\Authn\Backend
+     */
     static private $backend = null;
 
-    //! The session storage that will be used
+    /**
+     * @brief The session storage that will be used
+     * @var \toolib\Authn\Session
+     */
     static private $session = null;
 
-    //! The event dispatcher for events
+    /**
+     * The event dispatcher for events
+     * @var \toolib\EventDispatcher
+     */
     static private $event_dispatcher = null;
 
-    //! Set the authentication backend of the realm
     /**
+     * @brief Set the authentication backend of the realm
      * @param $backend Any valid Backend implementation.
      */
-    static public function setBackend(Backend $backend)
+    static public function setBackend(\toolib\Authn\Backend $backend)
     {   
         self::$backend = $backend;
     }
 
-    //! Get the current authentication backend.
+    /**
+     * @brief Get the current authentication backend.
+     * @return \toolib\Authn\Backend
+     */
     static public function getBackend()
     {   
         return self::$backend;
     }
 
-    //! Set the current session storage engine.
     /**
+     * @brief Set the current session storage engine.
      * @param $session Any valid Session implementation.
      */
-    static public function setSession(Session $session)
+    static public function setSession(\toolib\Authn\Session $session)
     {   
         self::$session = $session;
     }
 
-    //! Get the current storage session.
+    /**
+     * @brief Get the current storage session.
+     * @return \toolib\Authn\Session
+     */
     static public function getSession()
     {
         return self::$session;
     }
 
-    //! Get the EventDispatcher of Realm
     /**
+     * @brief The events of this object.
+     * 
 	 * Events are announced through an EventDispatcher object. The following
 	 * events are valid:
 	 *  - @b auth.successful: A successful authentication took place.
 	 *  - @b auth.error: An identity authentatication failed.
 	 *  - @b ident.clear: The current authenticated identity was cleared.
 	 * .
+	 * @return \toolib\EventDispatcher
      */
     static public function events()
     {
@@ -89,9 +108,9 @@ class Realm
         return self::$event_dispatcher;
     }
 
-    //! Check if it has an authenticated identity
     /**
-     * @return
+     * @brief Check if it has an authenticated identity
+     * @return boolean
      *  - @b true if there is an authenticated identity on this realm.
      *  - @b false if the current user is anonymous.
      */
@@ -100,18 +119,21 @@ class Realm
         return (self::$session->getIdentity() != false);
     }
 
-    //! Get current authenticated identity
     /**
+     * @brief Get current authenticated identity
      * @return
      *  - @b Identity object of the authenticated identity.
      *  - @b false If there is no authenticated identity.
+     *  @return \toolib\Authn\Identity
      */
     static public function getIdentity()
     {   
         return self::$session->getIdentity();
     }
 
-    //! Clear current authenticated identity
+    /**
+     * @brief Clear current authenticated identity
+     */
     static public function clearIdentity()
     {
         $identity = self::hasIdentity();
@@ -123,8 +145,8 @@ class Realm
         return self::$session->clearIdentity();
     }
 
-    //! Authenticate a (new) identity on this realm
     /**
+     * @brief Authenticate a (new) identity on this realm
      * @param $username The username of the identity
      * @param $password The password of identity
      * @param $ttl

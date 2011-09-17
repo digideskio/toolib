@@ -21,14 +21,16 @@
 
 namespace toolib\Authn;
 
-//! Interface of authentication backend.
+/**
+ * @brief Interface of authentication backend.
+ */
 interface Backend
 {
-    //! Authenticate a user on this authority
     /**
+     * @brief Authenticate a user on this authority
      * @param $username The username of credentials.
      * @param $password The password of credentials.
-     * @return 
+     * @return \toolib\Authn\Identity
      *  - @b false If the authentication failed.
      *  - @b Authn_Identity object with the authenticated user.
      */
