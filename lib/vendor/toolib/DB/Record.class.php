@@ -220,7 +220,7 @@ class Record
 	 * @param $called_class This parameter must be @b ALWAYS NULL. It would be better
 	 * 	if you never used it all, as it is a reserved one for internal use to simulate
 	 * 	"Late static binding" on PHP version earlier than PHP5.3
-	 * @return 
+	 * @return  \toolib\DB\Record
 	 * 	- @b NULL If the record could not be found.
 	 * 	- A Record derived class instance specialized for this record.
 	 * 	.
@@ -336,7 +336,6 @@ class Record
 		return $res[0][0];
 	}	
 	
-	//! Create a new record in database of this model
 	/**
 	 * Insert a new record in database and get the reference objetc.
 	 * @param $args Associative array with new records parameters. Key is the
@@ -557,7 +556,7 @@ class Record
 			->limit(1);
 		
 		// Add Where clause based on primary keys
-		foreach($this->key(true) as $pk => $value) {
+		foreach($this->getKeyValues(true) as $pk => $value) {
 			$q->where("{$pk} = ?");
 			$delete_args[] = $value;
 		}
@@ -576,22 +575,28 @@ class Record
 		return true;
 	}
 
-	//! Get the key of this record
-	public function key($assoc = false)
+	/**
+	 * Get the key values of this record
+	 */
+	public function getKeyValues()
 	{	
-		$values = array();
-
-		if ($assoc)
-			foreach($this->model->getPkFields() as $pk)
-				$values[$pk] = $this->fields_data[$pk];
-		else
-			foreach($this->model->getPkFields() as $pk)
-				$values[] = $this->fields_data[$pk];
-		return $values;
+		return array_intersect_key(
+			$this->fields_data, 
+			$this->model->getPkFields(true));
 	}
 	
-	//! Get the value of a field
 	/**
+	 * Get all the field data to an array.
+	 * @return array Associative array with all data.
+	 */
+	public function getArray()
+	{
+		return $this->fields_data;
+	}
+	
+	/**
+	 * Get the value of a field.
+	 * 
 	 * It will return data of any field that you request. Data will be 
 	 * converted from sql format to user format before returned. This means
 	 * that fields of type "datetime" will be converted to php native DateTime object,
@@ -630,20 +635,20 @@ class Record
 				);
 			}
 			if ($rel['type'] === 'many') {	
-				$pks = $this->key();
+				$pk = current($this->getKeyValues());
 				return new Record\RelationshipMany(
 			        $this->model,
 					$rel['foreign_model'],
-					$pks[0]);
+					$pk);
 			}
 
 			if ($rel['type'] === 'bridge') { 
-				$pks = $this->key();
+				$pk = current($this->getKeyValues());
 			    return new Record\RelationshipBridge(
 			        $this->model,
 			        $rel['bridge_model'],
 			        $rel['foreign_model'],
-			        $pks[0]
+			        $pk
 			    );
 			}
 			
@@ -657,7 +662,9 @@ class Record
 			" on line {$trace[0]['line']}");
 	}
 	
-	//! Set the value of a field
+	/**
+	 * Set the value of a field
+	 */
 	public function __set($name, $value)
 	{
 		if ($this->model->hasField($name)) {
@@ -716,13 +723,18 @@ class Record
 		return false;
     }
 	
-	//! Serialization implementation
+	
+	/**
+	 * Serialization implementation	
+	 */
 	public function __sleep()
 	{
 	    return array('fields_data', 'dirty_fields');
 	}
 	
-	//! Unserilization implementation
+	/**
+	 * Unserilization implementation
+	 */
 	public function __wakeup()
 	{	
 		// Initialize static

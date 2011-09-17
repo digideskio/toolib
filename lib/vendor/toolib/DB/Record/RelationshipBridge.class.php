@@ -22,17 +22,24 @@
 namespace toolib\DB\Record;
 use toolib\DB\Record;
 
-//! Object handling collection from N-to-M relationship
 /**
+ * Object handling collection from N-to-M relationship.
+ * 
  * This object is constructed when requesting a relationship from a DB_Record.
  * Check DB_Record for more information on how to construct it.
  */
 class RelationshipBridge
 {
-    //! Relationship options
+    /**
+     * Relationship options
+     * @var array
+     */
     private $rel_params;
 
-    //! Query object
+    /**
+     * Query object
+     * @var \toolib\DB\ModelQuery
+     */
     private $query;
     
     //! Construct relationship
@@ -64,22 +71,29 @@ class RelationshipBridge
         $this->rel_params = $rel;
     }
 
-    public function add($record)
+    /**
+     * @param \toolib\DB\Record $record
+     * @return \toolib\DB\Record
+     */
+    public function add(\toolib\DB\Record $record)
     {   
-    	$keys = $record->key();
+    	$keys = $record->getKeyValues();
         $params = array(
             $this->rel_params['bridge2local_field'] => $this->rel_params['local_bridge_value'],
-            $this->rel_params['bridge2foreign_field'] => $keys[0]
+            $this->rel_params['bridge2foreign_field'] => current($keys)
         );
         return Record::create($params, $this->rel_params['bridge_model_name']);
     }
 
-    public function remove($record)
+    /**
+     * @param \toolib\DB\Record $record The record to remove from bridge table
+     */
+    public function remove(\toolib\DB\Record $record)
     {   
-    	$keys = $record->key();
+    	$keys = $record->getKeyValues();
         $params = array(
             $this->rel_params['bridge2local_field'] => $this->rel_params['local_bridge_value'],
-            $this->rel_params['bridge2foreign_field'] => $keys[0]
+            $this->rel_params['bridge2foreign_field'] => current($keys)
         );
         if (($bridge_record = Record::open($params, $this->rel_params['bridge_model_name'])) === FALSE)
             return false;
@@ -87,13 +101,19 @@ class RelationshipBridge
         return $bridge_record->delete();
     }
 
-	//! Get all records of this relationship
+	/**
+	 * Get all records of this relationship
+	 * @return array of \toolib\DB\Record
+	 */ 
 	public function all()
 	{	
 		return $this->query->execute();
 	}
 
-    //! Perform a subquery on this relationship
+    /**
+	 * Perform a subquery on this relationship
+	 * @return \toolib\DB\ModelQuery
+	 */ 
 	public function subquery()
 	{
 		return $this->query;

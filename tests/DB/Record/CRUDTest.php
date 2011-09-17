@@ -65,7 +65,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($e->type, $type);
 		$this->assertEquals($e->name, $name);
 		if ($check_last)
-		$this->assertEquals(0, count(self::$events));
+			$this->assertEquals(0, count(self::$events));
 		return $e;
 	}
 
@@ -89,6 +89,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		// Open existing user
 		$u = User::open('admin');
 		$this->assertType('User', $u);
+		$this->assertEquals(array('username'=> 'admin'), $u->getKeyValues());
 
 		// Open FALSE record with two-field primary key
 		$m = Group_members::open('wrong');
@@ -97,6 +98,51 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		// Open record with two-field primary key
 		$m = Group_members::open(array('username' => 'user1', 'groupname' => 'group1'));
 		$this->assertType('Group_Members', $m);
+		$this->assertEquals(array('username'=> 'user1', 'groupname' => 'group1'), $m->getKeyValues());		
+	}
+	
+	public function testGetKeyValues()
+	{
+		// Open existing user
+		$u = User::open('admin');
+		$this->assertType('User', $u);
+		$this->assertEquals(array('username'=> 'admin'), $u->getKeyValues());
+
+		// Change it a bit
+		$u->username = 'new';
+		$u->enabled = 0;
+		$this->assertEquals(array('username'=> 'new'), $u->getKeyValues());
+		
+		// Open record with two-field primary key
+		$m = Group_members::open(array('username' => 'user1', 'groupname' => 'group1'));
+		$this->assertType('Group_Members', $m);
+		$this->assertEquals(array('username'=> 'user1', 'groupname' => 'group1'), $m->getKeyValues());		
+
+		// Change it a bit
+		$m->username = 'user2';
+		$this->assertEquals(array('username'=> 'user2', 'groupname' => 'group1'), $m->getKeyValues());
+	}
+	
+	public function testGetArray()
+	{
+		// Open existing user
+		$u = User::open('admin');
+		$this->assertType('User', $u);
+		$this->assertEquals(array('username'=> 'admin', 'password' => null, 'enabled' => 1), $u->getArray());
+
+		// Change it a bit
+		$u->username = 'new';
+		$u->enabled = 0;
+		$this->assertEquals(array('username'=> 'new', 'password' => null, 'enabled' => 0), $u->getArray());
+		
+		// Open record with two-field primary key
+		$m = Group_members::open(array('username' => 'user1', 'groupname' => 'group1'));
+		$this->assertType('Group_Members', $m);
+		$this->assertEquals(array('username'=> 'user1', 'groupname' => 'group1'), $m->getArray());
+		
+		// Change it a bit
+		$m->username = 'user2';
+		$this->assertEquals(array('username'=> 'user2', 'groupname' => 'group1'), $m->getArray());
 	}
 
 	public function testOpenAll()
@@ -106,69 +152,68 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 7);
 		foreach($users as $u)
-		$this->assertType('User', $u);
+			$this->assertType('User', $u);
 
 		// Open all with multi primary-key
 		$gms = Group_Members::openAll();
 		$this->assertType('array', $gms);
 		$this->assertEquals(count($gms), 8);
 		foreach($gms as $gm)
-		$this->assertType('Group_Members', $gm);
+			$this->assertType('Group_Members', $gm);
 	}
 
 	public function testOpenQuery()
 	{
 		// Open query with single primary-key
 		$mq = User::openQuery()
-		->limit(4);
+			->limit(4);
 		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute();
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 4);
 		foreach($users as $u)
-		$this->assertType('User', $u);
+			$this->assertType('User', $u);
 
 		// Open all with multi primary-key
 		$mq = Group_Members::openQuery()
-		->limit(3);
+			->limit(3);
 		$gms = $mq->execute();
 		$this->assertType('array', $gms);
 		$this->assertEquals(count($gms), 3);
 		foreach($gms as $gm)
-		$this->assertType('Group_Members', $gm);
+			$this->assertType('Group_Members', $gm);
 
 		// Open query with parameters on single pk
 		$mq = User::openQuery()
-		->where('username like ?');
+			->where('username like ?');
 		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute('user%');
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 6);
 		foreach($users as $u)
-		$this->assertType('User', $u);
+			$this->assertType('User', $u);
 
 		// Open query with parameters on multi pk
 		$mq = Group_Members::openQuery()
-		->where('username like ?');
+			->where('username like ?');
 		$gms = $mq->execute('user%');
 		$this->assertType('array', $gms);
 		$this->assertEquals(count($gms), 8);
 		foreach($gms as $gm)
-		$this->assertType('Group_Members', $gm);
+			$this->assertType('Group_Members', $gm);
 	}
 
 	public function testOpenRawQuery()
 	{
 		// Raw query with single primary-key
 		$mq = User::rawQuery()
-		->select(User::getModel()->getFields())
-		->limit(4);
+			->select(User::getModel()->getFields())
+			->limit(4);
 		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute();
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 4);
-		foreach($users as $u)
-		{
+		foreach($users as $u) {
 			$this->assertType('array', $u);
 			$this->assertEquals($u['enabled'], '1');
 		}
@@ -180,8 +225,7 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$gms = $mq->execute();
 		$this->assertType('array', $gms);
 		$this->assertEquals(count($gms), 3);
-		foreach($gms as $gm)
-		{
+		foreach($gms as $gm) {
 			$this->assertType('array', $gm);
 			$this->assertType('string', $gm['username']);
 			$this->assertType('string', $gm['groupname']);
@@ -190,27 +234,25 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 
 		// Open query with parameters on single pk
 		$mq = User::rawQuery()
-		->select(User::getModel()->getFields())
-		->where('username like ?');
+			->select(User::getModel()->getFields())
+			->where('username like ?');
 		$this->assertType('toolib\DB\ModelQuery',  $mq);
 		$users = $mq->execute('user%');
 		$this->assertType('array', $users);
 		$this->assertEquals(count($users), 6);
-		foreach($users as $u)
-		{
+		foreach($users as $u) {
 			$this->assertType('array', $u);
 			$this->assertEquals($u['enabled'], '1');
 		}
 
 		// Open query with parameters on multi pk
 		$mq = Group_Members::rawQuery()
-		->select(Group_Members::getModel()->getFields())
-		->where('username like ?');
+			->select(Group_Members::getModel()->getFields())
+			->where('username like ?');
 		$gms = $mq->execute('user%');
 		$this->assertType('array', $gms);
 		$this->assertEquals(count($gms), 8);
-		foreach($gms as $gm)
-		{
+		foreach($gms as $gm) {
 			$this->assertType('array', $gm);
 			$this->assertType('string', $gm['username']);
 			$this->assertType('string', $gm['groupname']);

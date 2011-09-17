@@ -22,18 +22,25 @@
 namespace toolib\DB\Record;
 use toolib\DB\Record;
 
-//! Object handling collection from 1-to-M relationship
 /**
+ * Object handling collection from 1-to-M relationship.
+ * 
  * This object is constructed when requesting a relationship from a DB_Record.
  * Check DBRecord for more information on how to construct it.
  */
 class RelationshipMany
 {
-	//! The constructed query
-	private $query;
+    /**
+     * Relationship options
+     * @var array
+     */
+    private $rel_params;
 
-    //! Relationship info
-    private $rel_params = array();
+    /**
+     * Query object
+     * @var \toolib\DB\ModelQuery
+     */
+    private $query;
     
     //! Construct relationship handler
 	public function __construct($local_model, $foreign_model_name, $field_value)
@@ -51,25 +58,34 @@ class RelationshipMany
 			->pushExecParam($field_value);
 	}
 
-	//! Get all records of this relationship
+	/**
+	 * Get all records of this relationship
+	 * @return array of \toolib\DB\Record
+	 */ 
 	public function all()
 	{	
 		return $this->query->execute();
 	}
 
-	//! Perform a subquery on this relationship
+    /**
+	 * Perform a subquery on this relationship
+	 * @return \toolib\DB\ModelQuery
+	 */ 
 	public function subquery()
 	{
 		return $this->query;
 	}
 
-	//! Get one only member with a specific primary key
+	/**
+	 * Get one only member with a specific primary key
+	 * @param mixed $primary_key String of primary key value, or array of values
+	 */
 	public function get($primary_key)
 	{
 		$pks = $this->rel_params['foreign_model']->getPkFields();
 	    $res = $this->subquery()->where("{$pks[0]} = ?")->execute($primary_key);
 	    if (count($res) > 0)
 	        return $res[0];
-	    return NULL;
+	    return null;
     }
 }
