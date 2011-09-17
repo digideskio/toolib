@@ -43,7 +43,7 @@ abstract class Condition
 	public static function register()
 	{	
 	    $called_class = get_called_class();	
-		self::$evaluators[eval("return $called_class::type();")] = $called_class;
+		self::$evaluators[$called_class::type()] = $called_class;
 	}
 
 	//! Called to create a condition object based on parameters
