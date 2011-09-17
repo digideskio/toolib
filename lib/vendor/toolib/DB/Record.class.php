@@ -56,25 +56,20 @@ class Record
 		if (($md = Model::open($model_name)) !== null)
 			return $md;
 
-		$fields = $model_name::$fields;
-		$table = property_exists($model_name, 'table')?$model_name::$table:
-		    $model_name::getTable();
+		$fields = property_exists($model_name, 'fields')?$model_name::$fields:array();
+		$table = property_exists($model_name, 'table')?$model_name::$table:$model_name;
 		$rels = isset($model_name::$relationships)
 			?$model_name::$relationships
 			:array();
 
 		if (isset(self::$dynamic_relationships[$model_name]))
 		    $rels = array_merge($rels, self::$dynamic_relationships[$model_name]);
-					
-		// Check if fields are defined
-		if (!is_array($fields))
-			throw new \InvalidArgumentException('Record::$fields is not defined in derived class');
 
-		// Check if table is defined
-		if (!is_string($table))
-			throw new \InvalidArgumentException('Record::$table is not defined in derived class');
-		
-		return Model::create($model_name, $table, $fields, $rels);
+		$model = Model::create($model_name, $table, $fields, $rels);
+		if (method_exists($model_name, 'configure')) {
+			$model_name::configure($model);
+		}
+		return $model;
 	}
 	 
 	/**
@@ -266,8 +261,7 @@ class Record
 		// Execute query and check return value
 		$q = self::openQuery($model_name);
 		$select_args = array();
-		foreach($pkFields as $pk_name)
-		{
+		foreach($pkFields as $pk_name) {
 			$q->where('? = p.' .$pk_name);
 			$select_args[] = $primary_keys[$pk_name];
 		}

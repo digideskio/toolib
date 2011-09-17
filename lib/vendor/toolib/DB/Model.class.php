@@ -132,7 +132,10 @@ class Model
 	 */
 	private $meta_data = null;
 		
-	//! Create a Model object
+	/**
+	 * Create a Model object
+	 * 
+	 */ 
 	final private function __construct($model_name, $table, $fields, $relationships)
 	{
 		// Initialize meta information
@@ -147,22 +150,16 @@ class Model
 			'fk' => array()
 		);
 		
-		// Insert all pre-set fields
-		foreach($fields as $name => $options) {				
-		    // Check if it was given as number entry or associative entry
-			if (is_numeric($name) && is_string($options))
-				$this->addField($options, array());
-			else 
-				$this->addField($name, $options);
-		}
+		$this->addFields($fields);
 	}
 	
 	/**
 	 * Add dynamically a new field on this model
 	 * @param string $name The name of the field
 	 * @param array $options Options of field
+	 * @return \toolib\DB\Model The same object ($this).
 	 */
-	public function addField($name, $options)
+	public function addField($name, $options = array())
 	{
 		// Setup default values of fields
 		$normalized_options = array_merge(array(
@@ -192,6 +189,25 @@ class Model
 		
 		$this->meta_data['fields'][$name] = $normalized_options;
 		$this->meta_data['field_names'][] = $name;
+		return $this;
+	}
+	
+	/**
+	 * Add multiple fields from an array
+	 * @param array $fields To add options on a field
+	 *  put the name of field on the key of record and an array
+	 *  of options on the value of record.
+	 */
+	public function addFields($fields)
+	{
+		// Insert all pre-set fields
+		foreach($fields as $name => $options) {				
+		    // Check if it was given as number entry or associative entry
+			if (is_numeric($name) && is_string($options))
+				$this->addField($options, array());
+			else 
+				$this->addField($name, $options);
+		}
 	}
 
 	/**
@@ -210,6 +226,15 @@ class Model
 	public function getTable()
 	{
 	    return $this->meta_data['table'];
+    }
+    
+	/**
+	 * Set the table name associated with this model
+	 * @return string
+	 */
+	public function setTable($table)
+	{
+	    $this->meta_data['table'] = $table;
     }
 	
 	/**

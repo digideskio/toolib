@@ -38,24 +38,32 @@ class Thread extends Record
 
     static public $fields = array(
         'id' => array('sqlfield' => 'thread_id', 'pk' => true, 'ai' => true),
-        'forum_id' => array('fk' => 'Forum'),
+    	'forum_id' => array('fk' => 'Forum'),
         'title',
         'datetime' => array('type' => 'datetime')
     );
+    
+    // Partially dynamic
+    static public function configure(\toolib\DB\Model $model) {
+    	$model->setTable('threads');    	
+    	$model->addField('datetime', array('type' => 'datetime'));
+    }
 }
 
 class Post extends Record
 {
-    static public $table = 'posts';
-
-    static public $fields = array(
-        'id' => array('pk' => true, 'ai' => true),
-        'thread_id' => array('fk' => 'Thread'),
-        'post' => array('sqlfield' => 'posted_text'),
-        'image' => array('type' => 'serialized'),
-        'poster',
-        'date' => array('type' => 'datetime')
-    );
+    // Full dynamic
+    static public function configure(\toolib\DB\Model $model)
+    {
+    	$model->setTable('posts');
+    	
+    	$model->addField('id', array('pk' => true, 'ai' => true))
+        	->addField('thread_id', array('fk' => 'Thread'))
+        	->addField('post', array('sqlfield' => 'posted_text'))
+        	->addField('image', array('type' => 'serialized'))
+        	->addField('poster')
+        	->addField('date', array('type' => 'datetime'));
+    }
 }
 
 class User extends Record

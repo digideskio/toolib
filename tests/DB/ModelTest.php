@@ -148,7 +148,8 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($m->getTable(), $table);
 
         // Check class information
-        $this->assertEquals($table, $model_name::$table);
+        if (property_exists($model_name, 'table'))
+        	$this->assertEquals($table, $model_name::$table);
     }
 
     //! Check model field information
