@@ -16,7 +16,7 @@ class Options extends \ArrayObject
 	 * @param mixed $values Directly assigned options on this container, or another Options.
 	 * @param array $default Default values for unset keys.
 	 * @param array $mandatory An array with the names of values that are mandatatory.
-	 * @throws RuntimeException If a mandatory field was not set.
+	 * @throws InvalidArgumentException If a mandatory field was not set.
 	 */
 	public function __construct($values, $default = array(), $mandatory = array())
 	{		
@@ -27,7 +27,7 @@ class Options extends \ArrayObject
 	 * @brief Function to check for mandatory and create the array merging result
 	 * @see __construct()
 	 * @return array With the calculate result
-	 * @throws RuntimeException
+	 * @throws InvalidArgumentException
 	 */
 	private function calculateValues($values, $default, $mandatory)
 	{
@@ -39,7 +39,7 @@ class Options extends \ArrayObject
 		if (count($mandatory)) {
 			$missing = array_diff($mandatory, array_keys($nvalues));
 			if (count($missing) > 0)
-				throw new \RuntimeException("Missing mandatory options from Options object.");
+				throw new \InvalidArgumentException("Missing mandatory options from Options object.");
     	}
     	return $nvalues;
 	}

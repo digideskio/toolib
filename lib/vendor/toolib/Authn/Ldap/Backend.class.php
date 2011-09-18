@@ -35,12 +35,13 @@ class Backend implements \toolib\Authn\Backend
 {
     /**
      * @brief The normalized options of this instance.
-     * @var array
+     * @var \toolib\Options
      */
     private $options = array();
 
     /**
      * @brief Get the options of this instance.
+     * @return \toolib\Options
      */
     public function getOptions()
     {
@@ -61,19 +62,16 @@ class Backend implements \toolib\Authn\Backend
      */
     public function __construct($options = array())
     {
-        if (! isset(
-            $options['url'],
-            $options['baseDN'])
-        )   throw new \InvalidArgumentException('Missing mandatory options for Authn_Backend_LDAP!');
-
-        // Merge with default options and save
-        $this->options = array_merge(array(
-            'username' => false,
-            'password' => false,
-            'id_attribute' => 'userprincipalname',
-            'force_protocol_version' => null,
-            'default_domain' => null),
-        $options);
+    	$this->options = new \toolib\Options(
+    		$options,
+    		array(
+	            'username' => false,
+	            'password' => false,
+	            'id_attribute' => 'userprincipalname',
+	            'force_protocol_version' => null,
+	            'default_domain' => null),
+    		array($options['url'], $options['baseDN'])
+    	);
     }
 
     public function authenticate($username, $password)

@@ -24,10 +24,15 @@ use toolib\Authn\Identity;
 
 require_once __DIR__ . '/../Session.class.php';
 
-//! Track identity inside the instance of this object
+/**
+ * @brief Track identity inside the instance of this object
+ */
 class Instance implements \toolib\Authn\Session
 {
-    //! The session identity
+    /**
+     * @brief The session identity
+     * @var \toolib\Authn\Identity
+     */
     private $online_identity;
     
     public function __construct()

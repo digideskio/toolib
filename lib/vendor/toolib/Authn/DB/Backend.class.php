@@ -38,9 +38,9 @@ class Backend implements \toolib\Authn\Backend
 {
     /**
      * @brief The normalized options of this instance.
-     * @var array
+     * @var \toolib\Options
      */
-    private $options = array();
+    private $options;
 
     /**
      * @brief The model query object that will be used for authentication.
@@ -50,7 +50,7 @@ class Backend implements \toolib\Authn\Backend
 
     /**
      * @brief Get the options of this instance.
-     * @return array
+     * @return \toolib\Options
      */
     public function getOptions()
     {
@@ -70,16 +70,11 @@ class Backend implements \toolib\Authn\Backend
      */
     public function __construct($options = array())
     {
-        if (! isset(
-            $options['query_user'],
-            $options['field_username'],
-            $options['field_password'])
-        )   throw new \InvalidArgumentException('Missing mandatory options for Authn_DB_Backend!');
-        
-        // Merge with default options and save
-        $this->options = array_merge(array(
-            'hash_function' => NULL),
-            $options);
+    	$this->options = new \toolib\Options(
+    		$options,
+    		array('hash_function' => null),
+    		array('query_user', 'field_username', 'field_password')
+    	);
     }
     
     public function authenticate($username, $password)
@@ -118,7 +113,7 @@ class Backend implements \toolib\Authn\Backend
         $user = $records[0];
 
         // Hash-salt function
-        if ($this->options['hash_function'] !== NULL)
+        if ($this->options['hash_function'] !== null)
             $new_password = call_user_func($this->options['hash_function'], $new_password, $user);
 
         $user->{$this->options['field_password']} = $new_password;

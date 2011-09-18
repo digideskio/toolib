@@ -25,14 +25,19 @@ use toolib\Authn\Identity;
 
 require_once __DIR__ . '/../Session.class.php';
 
-//! Use native php sessions to track identity
+/**
+ * @brief Use native php sessions to track identity
+ */
 class Native implements \toolib\Authn\Session
 {
-    //! The index to use in $_SESSION array for storing identity.
+    /**
+     * @brief The index to use in $_SESSION array for storing identity.
+     * @var mixed
+     */
     private $session_index;
     
-    //! Construct a php native authentication session
     /**
+     * @brief Construct a php native authentication session
      * @param $session_index The index to use inside $_SESSION
      */
     public function __construct($session_index = 'PHPLIBS_AUTHN_SESSION')

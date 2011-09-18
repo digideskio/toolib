@@ -26,20 +26,31 @@ use toolib\Cache;
 
 require_once __DIR__ . '/../Session.class.php';
 
-//! Use a cache engine to store tracked identities
+/**
+ * @brief Use a cache engine to store tracked identities
+ */
 class Cache implements \toolib\Authn\Session
 {
-    //! Cache Engine
+    /**
+     * @brief Cache Engine
+     * @var \toolib\Cache
+     */
     private $cache;
 
-    //! Current session id
+    /**
+     * @brief Current session id
+     * @var string
+     */
     private $session_id = null;
 
-    //! The cookie that will be used to save id.
+    /**
+     * @brief The cookie that will be used to save id.
+     * @var unknown_type
+     */
     private $cookie;
 
-    //! Cache storage constructor
     /**
+     * @brief Cache storage constructor
      * @param $cache The cache engine that will be used.
      * @param $cookie Cookie to be used for saving identity.
      *  All the parameters of cookie will be used except of value which will

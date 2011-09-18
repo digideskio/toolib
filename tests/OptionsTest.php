@@ -176,7 +176,7 @@ class OptionsTest extends PHPUnit_Framework_TestCase
 	}
 	
 	/**
-	 * @expectedException RuntimeException
+	 * @expectedException InvalidArgumentException
 	 */
 	public function testCreateMandatoryException()
 	{
