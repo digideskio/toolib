@@ -20,9 +20,8 @@
  */
 
 
-use toolib\Authz;
+use toolib\Authz as AZ;
 use toolib\Authz\ResourceList;
-use toolib\Authz\Role\FeederInstance;
 use toolib\Stupid\Condition;
 
 require_once __DIR__ .  '/../path.inc.php';
@@ -32,7 +31,7 @@ class Stupid_AuthzTest extends PHPUnit_Framework_TestCase
 
     public function prepareAuthz()
     {
-        $roles = new FeederInstance();
+        $roles = new AZ\Instance\RoleFeeder();
         $roles->addRole('@game');
         $roles->addRole('@video');
         $roles->addRole('@user', array('@game', '@video'));
@@ -41,10 +40,10 @@ class Stupid_AuthzTest extends PHPUnit_Framework_TestCase
         $roles->addRole('@fs-admin');
         $roles->addRole('@logger');
         $roles->addRole('@admin', array('@user', '@web-admin', '@fs-admin'));
-        Authz::setRoleFeeder($roles);
+        AZ::setRoleFeeder($roles);
         
         $list = new ResourceList();
-        Authz::setResourceList($list);
+        AZ::setResourceList($list);
         $dir = $list->addResource('directory');
         $dir->getAcl()->allow(null, 'read');
         $dir->getAcl()->deny(null, 'write');
@@ -59,7 +58,7 @@ class Stupid_AuthzTest extends PHPUnit_Framework_TestCase
         $root->getAcl()->allow(null, 'list');
         
 
-        Authz::setResourceList($list);
+        AZ::setResourceList($list);
         
 
     }
@@ -67,18 +66,18 @@ class Stupid_AuthzTest extends PHPUnit_Framework_TestCase
     {   
         $this->prepareAuthz();
     
-        Authz::setCurrentRoleFunc(create_function('', 'return "unknown";'));
+        AZ::setCurrentRoleFunc(create_function('', 'return "unknown";'));
         $cond = Condition::create(array('type' =>'authz', 'resource' => 'file', 'action' => 'read'));
         $this->assertTrue($cond->evaluate(array()));
         
         $cond = Condition::create(array('type' =>'authz', 'resource' => 'file', 'action' => 'write'));
         $this->assertFalse($cond->evaluate(array()));
         
-        Authz::setCurrentRoleFunc(create_function('', 'return "admin";'));
+        AZ::setCurrentRoleFunc(create_function('', 'return "admin";'));
         $cond = Condition::create(array('type' =>'authz', 'resource' => 'file', 'action' => 'write'));
         $this->assertTrue($cond->evaluate(array()));
         
-        Authz::setCurrentRoleFunc(create_function('', 'return "user";'));
+        AZ::setCurrentRoleFunc(create_function('', 'return "user";'));
         $cond = Condition::create(array('type' =>'authz', 'resource' => 'file', 'action' => 'execute'));
         $this->assertTrue($cond->evaluate(array()));
         
@@ -88,7 +87,7 @@ class Stupid_AuthzTest extends PHPUnit_Framework_TestCase
         $cond = Condition::create(array('type' =>'authz', 'resource' => 'directory', 'action' => 'list'));
         $this->assertTrue($cond->evaluate(array()));
         
-        Authz::setCurrentRoleFunc(create_function('', 'return "user-x";'));
+        AZ::setCurrentRoleFunc(create_function('', 'return "user-x";'));
         $cond = Condition::create(array('type' =>'authz', 'resource' => 'file', 'instance' => '/', 'action' => 'list'));
         $this->assertTrue($cond->evaluate(array()));
         
@@ -100,7 +99,7 @@ class Stupid_AuthzTest extends PHPUnit_Framework_TestCase
     {   
         $this->prepareAuthz();
     
-        Authz::setCurrentRoleFunc(create_function('', 'return "user-x";'));
+        AZ::setCurrentRoleFunc(function(){ return "user-x";});
         $cond = Condition::create(array('type' =>'authz', 'resource' => 'file', 'backref_instance' => 0, 'action' => 'list'));
         $this->assertTrue($cond->evaluate(array('/')));
         
@@ -115,7 +114,7 @@ class Stupid_AuthzTest extends PHPUnit_Framework_TestCase
     {   
         $this->prepareAuthz();
     
-        Authz::setCurrentRoleFunc(create_function('', 'return "user-x";'));
+        AZ::setCurrentRoleFunc(function(){ return "user-x";});
         $cond = Condition::create(array('type' =>'authz', 'backref_instance' => 0, 'action' => 'list'));
         $this->assertTrue($cond->evaluate(array('/')));
         
@@ -128,7 +127,7 @@ class Stupid_AuthzTest extends PHPUnit_Framework_TestCase
     {   
         $this->prepareAuthz();
     
-        Authz::setCurrentRoleFunc(create_function('', 'return "user-x";'));
+        AZ::setCurrentRoleFunc(function(){ return "user-x";});
         $cond = Condition::create(array('type' =>'authz', 'resource' => 'file',  'backref_instance' => 0,));
         $this->assertTrue($cond->evaluate(array('/')));
         

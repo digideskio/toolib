@@ -21,23 +21,28 @@
 
 namespace toolib\Authz;
 
-require_once __DIR__ . '/Role/Feeder.class.php';
+require_once __DIR__ . '/RoleFeeder.class.php';
 require_once __DIR__ . '/ResourceClass.class.php';
 
-//! A containers for resources
+/**
+ * @brief A containers for resources
+ */
 class ResourceList
 {
-    //! The array that hold all resource classes
+    /**
+     * @brief The array that hold all resource classes
+     * @var array
+     */
     private $resources = array();
     
-    //! Add a new resource class in container
     /**
+     * @brief Add a new resource class in container
      * @param $name The name of the new resource class.
      * @param $parent
      *  - The name of the parent of this new class.
      *  - @b null if this resource has no parent.
      *  .
-     * @return Authz_ResourceClass holding the new resource.
+     * @return \toolib\Authz\ResourceClass holding the new resource.
      * @throws \InvalidArgumentException If there is already a resource with this name.
      * @throws \InvalidArgumentException If the parent is unknwon.
      */
@@ -61,8 +66,8 @@ class ResourceList
         return $this->resources[$name];
     }
     
-    //! Remove a resource from this container
     /**
+     * @brief Remove a resource from this container
      * @param $name The name of the resource class to remove.
      * @return
      *  - @b true If the resource was removed succesfully.
@@ -85,13 +90,13 @@ class ResourceList
         return true;
     }
     
-    //! Get a resource class or instance from this container
     /**
+     * @brief Get a resource class or instance from this container
      * @param $name The name of the resource class.
      * @param $instance The id of the resource class instance.
-     * @return
-     *  - @b Authz_ResourceClass if you asked for resource without instance.
-     *  - @b Authz_Resource if you asked for resource instance.
+     * @return \toolib\Authz\ResourceClass
+     *  - @b \\toolib\\Authz\\ResourceClass if you asked for resource without instance.
+     *  - @b \\toolib\\Authz\\ResourceClass if you asked for resource instance.
      *  - @b false if it was not found.
      *  .
      */
@@ -106,8 +111,8 @@ class ResourceList
         return $this->resources[$name]->getInstance($instance);
     }
     
-    //! Check that there is a resource class in this container.
     /**
+     * @brief Check that there is a resource class in this container.
      * @param $name The name of the resource class.
      */
     public function hasResource($name)

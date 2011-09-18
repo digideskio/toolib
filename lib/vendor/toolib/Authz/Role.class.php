@@ -21,20 +21,25 @@
 
 namespace toolib\Authz;
 
-//! Interface to implement authorization roles
+/**
+ * @brief Interface to implement authorization roles
+ */
 interface Role
 {
-    //! Get the name of this role
+    /**
+     * @brief Get the name of this role
+     */
     public function getName();
 
-    //! Get an array with parents of this role
     /**
-     * Parents must also be implementations of Authz_Role interface.
+     * @brief Get an array with parents of this role.
+     * 
+     * Parents must also be implementations of Role interface.
      */
     public function getParents();
 
-    //! Check if this role has a specific parent 
     /**
+     * @brief Check if this role has a specific parent
      * @param $name The name of the parent to look for.
      * @return
      *  - @b true If the parent was found.
@@ -43,11 +48,11 @@ interface Role
      */
     public function hasParent($name);
 
-    //! Get a specific parent
     /**
+     * @brief Get a specific parent
      * @param $name The name of the parent to look for.
-     * @return
-     *  - @b Authz_Role The object of the parent
+     * @return \toolib\Authz\Role
+     *  - @b \\toolib\\Authz\\Role The object of the parent
      *  - @b false If this parent was not found.
      *  .
      */

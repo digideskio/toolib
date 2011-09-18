@@ -20,22 +20,21 @@
  */
 
 
-use toolib\Authz;
-use toolib\Authz\Role\Instance;
+use toolib\Authz\Instance\Role;
 
 require_once __DIR__ .  '/../path.inc.php';
 
-class Authz_RoleInstanceTest extends PHPUnit_Framework_TestCase
+class Authz_InstanceRoleTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $parent = new Instance('parent');
+        $parent = new Role('parent');
         $this->assertEquals($parent->getName(), 'parent');
         $this->assertEquals($parent->getParents(), array());
         $this->assertFalse($parent->hasParent('admin'));
         $this->assertFalse($parent->hasParent(null));
 
-        $child = new Instance('child', array($parent));
+        $child = new Role('child', array($parent));
         $this->assertEquals($child->getName(), 'child');
         $this->assertEquals($child->getParents(), array('parent' => $parent));
         $this->assertFalse($child->hasParent('admin'));
@@ -44,7 +43,7 @@ class Authz_RoleInstanceTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($child->hasParent('parent'));
         $this->assertEquals($child->getParent('parent'), $parent);
         
-        $mix = new Instance('mix', array($parent, $child) );
+        $mix = new Role('mix', array($parent, $child) );
         $this->assertEquals($mix->getName(), 'mix');
         $this->assertEquals($mix->getParents(), array('parent' => $parent, 'child' => $child));
         $this->assertFalse($mix->hasParent('mix'));

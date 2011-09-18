@@ -21,12 +21,12 @@
 
 
 use toolib\Authz;
-use toolib\Authz\Role\FeederDatabase;
+use \toolib\Authz\Database\RoleFeeder;
 
 require_once __DIR__ .  '/../path.inc.php';
 require_once __DIR__ .  '/SampleSchema.class.php';
 
-class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
+class Authz_DatabaseRoleFeederTest extends PHPUnit_Framework_TestCase
 {
 
     public static function setUpBeforeClass()
@@ -46,7 +46,7 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
      */
     public function testMandatoryOptions1()
     {
-        $list = new FeederDatabase(array(
+        $list = new RoleFeeder(array(
             'role_query' => Users::openQuery()->where('username = ?')
         ));
     }
@@ -56,14 +56,14 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
      */
     public function testMandatoryOptions2()
     {
-        $list = new FeederDatabase(array(
+        $list = new RoleFeeder(array(
             'role_name_field' => 'username'
         ));
     }
     
     public function testNoDependency()
     {
-        $list = new FeederDatabase(array(
+        $list = new RoleFeeder(array(
             'role_query' => Users::openQuery()->where('username = ?'),
             'role_name_field' => 'username'
         ));
@@ -84,9 +84,9 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
         
         $user1 = $list->getRole('user1');
         $user2 = $list->getRole('user2');
-        $this->assertType('toolib\Authz\Role\Database', $user1);
+        $this->assertType('toolib\Authz\Database\Role', $user1);
         $this->assertEquals($user1->getName(), 'user1');
-        $this->assertType('toolib\Authz\Role\Database', $user2);
+        $this->assertType('toolib\Authz\Database\Role', $user2);
         $this->assertEquals($user2->getName(), 'user2');
         
         $this->assertFalse($user1->hasParent('test'));
@@ -99,7 +99,7 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
         $users_query = Users::openQuery()->where('username = ?');
         $group_query = Membership::openQuery()->where('username = ?');
         
-        $list = new FeederDatabase(array(
+        $list = new RoleFeeder(array(
             'role_query' => $users_query,
             'role_name_field' => 'username',
             'parents_query' => $group_query,
@@ -121,11 +121,11 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
         $user1 = $list->getRole('user1');
         $user4 = $list->getRole('user4');
         $user5 = $list->getRole('user5');
-        $this->assertType('toolib\Authz\Role\Database', $user1);
+        $this->assertType('toolib\Authz\Database\Role', $user1);
         $this->assertEquals($user1->getName(), 'user1');
-        $this->assertType('toolib\Authz\Role\Database', $user5);
+        $this->assertType('toolib\Authz\Database\Role', $user5);
         $this->assertEquals($user5->getName(), 'user5');
-        $this->assertType('toolib\Authz\Role\Database', $user4);
+        $this->assertType('toolib\Authz\Database\Role', $user4);
         $this->assertEquals($user4->getName(), 'user4');
         
         $this->assertFalse($user1->hasParent('wrong'));
@@ -160,7 +160,7 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
         $users_query = Users::openQuery()->where('username = ?');
         $group_query = Membership::openQuery()->where('username = ?');
         
-        $list = new FeederDatabase(array(
+        $list = new RoleFeeder(array(
             'role_query' => $users_query,
             'role_name_field' => 'username',
             'parents_query' => $group_query,
@@ -184,11 +184,11 @@ class Authz_RoleFeederDatabaseTest extends PHPUnit_Framework_TestCase
         $user1 = $list->getRole('user1');
         $user4 = $list->getRole('user4');
         $user5 = $list->getRole('user5');
-        $this->assertType('toolib\Authz\Role\Database', $user1);
+        $this->assertType('toolib\Authz\Database\Role', $user1);
         $this->assertEquals($user1->getName(), 'user1');
-        $this->assertType('toolib\Authz\Role\Database', $user5);
+        $this->assertType('toolib\Authz\Database\Role', $user5);
         $this->assertEquals($user5->getName(), 'user5');
-        $this->assertType('toolib\Authz\Role\Database', $user4);
+        $this->assertType('toolib\Authz\Database\Role', $user4);
         $this->assertEquals($user4->getName(), 'user4');
         
         $this->assertFalse($user1->hasParent('wrong'));

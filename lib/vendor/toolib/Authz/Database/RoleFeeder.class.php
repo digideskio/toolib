@@ -20,20 +20,27 @@
  */
 
 
-namespace toolib\Authz\Role;
+/**
+ * @brief Database support package for authorization
+ */
+namespace toolib\Authz\Database;
 
-require_once __DIR__ . '/Feeder.class.php';
-require_once __DIR__ . '/Database.class.php';
+require_once __DIR__ . '/../RoleFeeder.class.php';
+require_once __DIR__ . '/Role.class.php';
 
-//! Implementation of Database Role Feeder
-class FeederDatabase implements Feeder
+/**
+ * @brief Implementation of Database Role Feeder
+ */
+class RoleFeeder implements \toolib\Authz\RoleFeeder
 {
-    //! Options of database connection
+    /**
+     * @brief  Options of database connection
+     * @var array
+     */
     protected $options;
     
-    
-    //! Construct database role feeder
     /**
+     * @brief Construct database role feeder
      * @param $options An associative array with options
      *  - @b role_query [@b Mandatory]: A DB_ModelQuery object for role querying
      *  - @b role_name_field [@b Mandatory]: The field that holds the role name.
@@ -51,7 +58,7 @@ class FeederDatabase implements Feeder
             'parents_query' => null,
             'parent_name_field' => null,
             'parent_name_filter_func' => null,
-            'role_class' => '\toolib\Authz\Role\Database'
+            'role_class' => '\toolib\Authz\Database\Role'
         );
 
         $this->options = array_merge($def_options, $options);
@@ -63,7 +70,9 @@ class FeederDatabase implements Feeder
             throw new \InvalidArgumentException('Missing mandatory option "role_name_field".');
     }
     
-    //! Get the options of this instance.
+    /**
+     * @brief Get the options of this instance.
+     */
     public function getOptions()
     {
         return $this->options;

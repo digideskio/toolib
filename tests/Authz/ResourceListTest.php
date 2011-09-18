@@ -29,7 +29,7 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
 {
     public function roleFeeder()
     {
-        $roles = new Role\FeederInstance();
+        $roles = new Instance\RoleFeeder();
         $roles->addRole(new Role('@game'));
         $roles->addRole(new Role('@video'));
         $roles->addRole(new Role('@user', array('@game', '@video')));

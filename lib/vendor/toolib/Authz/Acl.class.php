@@ -22,48 +22,53 @@
 
 namespace toolib\Authz;
 
-require_once __DIR__ . '/ACE.class.php';
+require_once __DIR__ . '/Ace.class.php';
 
-//! Implementation of an Access Control List
-class ACL
+/**
+ * @brief Implementation of an Access Control List
+ */
+class Acl
 {
 
-    //! The array with all the ACE of this ACL.
+    /**
+     * @brief The array with all the Ace of this Acl
+     * @var array
+     */
     private $aces = array();
 
-    //! Add a new entry in list to allow access for a tuple.
     /**
+     * @brief Add a new entry in list to allow access for a tuple.
      * @param $role The name of the role or @b null for any role.
      * @param $action The action this entry refers to.
      */
     public function allow($role, $action)
     {
-        $ace = new ACE($role, $action, true);
+        $ace = new Ace($role, $action, true);
         $this->aces[$ace->getDnHash()] = $ace;
     }
     
-    //! Add a new entry in list to deny access for a tuple.
     /**
+     * @brief Add a new entry in list to deny access for a tuple.
      * @param $role The name of the role or @b null for any role.
      * @param $action The action this entry refers to.
      */
     public function deny($role, $action)
     {
-        $ace = new ACE($role, $action, false);
+        $ace = new Ace($role, $action, false);
         $this->aces[$ace->getDnHash()] = $ace;
     }
     
-    //! Remove an entry from this list.
     /**
+     * @brief Remove an entry from this list.
      * @param $role The name of the role as it was given through allow() or deny().
      * @param $action The name of the action as it was given through allow() or deny().
-     * @return
+     * @return boolean
      *  - @b true If the ACE was removed.
      *  - @b false If the ACE was not found.
      */
     public function removeAce($role, $action)
     {
-        $ace = new ACE($role, $action, false);
+        $ace = new Ace($role, $action, false);
         if (!isset($this->aces[$ace->getDnHash()]))
             return false;
             
@@ -71,24 +76,31 @@ class ACL
         return true;
     }
     
-    //! Check if this list is emptry
+
+    /**
+     * @brief Check if this list is emptry
+     */
     public function isEmpty()
     {
         return empty($this->aces);
     }
     
-    //! Get all the ACE of this list
+    /**
+     * @brief Get all the ACE of this list
+     */
     public function getAces()
     {
         return $this->aces;
     }
         
-    //! Get the effective ACE for the tuple role-action.
+
     /**
+     * @brief Get the effective ACE for the tuple role-action.
+     * 
      * Traverse this list and find the most effective ACE for
      * the given tuple.
-     * @return
-     *  - @b ACE If the effective ACE was found.
+     * @return \toolib\Authz\Ace
+     *  - @b ACE If the effective Ace was found.
      *  - @b null If no ACE was found for this tuple.
      *  .
      */

@@ -22,6 +22,7 @@
 namespace toolib\Stupid;
 
 require_once __DIR__ . '/Condition/Authentication.class.php';
+require_once __DIR__ . '/Condition/Authorization.class.php';
 require_once __DIR__ . '/Condition/Func.class.php';
 require_once __DIR__ . '/Condition/UrlParams.class.php';
 require_once __DIR__ . '/Condition/UrlPath.class.php';

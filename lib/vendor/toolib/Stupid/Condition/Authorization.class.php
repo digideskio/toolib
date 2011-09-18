@@ -20,12 +20,13 @@
  */
 
 namespace toolib\Stupid\Condition;
+use toolib\Authz;
 
 require_once __DIR__ . '/../../Authz.class.php';
 require_once __DIR__ . '/../Condition.class.php';
 
-//! Implementation of auth Stupid_Condition
 /**
+ * @brief Implementation of authz Stupid_Condition
  * A condition evaluator that can perform checks on the Authz.\n
  * This evaluator implements the <b> type = "authz"</b> 
  *

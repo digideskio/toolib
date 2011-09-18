@@ -20,10 +20,10 @@
  */
 
 
-use \toolib\Authz\ACL;
+use \toolib\Authz\Acl;
 require_once __DIR__ .  '/../path.inc.php';
 
-class ACLTest extends PHPUnit_Framework_TestCase
+class AclTest extends PHPUnit_Framework_TestCase
 {
    
     public function dataEffectiveAceTestData()
@@ -64,7 +64,7 @@ class ACLTest extends PHPUnit_Framework_TestCase
      */
     public function testEffectiveAce($test_action, $tests)
     {
-        $acl = new ACL();
+        $acl = new Acl();
         $acl->allow(null, 'read');
         $acl->deny('@logger', 'read');
         $acl->deny('@user', 'write');
@@ -98,7 +98,7 @@ class ACLTest extends PHPUnit_Framework_TestCase
     
     public function testEmpty()
     {
-        $acl = new ACL();
+        $acl = new Acl();
         $this->assertTrue($acl->isEmpty());
         
         $acl->allow(null, 'read');
@@ -119,7 +119,7 @@ class ACLTest extends PHPUnit_Framework_TestCase
     
     public function testGetAces()
     {
-        $acl = new ACL();
+        $acl = new Acl();
         $this->assertEquals($acl->getAces(), array());
         
         $acl->allow(null, 'read');
@@ -140,7 +140,7 @@ class ACLTest extends PHPUnit_Framework_TestCase
     
     public function testRemoveAce()
     {
-        $acl = new ACL();
+        $acl = new Acl();
         $this->assertEquals($acl->getAces(), array());
         
         $acl->allow(null, 'read');
@@ -154,4 +154,3 @@ class ACLTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(count($acl->getAces()), 3);
     }
 }
-?>

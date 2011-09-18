@@ -19,6 +19,9 @@
  *  
  */
 
+/**
+ * @brief Authentication functionalities package
+ */
 namespace toolib\Authn;
 use toolib\EventDispatcher;
 

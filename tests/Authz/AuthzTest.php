@@ -30,7 +30,7 @@ class Authz_AuthzTest extends PHPUnit_Framework_TestCase
 {
     public function roleFeeder()
     {
-        $roles = new AZ\Role\FeederInstance();
+        $roles = new AZ\Instance\RoleFeeder();
         $roles->addRole('@game');
         $roles->addRole('@video');
         $roles->addRole('@user', array('@game', '@video'));

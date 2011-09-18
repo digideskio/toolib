@@ -19,15 +19,17 @@
  *  
  */
 
-namespace toolib\Authz\Role;
+namespace toolib\Authz;
 
-require_once __DIR__ . '/../Role.class.php';
+require_once __DIR__ . '/Role.class.php';
 
-//! Interface to implement roles feeder
-interface Feeder
+/**
+ * @brief Interface to implement roles feeder
+ */
+interface RoleFeeder
 {
-    //! Check if there is a role in feeder.
     /**
+     * @brief Check if there is a role in feeder.
      * @param $name The name of the feeder.
      * @return boolean
      *  - @b true if the role was found.
@@ -35,8 +37,8 @@ interface Feeder
      */
     public function hasRole($name);
     
-    //! Get a role from the feeder
     /**
+     * @brief Get a role from the feeder
      * @param $name The name of the role we are looking for.
      * @return \toolib\Authz\Role
      *  - @b Role the role object.

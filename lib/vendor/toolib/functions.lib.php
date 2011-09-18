@@ -19,10 +19,13 @@
  *
  */
 
+/**
+ * @brief Toolib's root namespace for all child packages.
+ */
 namespace toolib;
 
 /**
- * Sample a part of the text and return the result with three dots at the end (if needed)
+ * @brief Sample a part of the text and return the result with three dots at the end (if needed)
  * @param string $text The text to sample it.
  * @param number $length The length of number
  */
@@ -36,7 +39,7 @@ function text_sample($text, $length)
 }
 
 /**
- * Search the matched array of a preg_match and remove duplicated named-unamed entries.
+ * @brief Search the matched array of a preg_match and remove duplicated named-unamed entries.
  * 
  * The entries that are unamed are left intact, those that are named the numerical entry
  * is removed.
@@ -55,6 +58,10 @@ function preg_matches_remove_unamed($matches)
 	return $fmatches;
 }
 
+/**
+ * @brief Gun-zip decode data from buffer and return string.
+ * @param unknown_type $data
+ */
 function gzdecode($data) {
 	$temp_fname = tempnam(sys_get_temp_dir(), 'ff');
 	@file_put_contents($temp_fname, $data);
@@ -66,7 +73,7 @@ function gzdecode($data) {
 }
 
 /**
- * Get the maximum upload file size.
+ * @brief Get the maximum upload file size.
  */
 function get_upload_maxsize()
 {

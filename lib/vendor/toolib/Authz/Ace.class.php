@@ -21,21 +21,31 @@
 
 namespace toolib\Authz;
 
-//! Access Control Entry
-class ACE
+/**
+ * @brief Access Control Entry
+ */
+class Ace
 {
-
-    //! The role this entry is for.
+    /**
+     * @brief The role this entry is for.
+     * @var \toolib\Authz\Role
+     */
     private $role;
     
-    //! The action this entry refers to.
+    /**
+     * @brief The action this entry refers to.
+     * @var string
+     */
     private $action;
     
-    //! The given access.
+    /**
+     * @brief The given access.
+     * @var boolean
+     */
     private $allowed;
     
-    //! Constuct a new ACE
     /**
+     * @brief Constuct a new Ace
      * @param $role The role this entry is for.
      * @param $action The action this entry refers to.
      * @param $allowed The access given to the previous tuple.
@@ -49,32 +59,41 @@ class ACE
         $this->allowed = (boolean) $allowed;
     }
     
-    //! Get the role this ace is for.
+    /**
+     * @brief Get the role this ace is for.
+     * @return \toolib\Authz\Role
+     */
     public function getRole()
     {
         return $this->role;
     }
     
-    //! Check if the role is null (wildcard role)
+    /**
+     * @brief Check if the role is null (wildcard role)
+     */
     public function isRoleNull()
     {
         return $this->role === null;
     }
     
-    //! Get the action this entry refers to.
+    /**
+     * @brief Get the action this entry refers to.
+     */
     public function getAction()
     {
         return $this->action;
     }
     
-    //! Check if this ace permit access to resource.
+    /**
+     * @brief Check if this ace permit access to resource.
+     */
     public function isAllowed()
     {
         return $this->allowed;
     }
     
-    //! Set the value of access.
     /**
+     * @brief Set the value of access.
      * @param $allowed A @b boolean allowing or denying access for this tuple.
      */
     public function setAllowed($allowed)
@@ -82,9 +101,9 @@ class ACE
         $this->allowed = (boolean) $allowed;
     }
     
-    //! Get a distringuish name hash for this ace
     /**
-     * The hash is unique for the @b role, @b action tuple.
+     * @brief Get a distringuish name hash for this ace
+     * @note The hash is unique for the @b role, @b action tuple.
      */
     public function getDnHash()
     {   

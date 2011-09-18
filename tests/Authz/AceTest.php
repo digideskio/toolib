@@ -20,19 +20,19 @@
  */
 
 
-use \toolib\Authz\ACE;
+use \toolib\Authz\Ace;
 require_once __DIR__ .  '/../path.inc.php';
 
 class Authz_AceTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $ace = new ACE('admin', 'read', false);
+        $ace = new Ace('admin', 'read', false);
         $this->assertFalse($ace->isAllowed());
         $this->assertEquals($ace->getRole(), 'admin');
         $this->assertEquals($ace->getAction(), 'read');
 
-        $ace2 = new ACE('@devs', 'write', true);
+        $ace2 = new Ace('@devs', 'write', true);
         $this->assertTrue($ace2->isAllowed());
         $this->assertEquals($ace2->getRole(), '@devs');
         $this->assertEquals($ace2->getAction(), 'write');
@@ -40,7 +40,7 @@ class Authz_AceTest extends PHPUnit_Framework_TestCase
     
     public function testSetAllowed()
     {
-        $ace = new ACE('admin', 'read', false);
+        $ace = new Ace('admin', 'read', false);
         $this->assertFalse($ace->isAllowed());
         $ace->setAllowed(true);
         $this->assertTrue($ace->isAllowed());
@@ -50,13 +50,13 @@ class Authz_AceTest extends PHPUnit_Framework_TestCase
     
     public function testIsRoleNull()
     {
-        $ace = new ACE('admin', 'read', false);
+        $ace = new Ace('admin', 'read', false);
         $this->assertFalse($ace->isRoleNull());
-        $ace = new ACE('0', null, false);
+        $ace = new Ace('0', null, false);
         $this->assertFalse($ace->isRoleNull());
-        $ace = new ACE(0, null, false);
+        $ace = new Ace(0, null, false);
         $this->assertFalse($ace->isRoleNull());
-        $ace = new ACE(null, null, false);
+        $ace = new Ace(null, null, false);
         $this->assertTrue($ace->isRoleNull());
 
     }

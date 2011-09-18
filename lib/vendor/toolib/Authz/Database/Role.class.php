@@ -20,21 +20,29 @@
  */
 
 
-namespace toolib\Authz\Role;
+namespace toolib\Authz\Database;
 
 require_once __DIR__ . '/../Role.class.php';
 
-//! Implementation of Authz_Role for Authz_Role_FeederDatabase
-class Database implements \toolib\Authz\Role
+/**
+ * @brief Implementation of Role for \\toolib\\Authz\\Database\\Feeder
+ */
+class Role implements \toolib\Authz\Role
 {
-    //! Options of database communication
+    /**
+     * @brief Options of database communication
+     * @var array
+     */
     protected $options;
     
-    //! The name of this role
+    /**
+     * @brief The name of this role
+     * @var string
+     */
     protected $name;
     
-    //! Construct a new role
     /**
+     * @brief Construct a new role
      * @param $name The name of the role.
      * @param $options Normalized options given by FeederDatabase
      */
@@ -44,7 +52,9 @@ class Database implements \toolib\Authz\Role
         $this->options = $options;
     }
     
-    //! Check if this role have info for parents location
+    /**
+     * @brief Check if this role have info for parents location
+     */
     protected function hasParentsAbility()
     {
         if (($this->options === null) || ($this->options['parents_query'] === null))
@@ -69,7 +79,7 @@ class Database implements \toolib\Authz\Role
             $parent_name = $record->{$this->options['parent_name_field']};
             if ($this->options['parent_name_filter_func'])
                 $parent_name = call_user_func($this->options['parent_name_filter_func'], $parent_name);
-            $parents[$parent_name] = new Database(
+            $parents[$parent_name] = new Role(
                 $parent_name , null);
         }
 

@@ -19,29 +19,43 @@
  *  
  */
 
-
+/**
+ * @brief Authorization functionalities package
+ */
 namespace toolib\Authz;
 
-require_once __DIR__ . '/ACL.class.php';
-require_once __DIR__ . '/Role/Feeder.class.php';
+require_once __DIR__ . '/Acl.class.php';
+require_once __DIR__ . '/RoleFeeder.class.php';
 
-//! Representation of resource.
+
+/**
+ * @brief Representation of resource.
+ */
 class Resource
 {
-    //! The name of the resource
+    /**
+     * @brief The name of the resource
+     * @var string
+     */
     protected $name;
     
-    //! The parent of this resource.
+    /**
+     * @brief The parent of this resource.
+     * @var \toolib\Authz\Resource
+     */
     protected $parent = null;
     
-    //! The Authz_ACL of this resource.
+    /**
+     * @brief The Acl of this resource.
+     * @var \toolib\Authz\Acl
+     */
     protected $acl;
 
-    //! Construct a new resource
     /**
+     * @brief Construct a new resource
      * @param $name The name of this resource.
-     * @param $parent 
-     * - @b Authz_Resource The parent of this resource.
+     * @param $parent \toolib\Authz\Resource 
+     * - @b The parent of this resource.
      * - @b null If this resource has no parent.
      */
     public function __construct($name, $parent = null)
@@ -54,43 +68,55 @@ class Resource
             $this->parent = $parent;
     }
     
-    //! Get the name of this resource.
+    /**
+     * @brief Get the name of this resource.
+     */
     public function getName()
     {
         return $this->name;
     }
 
-    //! Get the parent of this resource.
+    
+    /**
+     * @brief Get the parent of this resource.
+     * @return \toolib\Authz\Resource
+     */
     public function getParent()
     {
         return $this->parent;
     }
     
-    //! Check if this resource has parent.
+    /**
+     * @brief Check if this resource has parent.
+     * @return boolean
+     */
     public function hasParent()
     {
         return $this->parent !== null;
     }
     
-    //! Get the access control list of this resource.
+    /**
+     * @brief Get the access control list of this resource.
+     * @return \toolib\Authz\Acl
+     */
     public function getAcl()
     {
         return $this->acl;
     }
     
-    //! Search through role inheritance and resource inheritance for effective ACE
     /**
+     * @brief Search through role inheritance and resource inheritance for effective ACE
      * @param $role The name of the role to search for effective ACE.
      * @param $action The action to search for.
      * @param $roles The roles feeder that describes roles inheritance.
      * @param $depth A return value of the ACE's depth.
      *  This value is relative to implementation but it can be used to compare weight of ACEs.
-     * @return \toolib\Authz\ACE
-     *  - @b Authz_ACE The effective ACE that was found.
+     * @return \toolib\Authz\Ace
+     *  - @b \\toolib\\Authz\\Ace The effective ACE that was found.
      *  - @b null If no ACE was found for criteria.
      *  .
      */
-    public function effectiveAce($role, $action, Role\Feeder $roles, & $depth)
+    public function effectiveAce($role, $action, RoleFeeder $roles, & $depth)
     {
     	$matched = array('ace' => null, 'depth' => -1);    
         

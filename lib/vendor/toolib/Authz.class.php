@@ -22,10 +22,12 @@
 namespace toolib;
 
 require_once __DIR__ . '/Authz/ResourceList.class.php';
-require_once __DIR__ . '/Authz/Role/FeederInstance.class.php';
+require_once __DIR__ . '/Authz/Instance/RoleFeeder.class.php';
 
-//! Static authorization realm
+
 /**
+ * @brief Static authorization realm
+ * 
  * Authz was created to provide a singleton that just works in the majority
  * of cases with little customization. You can archive the same
  * functionality with non singleton interface using directly ResourceList()
@@ -33,21 +35,35 @@ require_once __DIR__ . '/Authz/Role/FeederInstance.class.php';
  */
 class Authz
 {
-    //! The role feeder that is used
+    /**
+     * @brief The role feeder that is used 
+     * @var \toolib\Authz\RoleFeeder
+     */
     static private $role_feeder = null;
 
-    //! The resource list that is used
+    /**
+     * @brief The resource list that is used
+     * @var \toolib\Authz\ResourceList
+     */
     static private $resource_list = null;
     
-    //! Function to retrieve the current role
+    /**
+     * @brief Function to retrieve the current role
+     * @var callable
+     */
     static private $current_role_func = null;
     
-    //! Prohibit instantiation of this class
+    /**
+     * @brief Prohibit instantiation of this class
+     */
     final private function __construct()
     {
     }
     
-    //! Get the current ResourceList used by Authz
+    /**
+     * @brief Get the current ResourceList used by Authz
+     * @return \toolib\Authz\ResourceList
+     */
     static public function getResourceList()
     {
         if (self::$resource_list === null)  
@@ -55,25 +71,35 @@ class Authz
         return self::$resource_list;
     }
     
-    //! Set a new ResourceList for Authz to use.
+    /**
+     * @brief Set a new ResourceList for Authz to use.
+     */
     static public function setResourceList(Authz\ResourceList $list)
     {
         self::$resource_list = $list;
     }
     
-    //! Get the current Authz_Role_Feeder used by Authz
+    /**
+     * @brief Get the current Authz_Role_Feeder used by Authz 
+     * @return \toolib\Authz\RoleFeeder
+     */
     static public function getRoleFeeder()
     {
         return self::$role_feeder;
     }
     
-    //! Set a new Authz=Role\Feeder for Authz to use.
-    static public function setRoleFeeder(Authz\Role\Feeder $feeder)
+    /**
+     * @brief Set a new Authz=Role\Feeder for Authz to use.
+     */
+    static public function setRoleFeeder(Authz\RoleFeeder $feeder)
     {
         self::$role_feeder = $feeder;
     }
     
-    //! Get the callback that retrieves the current role name
+    /**
+     * @brief Get the callback that retrieves the current role name
+     * @return callable
+     */
     static public function getCurrentRoleFunc()
     {
         if (self::$current_role_func === null)
@@ -84,14 +110,17 @@ class Authz
         return self::$current_role_func;
     }
     
-    //! Get the current role name based on callback
+    /**
+     * @brief Get the current role name based on callback
+     * @return \toolib\Authz\Role
+     */
     static public function getCurrentRole()
     {   
         return call_user_func(self::getCurrentRoleFunc());
     }
 
-    //! Set the callback function tha returns the current role name
     /**
+     * @brief Set the callback function tha returns the current role name
      * @param $callable Any type of object that can be called with call_user_func()
      */
     static public function setCurrentRoleFunc($callable)
@@ -99,14 +128,14 @@ class Authz
         self::$current_role_func = $callable;
     }
     
-    //! Search and return a resource in current resource list.
     /**
+     * @brief Search and return a resource in current resource list.
      * @param $resource
      *  - @b string The name of the resource class
      *  - @b array A tuple of name and instance id of a resource instance.
      *  .
      * @return \toolib\Authz\Resource
-     *  - @b Authz_Resource The found resource object.
+     *  - @b \\toolib\\Authz\\Resource The found resource object.
      *  - @b false If the resource was not found.
      *  .
      */
@@ -119,8 +148,8 @@ class Authz
         return $res;
     }
     
-    //! Shortcut to add an @b allow ACE in the ACL of a resource
     /**
+     * @brief Shortcut to add an @b allow Ace in the Acl of a resource
      * @param $resource
      *  - @b string The name of the resource class
      *  - @b array A tuple of name and instance id of a resource instance.
@@ -141,8 +170,8 @@ class Authz
         return $res->getAcl()->allow($role, $action);
     }
     
-    //! Shortcut to add an @b deny ACE in the ACL of a resource
     /**
+     * @brief Shortcut to add an @b deny Ace in the Acl of a resource
      * @param $resource
      *  - @b string The name of the resource class
      *  - @b array A tuple of name and instance id of a resource instance.
@@ -163,8 +192,10 @@ class Authz
         return $res->getAcl()->deny($role, $action);
     }
 
-    //! Search if an action by current role on a specific resource is permitted.
+
     /**
+     * @brief Search if an action by current role on a specific resource is permitted.
+     * 
      * The current role is retrieve using the callback defined by setCurrentRoleFunc().
      * @param $resource
      *  - @b string The name of the resource class
@@ -181,8 +212,8 @@ class Authz
         return self::isRoleAllowedTo(self::getCurrentRole(), $resource, $action);
     }
     
-    //! Search if a role on a resource is permitted to do an action.
     /**
+     * @brief Search if a role on a resource is permitted to do an action.
      * @param $resource
      *  - @b string The name of the resource class
      *  - @b array A tuple of name and instance id of a resource instance.

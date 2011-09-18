@@ -20,19 +20,28 @@
  */
 
 
-namespace toolib\Authz\Role;
+namespace toolib\Authz\Instance;
+require_once __DIR__ . '/../Role.class.php';
 
-//! Implementation of Role for FeederInstance
-class Instance implements \toolib\Authz\Role
+/**
+ * @brief Implementation of Role for Instance package
+ */
+class Role implements \toolib\Authz\Role
 {
-    //! The name of the role
+    /**
+     * @brief The name of the role
+     * @var string
+     */
     private $name;
     
-    //! Array of Authz_Role_Instance parents.
+    /**
+     * @brief Array of Authz_Role_Instance parents.
+     * @var array
+     */
     private $parents = array();
     
-    //! Construct a new role
     /**
+     * @brief Construct a new role
      * @param $name The name of the role.
      * @param $parents An array of parent objects.
      */

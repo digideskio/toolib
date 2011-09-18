@@ -20,7 +20,7 @@
  */
 
 /**
- * @brief Module implementing ORM concept over mysql.
+ * @brief package implementing ORM concept over mysql.
  */
 namespace toolib\DB;
 

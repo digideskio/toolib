@@ -19,20 +19,27 @@
  *  
  */
 
+/**
+ * @brief Runtime non-persistent support package for authorization
+ */
+namespace toolib\Authz\Instance;
 
-namespace toolib\Authz\Role;
+require_once __DIR__ . '/../RoleFeeder.class.php';
+require_once __DIR__ . '/Role.class.php';
 
-require_once __DIR__ . '/Feeder.class.php';
-require_once __DIR__ . '/Instance.class.php';
-
-//! A role feeder with life-cycle of object instance.
-class FeederInstance implements Feeder
+/**
+ * @brief A role feeder with life-cycle of object instance.
+ */
+class RoleFeeder implements \toolib\Authz\RoleFeeder
 {
-    //! Array with all roles
+    /**
+     * @brief Array with all roles
+     * @var array
+     */
     private $roles = array();
     
-    //! Add a new role in feeder
     /**
+     * @brief Add a new role in feeder
      * @param $name The name of the role.
      * @param $parents
      *  - @b null If the role has no parents.
@@ -41,6 +48,7 @@ class FeederInstance implements Feeder
      *  .
      * @throws \InvalidArgumentException If there is already role with that name.
      * @throws \InvalidArgumentException If at least one parent is unknown.
+     * @return \toolib\Authz\Instance\Role
      */
     public function addRole($name, $parents = null)
     {
@@ -61,11 +69,11 @@ class FeederInstance implements Feeder
             $parents[$idx] = $prole;
         }
             
-        return $this->roles[$name] = new Instance($name, $parents);
+        return $this->roles[$name] = new Role($name, $parents);
     }
     
-    //! Remove a role from the feeder
     /**
+     * @brief Remove a role from the feeder
      * @param $name The name of the role to remove.
      */
     public function removeRole($name)

@@ -21,15 +21,15 @@
 
 
 use toolib\Authz;
-use toolib\Authz\Role\FeederInstance;
+use toolib\Authz\Instance\RoleFeeder;
 
 require_once __DIR__ .  '/../path.inc.php';
 
-class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
+class Authz_InstanceRoleFeederTest extends PHPUnit_Framework_TestCase
 {
     public function testGeneral()
     {
-        $list = new FeederInstance();
+        $list = new toolib\Authz\Instance\RoleFeeder();
         
         $this->assertFalse($list->hasRole('test'));
         $this->assertFalse($list->getRole('test'));
@@ -50,7 +50,7 @@ class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
      */
     public function testSameRoleException()
     {
-        $list = new FeederInstance();
+        $list = new toolib\Authz\Instance\RoleFeeder();
         $list->addRole('member');
         $list->addRole('member', array('test', 'test2'));
     }
@@ -60,7 +60,7 @@ class Authz_RoleFeederInstanceTest extends PHPUnit_Framework_TestCase
      */
     public function testBrokenDependencyException()
     {
-        $list = new FeederInstance();
+        $list = new toolib\Authz\Instance\RoleFeeder();
         $list->addRole('member', array('everyone'));
     }
 }
