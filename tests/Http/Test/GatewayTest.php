@@ -19,8 +19,26 @@
  *  
  */
 
+use toolib\Http as H;
 
-require_once __DIR__ . '/../lib/vendor/toolib/ClassLoader.class.php';
+require_once __DIR__ .  '/../../path.inc.php';
 
-$loader = new \toolib\ClassLoader('toolib', __DIR__ . '/../lib/vendor');
-$loader->register();
+class Http_TestServiceTest extends PHPUnit_Framework_TestCase
+{
+    public function testConstructor()
+    {
+    	H\Gateway::getInstance()->getResponse()->
+    	$this->assertNull(H\Service::getInstance());    	
+        $srv = new H\Test\Service();        
+        $this->assertSame($srv, H\Service::getInstance());
+        
+    }
+
+    public function testUsage()
+    {
+    	$srv = new H\Test\Service(); 
+    	$request = $srv->getRequest();    	
+    	$this->assertSame($request, H\Request::getInstance());
+
+    }
+}

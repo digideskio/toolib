@@ -19,8 +19,28 @@
  *  
  */
 
+namespace toolib\Http\Test;
 
-require_once __DIR__ . '/../lib/vendor/toolib/ClassLoader.class.php';
+require_once __DIR__ . '/../Gateway.class.php';
+require_once __DIR__ . '/Request.class.php';
+require_once __DIR__ . '/Response.class.php';
 
-$loader = new \toolib\ClassLoader('toolib', __DIR__ . '/../lib/vendor');
-$loader->register();
+class Gateway extends \toolib\Http\Gateway
+{
+	public function __construct()
+	{
+		$this->request = new Request();
+		$this->reponse = new Response();
+		parent::__construct();
+	}
+	
+	public function getRequest()
+	{
+		return $this->request;
+	}
+	
+	public function getResponse()
+	{
+		return $this->response;
+	}
+}

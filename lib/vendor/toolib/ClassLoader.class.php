@@ -1,90 +1,141 @@
 <?php
-/*
- *  This file is part of PHPLibs <http://phplibs.kmfa.net/>.
- *  
- *  Copyright (c) 2010 < squarious at gmail dot com > .
- *  
- *  PHPLibs is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *  
- *  PHPLibs is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *  
- *  You should have received a copy of the GNU General Public License
- *  along with PHPLibs.  If not, see <http://www.gnu.org/licenses/>.
- *  
- */
 
-
-//! Simple class loader compatible to PSR-0
+namespace toolib;
 /**
- * This loader supports directory structure as defined
- * in PSR-0 except that it does not support namespaces as it
- * targets pre 5.3 enviroment. It also support variable file extension.
+ * @brief SplClassLoader snapshot.
+ * 
+ * SplClassLoader implementation that implements the technical interoperability
+ * standards for PHP 5.3 namespaces and class names.
+ *
+ * http://groups.google.com/group/php-standards/web/final-proposal
+ *
+ * // Example which loads classes for the Doctrine Common package in the
+ * // Doctrine\Common namespace.
+ * $classLoader = new SplClassLoader('Doctrine\Common', '/path/to/doctrine');
+ * $classLoader->register();
+ *
+ * @author Jonathan H. Wage <jonwage@gmail.com>
+ * @author Roman S. Borschel <roman@code-factory.org>
+ * @author Matthew Weier O'Phinney <matthew@zend.com>
+ * @author Kris Wallsmith <kris.wallsmith@gmail.com>
+ * @author Fabien Potencier <fabien.potencier@symfony-project.org>
  */
 class ClassLoader
 {
-    //! Directories that will be used to look for classes
-    public $directories;
+	private $_fileExtension = '.class.php';
+	private $_namespace;
+	private $_includePath;
+	private $_namespaceSeparator = '\\';
 
-    //! The file extension that files must have
-    public $file_extension;
-    
-    //! Construct a class loader class
-    /**
-     * @param $directories Array with all directories that will be searched
-     * @param $file_extension The file extension of files to look for.
-     */
-    public function __construct($directories = array(), $file_extension = '.php')
-    {
-        // Check arguments
-        $this->directories = $directories;
-        $this->file_extension = $file_extension;
-    }
+	/**
+	 * Creates a new <tt>SplClassLoader</tt> that loads classes of the
+	 * specified namespace.
+	 *
+	 * @param string $ns The namespace to use.
+	 */
+	public function __construct($ns = null, $includePath = null)
+	{
+		$this->_namespace = $ns;
+		$this->_includePath = $includePath;
+	}
 
-    //! Register a directory as a 
-    public function register_directory($directory)
-    {
-        $this->directories[] = $directory;
-    }
+	/**
+	 * Sets the namespace separator used by classes in the namespace of this class loader.
+	 *
+	 * @param string $sep The separator to use.
+	 */
+	public function setNamespaceSeparator($sep)
+	{
+		$this->_namespaceSeparator = $sep;
+	}
 
-    //! Register this object as an autoloader
-    public function register()
-    {
-        spl_autoload_register(array($this, 'load_class'));
-    }
+	/**
+	 * Gets the namespace seperator used by classes in the namespace of this class loader.
+	 *
+	 * @return void
+	 */
+	public function getNamespaceSeparator()
+	{
+		return $this->_namespaceSeparator;
+	}
 
-    //! Unregister this object from autoloader stack
-    public function unregister()
-    {
-        spl_autoload_unregister(array($this, 'load_class'));
-    }
-    
-    //! Set the file extension of files
-    /**
-     * @param $extension The extension of file with the leading dot.\n
-     *  e.g. '.php' , '.class.php'
-     */
-    public function set_file_extension($extension)
-    {   
-        $this->file_extension = $extension;
-    }
+	/**
+	 * Sets the base include path for all class files in the namespace of this class loader.
+	 *
+	 * @param string $includePath
+	 */
+	public function setIncludePath($includePath)
+	{
+		$this->_includePath = $includePath;
+	}
 
-    //! The actual class loader that is registered for auto load
-    /**
-     * @param $class The class name that we are looking for its file.
-     */
-    public function load_class($class)
-    {   
-        foreach($this->directories as $directory)
-        {
-            $file = $directory . DIRECTORY_SEPARATOR . str_replace('_', DIRECTORY_SEPARATOR, $class) . $this->file_extension;
-            if (file_exists($file))
-                require $file;
-        }
-    }    
+	/**
+	 * Gets the base include path for all class files in the namespace of this class loader.
+	 *
+	 * @return string $includePath
+	 */
+	public function getIncludePath()
+	{
+		return $this->_includePath;
+	}
+
+	/**
+	 * Sets the file extension of class files in the namespace of this class loader.
+	 *
+	 * @param string $fileExtension
+	 */
+	public function setFileExtension($fileExtension)
+	{
+		$this->_fileExtension = $fileExtension;
+	}
+
+	/**
+	 * Gets the file extension of class files in the namespace of this class loader.
+	 *
+	 * @return string $fileExtension
+	 */
+	public function getFileExtension()
+	{
+		return $this->_fileExtension;
+	}
+
+	/**
+	 * Installs this class loader on the SPL autoload stack.
+	 */
+	public function register()
+	{
+		spl_autoload_register(array($this, 'loadClass'));
+	}
+
+	/**
+	 * Uninstalls this class loader from the SPL autoloader stack.
+	 */
+	public function unregister()
+	{
+		spl_autoload_unregister(array($this, 'loadClass'));
+	}
+
+	/**
+	 * Loads the given class or interface.
+	 *
+	 * @param string $className The name of the class to load.
+	 * @return void
+	 */
+	public function loadClass($className)
+	{
+		if (null === $this->_namespace || $this->_namespace.$this->_namespaceSeparator === substr($className, 0, strlen($this->_namespace.$this->_namespaceSeparator))) {
+			$fileName = '';
+			$namespace = '';
+			if (false !== ($lastNsPos = strripos($className, $this->_namespaceSeparator))) {
+				$namespace = substr($className, 0, $lastNsPos);
+				$className = substr($className, $lastNsPos + 1);
+				$fileName = str_replace($this->_namespaceSeparator, DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+			}
+			$fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . $this->_fileExtension;
+			$filePath = ($this->_includePath !== null ? $this->_includePath . DIRECTORY_SEPARATOR : '') . $fileName;
+			error_log($filePath);
+			if (file_exists($filePath))
+				require $filePath;
+		}
+	}
 }

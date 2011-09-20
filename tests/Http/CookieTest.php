@@ -19,7 +19,7 @@
  *  
  */
 
-use toolib\Net\Http\Cookie;
+use toolib\Http\Cookie;
 
 require_once __DIR__ .  '/../path.inc.php';
 
@@ -116,7 +116,7 @@ class Net_CookieTest extends PHPUnit_Framework_TestCase
     	
     	// Check cookie 1
     	$cookie = Cookie::openReceived('cookie1');
-    	$this->assertType('toolib\\Net\\Http\\Cookie', $cookie);
+    	$this->assertType('toolib\Http\Cookie', $cookie);
 		$this->assertEquals('cookie1', $cookie->getName());
 		$this->assertEquals('value1', $cookie->getValue());
 		$this->assertEquals('', $cookie->getDomain());

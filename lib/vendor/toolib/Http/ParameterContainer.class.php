@@ -19,17 +19,17 @@
  *  
  */
 
-namespace toolib\Net\Http;
+namespace toolib\Http;
 
-//! Container for parameters
 /**
+ * @brief Container for parameters
  * @see ArrayObject for additional reference.
  */
 class ParameterContainer extends \ArrayObject
 {
 
-	//! Create a new parameter container.
 	/**
+	 * @brief Create a new parameter container.
 	 * @param array $parameters
 	 */
 	public function __construct($parameters = array())
@@ -37,8 +37,8 @@ class ParameterContainer extends \ArrayObject
 		parent::__construct($parameters);
 	}
 
-	//! Check if a parameter exists
 	/**
+	 * @brief Check if a parameter exists
 	 * @param string $name The name of the parameter
 	 * @return boolean true if parameter exists in this object or false if not.
 	 */
@@ -47,8 +47,8 @@ class ParameterContainer extends \ArrayObject
 		return $this->offsetExists($name);
 	}
 	
-	//! Get a parameter
 	/**
+	 * @brief Get a parameter
 	 * @param string $name The name of the parameter
 	 * @param mixed $default The default value of the parameter
 	 */
@@ -59,8 +59,8 @@ class ParameterContainer extends \ArrayObject
 		return $default;
 	}
 	
-	//! Check if a parameter is equal to a value
 	/**
+	 * @brief Check if a parameter is equal to a value
 	 * @param string $name The name of the parameter
 	 * @param mixed $default The expected value of parameter to check.
 	 * @param boolean $strict Flag if comparisson should be done in strict mode.
@@ -72,8 +72,8 @@ class ParameterContainer extends \ArrayObject
 		return $strict?($this->offsetGet($name) === $expected):($this->offsetGet($name) == $expected);
 	}
 
-	//! Get a parameter and cast to integer
 	/**
+	 * @brief Get a parameter and cast to integer
 	 * @param string $name The name of the parameter
 	 * @param mixed $default The default value of the parameter
 	 */
@@ -84,8 +84,9 @@ class ParameterContainer extends \ArrayObject
 		return $default;
 	}
 	
-	//! Get a parameter and cast to DateTime
 	/**
+	 * @brief Get a parameter and cast to DateTime
+	 * 
 	 * The format of the string will be autodetected by DateTime class.
 	 * @param string $name The name of the parameter
 	 * @param \DateTime $default The value to return if paremeter is
@@ -104,8 +105,8 @@ class ParameterContainer extends \ArrayObject
 		return $default;
 	}
 	
-	//! Get a parameter and cast to DateTime based on format
 	/**
+	 * @brief Get a parameter and cast to DateTime based on format
 	 * @param string $name The name of the parameter
 	 * @param string $format The format of the datetime string.
 	 * @param \DateTime $default The value to return if paremeter is
@@ -121,12 +122,13 @@ class ParameterContainer extends \ArrayObject
 		return $date;
 	}
 	
-	//! Get a parameter after checked agains a regular expresion.
 	/**
+	 * @brief Get a parameter after checked agains a regular expresion.
 	 * @param string $name The name of the parameter.
 	 * @param string $regex The regular expression that must be true.
 	 * @param mixed $default The value to return if paremeter is
 	 *   missing or does not match.
+	 * @return The value of parameter if it is valid or default.
 	 */
 	public function checkAndGet($name, $regex, $default = null)
 	{

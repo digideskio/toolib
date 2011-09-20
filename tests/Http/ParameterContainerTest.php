@@ -19,8 +19,8 @@
  *  
  */
 
-use toolib\Net\Http\ParameterContainer;
-use toolib\Net\Http\Cookie;
+use toolib\Http\ParameterContainer;
+use toolib\Http\Cookie;
 
 require_once __DIR__ .  '/../path.inc.php';
 

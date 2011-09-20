@@ -19,8 +19,16 @@
  *  
  */
 
+use toolib\Http\Test\Request;
 
-require_once __DIR__ . '/../lib/vendor/toolib/ClassLoader.class.php';
+require_once __DIR__ .  '/../../path.inc.php';
 
-$loader = new \toolib\ClassLoader('toolib', __DIR__ . '/../lib/vendor');
-$loader->register();
+class Http_TestRequestTest extends PHPUnit_Framework_TestCase
+{
+    public function testConstructor()
+    {
+        $request = new Request();
+    }
+
+    
+}

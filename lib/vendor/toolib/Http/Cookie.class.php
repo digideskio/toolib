@@ -19,37 +19,63 @@
  *  
  */
 
-namespace toolib\Net\Http;
+namespace toolib\Http;
 
-//! [R3] Manage http cookies
+/**
+ * @brief Manage http cookies
+ */
 class Cookie
 {
-	//! Date format of Cookies
+	/**
+	 * @brief Date format of Cookies
+	 * @var string
+	 */
     const DATE_FORMAT = 'D, d-M-Y H:i:s T';
     
-    //! The name of te cookie
+    /**
+     * @brief The name of te cookie
+     * @var string
+     */
     private $name;
 
-    //! Value of cookie
+    /**
+     * @brief Value of cookie
+     * @var string
+     */
     private $value = '';
 
-    //! Domain of cookie
+    /**
+     * @brief Domain of cookie
+     * @var string
+     */
     private $domain = '';
 
-    //! Path of cookie
+    /**
+     * @brief Path of cookie
+     * @var string
+     */
     private $path = '/';
 
-    //! Time when cookie expires
+    /**
+     * @brief Time when cookie expires
+     * @var number
+     */
     private $expiration_time = 0;
 
-    //! Flag if the cookie is httponly
+    /**
+     * @brief Flag if the cookie is httponly
+     * @var boolean
+     */
     private $httponly = false;
 
-    //! Flag if cookie is secure
+    /**
+     * @brief Flag if cookie is secure
+     * @var boolean
+     */
     private $secure = false;
 
-    //! Construct a cookie
     /**
+     * @brief Construct a cookie
      * @param string $name The name of the cookie.
      * @param string $value The value of the cookie
      * @param integer $expiration_time The unix time stamp when cookie expires or 0 for session cookie.
@@ -69,32 +95,40 @@ class Cookie
         $this->secure = $secure;
     }
 
-    //! Get the name of the cookie
+    /**
+     * @brief Get the name of the cookie 
+     */
     public function getName()
     {
         return $this->name;
     }
 
-    //! Get the value of the cookie
+    /**
+     * @brief Get the value of the cookie
+     */
     public function getValue()
     {   
         return $this->value;
     }
 
-    //! Get the effective domain of the cookie
+    /**
+     * @brief Get the effective domain of the cookie
+     */
     public function getDomain()
     {   
         return $this->domain;
     }
 
-    //! Get the effective path of the cookie
+    /**
+     * @brief Get the effective path of the cookie
+     */
     public function getPath()
     {   
         return $this->path;
     }
 
-    //! Get the time this cookie expires
     /**
+     * @brief Get the time this cookie expires
      * @return integer Unix timestamp of expiration time or 0 if
      *      it is session cookie.
      */
@@ -103,26 +137,32 @@ class Cookie
         return $this->expiration_time;
     }
 
-    //! Check if cookie is session cookie based on expiration time
+    /**
+     * @brief Check if cookie is session cookie based on expiration time
+     */
     public function isSessionCookie()
     {   
         return ($this->expiration_time == 0);
     }    
     
-    //! Check "httponly" flag of the cookie
+    /**
+     * @brief Check "httponly" flag of the cookie
+     */
     public function isHttponly()
     {
         return $this->httponly;
     }
 
-    //! Check "seucre" flag of the cookie
+    /**
+     * @brief Check "secure" flag of the cookie
+     */
     public function isSecure()
     {
         return $this->secure;
     }
 
-    //! Set the name of the cookie
     /**
+     * @brief Set the name of the cookie
      * @param string $name The new name.
      */
     public function setName($name)
@@ -130,8 +170,8 @@ class Cookie
         $this->name = $name;
     }
     
-    //! Set the value of the cookie
     /**
+     * @brief Set the value of the cookie
      * @param string $value The new value.
      */
     public function setValue($value)
@@ -139,8 +179,8 @@ class Cookie
         $this->value = $value;
     }
 
-    //! Set the effective domain of the cookie
     /**
+     * @brief Set the effective domain of the cookie
      * @param string $domain The new effective domain.
      */
     public function setDomain($domain)
@@ -148,8 +188,8 @@ class Cookie
         $this->domain = $domain;
     }
 
-    //! Set the effective path of the cookie
     /**
+     * @brief Set the effective path of the cookie
      * @param string $path The new effective path.
      */
     public function setPath($path)
@@ -157,8 +197,8 @@ class Cookie
         $this->path = $path;
     }
 
-    //! Set the "secure" flag of the cookie
     /**
+     * @brief Set the "secure" flag of the cookie
      * @param boolean $enabled The new state of "secure" flag.
      */
     public function setSecure($enabled)
@@ -166,8 +206,8 @@ class Cookie
         return $this->secure = $enabled;
     }
     
-    //! Set the "httponly" flag of the cookie
     /**
+     * @brief Set the "httponly" flag of the cookie
      * @param boolean $enabled The new state of "httponly" flag.
      */
     public function setHttponly($enabled)
@@ -175,8 +215,8 @@ class Cookie
         return $this->httponly = $enabled;
     }
 
-    //! Set the expiration time of the cookie.
     /**
+     * @brief Set the expiration time of the cookie.
      * @param integer $time
      *  - The unix time stamp of the expiration date.
      *  - @b 0 if the cookie is a session cookie.
@@ -187,8 +227,8 @@ class Cookie
         return $this->expiration_time = $time;
     }
 
-    //! Open a cookie received through php $_COOKIE superglobal.
     /**
+     * @brief Open a cookie received through php $_COOKIE superglobal.
      * @param string $name The name of the cookie
      * @return Cookie
      *   - Cookie object with all data for this cookie
@@ -204,8 +244,9 @@ class Cookie
         return $cookie;
     }
 
-    //! Send cookie to the http response layer
     /**
+     * @brief Send cookie to the http response layer
+     * 
      * It will use the php's setcookie() function to send
      * all cookie data to the response.
      */
@@ -222,8 +263,9 @@ class Cookie
     }
     
     /**
-     * origin: symfony-2
-     * Returns the HTTP representation of the Cookie.
+     * @brief Returns the HTTP representation of the Cookie.
+     * 
+     * @origin: symfony-2 
      * @return string The HTTP representation of the Cookie
      */
     public function __toString()
@@ -254,8 +296,9 @@ class Cookie
     }
 
     
-    //! Creates a Cookie instance from a Set-Cookie header value.
 	/**
+	 * @brief Creates a Cookie instance from a Set-Cookie header value.
+	 * 
 	 * @origin: symfony-2
 	 * @param string $cookie A Set-Cookie header value
 	 * @param string $url The base URL
