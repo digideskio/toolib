@@ -27,18 +27,33 @@ class Http_TestServiceTest extends PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
-    	H\Gateway::getInstance()->getResponse()->
-    	$this->assertNull(H\Service::getInstance());    	
-        $srv = new H\Test\Service();        
-        $this->assertSame($srv, H\Service::getInstance());
+    	$this->assertNull(H\Test\Gateway::getInstance());    	
+        $gw = new H\Test\Gateway();
+        $this->assertSame($gw, H\Test\Gateway::getInstance());
         
     }
 
-    public function testUsage()
+    /**
+     * @depends testConstructor
+     */
+    public function testGetRequest()
     {
-    	$srv = new H\Test\Service(); 
-    	$request = $srv->getRequest();    	
-    	$this->assertSame($request, H\Request::getInstance());
-
+    	$request = H\Gateway::getInstance()->getRequest();
+    	$this->assertType('\toolib\Http\Test\Request', $request);
+    	
+    	// Check is the same
+    	$this->assertSame($request, H\Gateway::getInstance()->getRequest());
+    }
+    
+    /**
+    * @depends testConstructor
+    */
+    public function testGetResponse()
+    {
+    	$response = H\Gateway::getInstance()->getResponse();
+    	$this->assertType('\toolib\Http\Test\Response', $response);
+    	 
+    	// Check is the same
+    	$this->assertSame($response, H\Gateway::getInstance()->getResponse());
     }
 }

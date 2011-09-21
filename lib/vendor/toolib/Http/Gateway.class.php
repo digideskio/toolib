@@ -11,11 +11,15 @@ abstract class Gateway
 	 * @brief Pointer to singleton instance
 	 * @var Gateway
 	 */
-	static private $_instance;
+	static private $_instance = null;
 	
+	/**
+	 * @brief The first constructed Gateway is registered as singleton
+	 */
 	public function __construct()
 	{
-		self::$_instance = $this;
+		if (self::$_instance === null)
+			self::$_instance = $this;
 	}
 	
 	/**

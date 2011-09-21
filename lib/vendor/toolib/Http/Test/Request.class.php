@@ -19,30 +19,41 @@
  *  
  */
 
-namespace toolib\Http\Test;
+/**
+ * All classes related with HTTP protocol. 
+ * @author sque
+ */
+namespace toolib\Http;
 use toolib\Http\ParameterContainer;
 
-require_once __DIR__ . '/../Request.class.php';
+require_once __DIR__ . '/ParameterContainer.class.php';
 
-//! Wrapper for CGI Request
-/**
- * Manage meta-variables of a CGI Request
- * @property integer $cgi_version The version of cgi protocol.
- * @property array $server_info Information about this server.
- * @property array $remote_info Information about this remote end point.
- * @property string $path_info Part of the path after script name.
- * @property string $script_name The actual script that is executed 
- */
-class Request extends \toolib\Http\Request
+
+class Request
 {
-
+	public $uri;
+	
+	public $method;
+	
+	public $http_method;
+	
+	public $scheme;
+	
+	public $cookies;
+	
+	public $headers;
+	
+	public $query;
+	
+	public $raw_content;
+	
+	public $content;
+	
 	/**
-	 * @param array $meta_variables The meta variables as defined in CGI protocol.
-	 * @param boolean $php_request Flag if this instance represents actual php request.
-	 *  Enabling it, other superglobal variables will also be used.
+	 * @brief Create an empty Request object
 	 */
-	public function __construct($meta_variables = null, $php_request = false)
-	{
+    public function __construct()
+    {
         $this->uri = '/';
         $this->method = 'GET';
         $this->http_version = 1.1;
@@ -52,5 +63,89 @@ class Request extends \toolib\Http\Request
         $this->query = new ParameterContainer();
         $this->raw_content = null;
         $this->content = new ParameterContainer();
-	}
+    }
+    
+
+    /**
+     * @brief Get the full requested uri
+     */
+    public function getRequestUri()
+    {
+    	return $this->request_uri;
+    }
+    
+    /**
+     * @brief Get only the uri requested after the script
+     * (PATH_INFO)
+     */
+    public function getUri()
+    {
+    	return $this->uri;
+    }
+    
+    public function getCookies()
+    {
+    	
+    }
+    
+    public function getScheme()
+    {
+    	
+    }
+    
+    public function getMethod()
+    {
+    	
+    }
+    
+    public function getHeaders()
+    {
+    	
+    }
+    
+    public function getProtocolVersion()
+    {
+    	
+    }
+    
+    public function getContent()
+    {
+    	
+    }
+    
+    public function getRawContent()
+    {
+    	
+    }
+    /**
+     * @brief Check if this request is of 'POST' method
+     */
+    public function isPost()
+    {
+    	return ($this->getMethod() == 'POST');
+    }
+    
+    /**
+     * @brief Check if this request is of 'GET' method
+     */
+    public function isGet()
+    {
+    	return ($this->getMethod() == 'GET');
+    }
+    
+    /**
+     * @brief Check if this request is through https
+     */
+    public function isSecure()
+    {
+    	return ($this->getScheme() == 'HTTPS');
+    }
+    
+    /**
+    * @brief Get the reponse from the current gateway instance
+    */
+    public function getInstance()
+    {
+    	return \toolib\Http\Gateway::getInstance()->getRequest();
+    }
 }

@@ -40,30 +40,62 @@ require_once __DIR__ . '/ParameterContainer.class.php';
  * @property sting $raw_content The actual raw message body.
  * @property toolib\Http\ParameterContainer $content The analyzed content (post parameters).  
  */
-class Request
+abstract class Request
 {
-	/**
-	 * @brief Create an empty Request object
-	 */
-    public function __construct($uri = '/')
-    {
-        $this->uri = '/';
-        $this->method = 'GET';
-        $this->http_version = 1.1;
-        $this->scheme = 'HTTP';
-        $this->cookies = new ParameterContainer();
-        $this->headers = new ParameterContainer();
-        $this->query = new ParameterContainer();
-        $this->raw_content = null;
-        $this->content = new ParameterContainer();
-    }
+
+    /**
+     * @brief Get the full requested uri
+     */
+    abstract public function getRequestUri();
+        
+    /**
+     * @brief Get only the uri requested after the script
+     * (PATH_INFO)
+     */
+    abstract public function getUri();
+        
+    /**
+     * @brief Cookies sent with the request. 
+     */
+    abstract public function getCookies();    
+    
+    /**
+     * @brief The scheme of the url. 'HTTPS' or 'HTTP'.
+     */
+    abstract public function getScheme();    
+    
+    /**
+     * @brief Get the HTTP request method
+     */
+    abstract public function getMethod();
+    
+    
+    /**
+     * @brief The headers sent with the request.
+     */
+    abstract public function getHeaders();    
+    
+    /**
+     * @brief The http protocol version
+     */
+    abstract public function getProtocolVersion();
+    
+    /**
+     * @brief Get the content of the request
+     */
+    abstract public function getContent();
+
+    /**
+    * @brief Get the raw (unprocessed) content of the request
+    */
+    abstract public function getRawContent();
     
     /**
      * @brief Check if this request is of 'POST' method
      */
     public function isPost()
     {
-    	return ($this->method == 'POST');
+    	return ($this->getMethod() == 'POST');
     }
     
     /**
@@ -71,7 +103,7 @@ class Request
      */
     public function isGet()
     {
-    	return ($this->method == 'GET');
+    	return ($this->getMethod() == 'GET');
     }
     
     /**
@@ -79,9 +111,12 @@ class Request
      */
     public function isSecure()
     {
-    	return ($this->scheme == 'HTTPS');
+    	return ($this->getScheme() == 'HTTPS');
     }
     
+    /**
+    * @brief Get the reponse from the current gateway instance
+    */
     public function getInstance()
     {
     	return \toolib\Http\Gateway::getInstance()->getRequest();
