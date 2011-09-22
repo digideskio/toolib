@@ -22,7 +22,7 @@
 namespace toolib\Http;
 
 /**
- * @brief Container for parameters
+ * @brief Container for HTTP Query and Body parameters
  * @see ArrayObject for additional reference.
  */
 class ParameterContainer extends \ArrayObject

@@ -21,11 +21,12 @@
 
 namespace toolib\Http\Test;
 use toolib\Http\HeaderContainer;
-
 use toolib\Http\ParameterContainer;
 use toolib\Http;
 
 require_once __DIR__ . '/../Request.class.php';
+require_once __DIR__ . '/../ParameterContainer.class.php';
+require_once __DIR__ . '/../HeaderContainer.class.php';
 
 /**
  * @brief Request implementation for Test package.
@@ -42,10 +43,10 @@ class Request extends Http\Request
 	/**
 	 * @brief Create an empty Request object
 	 */
-    public function __construct($uri = '/', $post_data = null, $headers = null)
+    public function __construct($url = '/', $post_data = null, $headers = null)
     {
         $this->_params = array(
-        	'uri' => $uri,
+        	'url' => $url,
         	'protocol_version' => 1.1,
         	'method' => $post_data === null ? 'GET' : 'POST',
         	'scheme' => 'HTTP',
@@ -56,11 +57,26 @@ class Request extends Http\Request
         );
 
         // Analyze URL
-        $url_parts = parse_url($this->_params['uri']);
+        $url_parts = parse_url($this->_params['url']);
+        if (isset($url_parts['scheme'])) {
+        	if (!in_array($url_parts['scheme'], array('http', 'https')))
+        		throw new \InvalidArgumentException(
+        			"Cannot manipulate URL with \"{$url_parts['scheme']} scheme.\"");
+        	$this->_params['scheme'] = strtoupper($url_parts['scheme']);
+        }
+        $this->_params['host'] = isset($url_parts['host'])?$url_parts['host']:'localhost';
+        $this->_params['port'] = isset($url_parts['port'])?$url_parts['port']:null;
         $this->_params['path'] = isset($url_parts['path'])?$url_parts['path']: '/';
         $this->_params['query'] = 
         	$this->_params['query_string'] = isset($url_parts['query'])?$url_parts['query']: null;
         $this->_params['fragment'] = isset($url_parts['fragment'])?$url_parts['fragment']: null;
+        
+        // Create extra needed data
+        $this->_params['uri'] = $this->_params['path']
+        	. ($this->_params['query'] !== null?('?' . $this->_params['query']):'')
+        	. ($this->_params['fragment'] !== null?('#' . $this->_params['fragment']):'');
+        $this->_params['headers']->replace('Host', $this->_params['host'] 
+        	. ($this->_params['port'] !== null?':' . $this->_params['port']:''));
         
         // Parse query string
         parse_str($this->_params['query_string'], $this->_params['query']);
@@ -101,8 +117,17 @@ class Request extends Http\Request
     
     public function getCookies()
     {
-    	$cookie_headers = $this->getHeaders();
-    	return array();
+    	$cookie_headers = implode(' ; ', $this->getHeaders()->getValues('Cookie'));
+    	$cookies = array();
+    	foreach(explode(';', $cookie_headers) as $c) {
+    		if (($c = trim($c)) == '')
+    			continue;
+    		if (($value = strstr($c, '=', true)) == false)
+    			throw \RuntimeException('Mallformated Cookie header. "' . $c . '"');
+    		
+    		$cookies[$value] =  substr($c, strlen($value) + 1);
+    	}
+    	return $cookies;
     }
     
     public function getScheme()
