@@ -19,17 +19,19 @@
  *  
  */
 
+
+use toolib\Http\Cgi;
 use toolib\Http;
 
 require_once __DIR__ .  '/../../path.inc.php';
 
-class Http_TestServiceTest extends PHPUnit_Framework_TestCase
+class Http_CgiServiceTest extends PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
-    	$this->assertNull(Http\Test\Gateway::getInstance());    	
-        $gw = new Http\Test\Gateway();
-        $this->assertSame($gw, Http\Test\Gateway::getInstance());
+    	$this->assertNull(Cgi\Gateway::getInstance());    	
+        $gw = new Cgi\Gateway();
+        $this->assertSame($gw, Cgi\Gateway::getInstance());
         
     }
 
@@ -39,7 +41,7 @@ class Http_TestServiceTest extends PHPUnit_Framework_TestCase
     public function testGetRequest()
     {
     	$request = Http\Gateway::getInstance()->getRequest();
-    	$this->assertType('\toolib\Http\Test\Request', $request);
+    	$this->assertType('\toolib\Http\Cgi\Request', $request);
     	
     	// Check is the same
     	$this->assertSame($request, Http\Gateway::getInstance()->getRequest());
@@ -51,7 +53,7 @@ class Http_TestServiceTest extends PHPUnit_Framework_TestCase
     public function testGetResponse()
     {
     	$response = Http\Gateway::getInstance()->getResponse();
-    	$this->assertType('\toolib\Http\Test\Response', $response);
+    	$this->assertType('\toolib\Http\Cgi\Response', $response);
     	 
     	// Check is the same
     	$this->assertSame($response, Http\Gateway::getInstance()->getResponse());

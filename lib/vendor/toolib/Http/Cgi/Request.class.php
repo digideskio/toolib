@@ -24,15 +24,8 @@ use toolib\Http\ParameterContainer;
 
 require_once __DIR__ . '/../Request.class.php';
 
-//! Wrapper for CGI Request
 /**
- * @brief Implementation of Request for CGI Gateway
- * Manage meta-variables of a CGI Request
- * @property integer $cgi_version The version of cgi protocol.
- * @property array $server_info Information about this server.
- * @property array $remote_info Information about this remote end point.
- * @property string $path_info Part of the path after script name.
- * @property string $script_name The actual script that is executed 
+ * @brief Request implementation for Cgi package.
  */
 class Request extends \toolib\Http\Request
 {
@@ -55,8 +48,7 @@ class Request extends \toolib\Http\Request
 	 */
 	public function __construct($meta_variables = null, $php_request = false)
 	{
-		$this->_php_request = $php_request;
-		
+
 		if ($meta_variables !== null) {
 			$this->_meta_variables = $meta_variables;
 			return;
@@ -218,21 +210,63 @@ class Request extends \toolib\Http\Request
 		return $this->$property;
 	}
 	
-	/**
-	 * @brief The current request object instance.
-	 * @var \toolib\Http\Cgi\Request
-	 */
-	static private $current_instance = null;
-	
-	/**
-	 * @brief Get CGI Instance of the current page request.
-	 * @return \toolib\Http\Cgi\Request
-	 */
-	public static function getCurrent()
+	public function getRequestUri()
 	{
-		if (self::$current_instance !== null)
-			return self::$current_instance;
-			
-		return self::$current_instance = new static($_SERVER, true);
+		
+	}
+	
+	public function getPath()
+	{
+		
+	}
+	
+	public function getFragment()
+	{
+		
+	}
+	
+	public function getQuery()
+	{
+		
+	}
+	
+	public function getQueryString()
+	{
+		
+	}
+	
+	public function getCookies()
+	{
+		
+	}
+	
+	public function getScheme()
+	{
+		
+	}
+	
+	public function getMethod()
+	{
+		
+	}
+	
+	public function getHeaders()
+	{
+		
+	}
+	
+	public function getProtocolVersion()
+	{
+		
+	}
+	
+	public function getContent()
+	{
+		
+	}
+	
+	public function getRawContent()
+	{
+		
 	}
 }

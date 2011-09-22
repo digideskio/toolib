@@ -25,13 +25,17 @@ require_once __DIR__ . '/../Gateway.class.php';
 require_once __DIR__ . '/Request.class.php';
 require_once __DIR__ . '/Response.class.php';
 
+/**
+* @brief Gateway implementation for Cgi package.
+*/
 class Gateway extends \toolib\Http\Gateway
 {
 	public function __construct()
 	{
-		$this->request = new Request();
-		$this->reponse = new Response();
 		parent::__construct();
+		
+		$this->request = new Request();
+		$this->response = new Response();		
 	}
 	
 	public function getRequest()
@@ -42,5 +46,5 @@ class Gateway extends \toolib\Http\Gateway
 	public function getResponse()
 	{
 		return $this->response;
-	}	
+	}
 }
