@@ -26,15 +26,20 @@ require_once __DIR__ .  '/../../path.inc.php';
 class Http_TestRequestTest extends PHPUnit_Framework_TestCase
 {
 	
-	public function commonDefaultConditions(Request $r, $must_be_post = false)
+	public function commonDefaultConditions(Request $r, $must_be_post = false, $is_secure = false )
 	{
 		$this->assertType('\toolib\Http\ParameterContainer', $r->getQuery());
 		$this->assertType('\toolib\Http\HeaderContainer', $r->getHeaders());
 		$this->assertType('array', $r->getCookies());
 		
 		$this->assertEquals(1.1, $r->getProtocolVersion());
-		$this->assertEquals('HTTP', $r->getScheme());
-		$this->assertFalse($r->isSecure());
+		if ($is_secure){
+			$this->assertEquals('HTTPS', $r->getScheme());
+			$this->assertTrue($r->isSecure());
+		} else {
+			$this->assertEquals('HTTP', $r->getScheme());
+			$this->assertFalse($r->isSecure());
+		}
 		
 		if ($must_be_post) {
 			$this->assertEquals('POST', $r->getMethod());
@@ -59,9 +64,46 @@ class Http_TestRequestTest extends PHPUnit_Framework_TestCase
         $this->assertNull($r->getQueryString());
         
         $this->commonDefaultConditions($r);
+        
         $this->assertEquals(0, count($r->getQuery()));
+        $this->assertEquals(1, count($r->getHeaders()));
+        $this->assertTrue($r->getHeaders()->is('Host', 'localhost'));
     }
 
+    public function testConstructorSimpleUrl()
+    {
+    	$r = new Request('http://my.host.com/example/path');
+    
+    	$this->assertEquals('/example/path', $r->getRequestUri());
+    	$this->assertEquals('/example/path', $r->getPath());
+    	$this->assertNull($r->getFragment());
+    	$this->assertNull($r->getContent());
+    	$this->assertNull($r->getRawContent());
+    	$this->assertNull($r->getQueryString());
+    	 
+    	$this->commonDefaultConditions($r);
+    	$this->assertEquals(0, count($r->getQuery()));
+    	$this->assertEquals(1, count($r->getHeaders()));
+    	$this->assertTrue($r->getHeaders()->is('Host', 'my.host.com'));
+    }
+    
+    public function testConstructorComplexUrl()
+    {
+    	$r = new Request('https://user:pass@my.host.com:8080/example/path');
+    
+    	$this->assertEquals('/example/path', $r->getRequestUri());
+    	$this->assertEquals('/example/path', $r->getPath());
+    	$this->assertNull($r->getFragment());
+    	$this->assertNull($r->getContent());
+    	$this->assertNull($r->getRawContent());
+    	$this->assertNull($r->getQueryString());
+    
+    	$this->commonDefaultConditions($r, false, true);
+    	$this->assertEquals(0, count($r->getQuery()));
+    	$this->assertEquals(1, count($r->getHeaders()));
+    	$this->assertTrue($r->getHeaders()->is('Host', 'my.host.com:8080'));
+    }
+    
     public function testConstructorSimpleUri()
     {
     	$r = new Request('/example/path');
@@ -75,6 +117,8 @@ class Http_TestRequestTest extends PHPUnit_Framework_TestCase
     	
     	$this->commonDefaultConditions($r);
         $this->assertEquals(0, count($r->getQuery()));
+        $this->assertEquals(1, count($r->getHeaders()));
+        $this->assertTrue($r->getHeaders()->is('Host', 'localhost'));
     }
     
     public function testConstructorUriWithQS()
@@ -140,5 +184,38 @@ class Http_TestRequestTest extends PHPUnit_Framework_TestCase
     	$this->commonDefaultConditions($r, true);
     	$this->assertEquals(2, count($r->getQuery()));
     	$this->assertEquals(array('a' => 2, 'c' => array(3, 5)), $r->getQuery()->getArrayCopy());
+    }
+
+    public function testHeaders()
+    {
+    	$r = new Request(
+    		'/example/path?a=1&a=2&c[]=3&c[]=5#bigone?bigtwo',
+    		'pa=1&pa=2&pc[]=3&pc[]=5',
+    		array('X-Test' => 'bride two',
+    			'Cookie' => 'Bla bla blouba')
+    	);
+    	
+    	$this->assertEquals(3, count($r->getHeaders()));
+    	$this->assertTrue($r->getHeaders()->has('X-Test'));
+    	$this->assertTrue($r->getHeaders()->has('Cookie'));
+    	$this->assertTrue($r->getHeaders()->is('X-Test', 'bride two'));
+    	$this->assertTrue($r->getHeaders()->is('Cookie', 'Bla bla blouba'));
+    	$this->assertTrue($r->getHeaders()->is('Host', 'localhost'));
+    }
+    
+    public function testCookies()
+    {
+    	$r = new Request(
+    	    		'/example/path?a=1&a=2&c[]=3&c[]=5#bigone?bigtwo',
+    	    		'pa=1&pa=2&pc[]=3&pc[]=5',
+    	array('X-Test' => 'bride two',
+    	    			'Cookie' => 'PREF=ID=AFSLDOWEMADF:U=9a8sdf34gsd9fg:FF=23:LD=en:NR=40:'.
+    	    			'TM=124575346734:LM=12436346234:SG=10:S=8sdfgdfhjasfdga; ' .
+    	    			'NID=51=SDFGSDfg-sdfhsdf-gk3425topui[90sugjsdfgaSGAegasdGasdfasdfqwer_=-')
+    	);
+    	
+    	$this->assertEquals(array('PREF' => 'ID=AFSLDOWEMADF:U=9a8sdf34gsd9fg:FF=23:LD=en:NR=40:'.
+    	    	'TM=124575346734:LM=12436346234:SG=10:S=8sdfgdfhjasfdga',
+    	    'NID' => '51=SDFGSDfg-sdfhsdf-gk3425topui[90sugjsdfgaSGAegasdGasdfasdfqwer_=-'), $r->getCookies());
     }
 }

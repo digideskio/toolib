@@ -22,7 +22,7 @@
 namespace toolib\Http;
 
 /**
- * @brief Container for headers
+ * @brief Container for HTTP headers
  * @see ArrayObject for additional reference.
  */
 class HeaderContainer extends \ArrayObject

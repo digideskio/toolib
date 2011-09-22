@@ -22,6 +22,9 @@
 namespace toolib\Http;
 require_once __DIR__ . '/Cookie.class.php';
 
+/**
+ * @brief Base class for interfacing HTTP Responses.
+ */
 abstract class Response
 {
 	
@@ -44,12 +47,13 @@ abstract class Response
      * @brief Define the content type of this response
      * @param $mime The mime of the content.
      */
-    abstract static public function setContentType($mime);
+    abstract public function setContentType($mime);
 
     /**
      * @brief Set the status code and message of response
      * @param $code 3-digits error code.
      * @param $message A small description of this error code.
+     * @throws InvalidArgumentException
      */
     abstract public function setStatusCode($code, $message);
     

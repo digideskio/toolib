@@ -24,9 +24,6 @@
  * @author sque
  */
 namespace toolib\Http;
-use toolib\Http\ParameterContainer;
-
-require_once __DIR__ . '/ParameterContainer.class.php';
 
 /**
  * @brief Base class for managing HTTP Requests.

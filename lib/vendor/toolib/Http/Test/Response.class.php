@@ -20,74 +20,113 @@
  */
 
 namespace toolib\Http\Test;
+use toolib\Http\HeaderContainer;
 use toolib\Http ;
 
+require_once __DIR__ . '/../HeaderContainer.class.php';
 require_once __DIR__ . '/../Cookie.class.php';
 
-class Response
+/**
+ * @brief Exception to be raised when exit shoud be called (for test). 
+ */
+class ImmediateExitRequest extends \Exception
 {
+	
+}
+
+/**
+* @brief Response implementation for Test package.
+*/
+class Response extends Http\Response
+{
+	/**
+	 * @brief Status code reported
+	 * @var array
+	 */
 	private $_status = array('code' => '200', 'message' => 'OK');
 	
-	private $_headers = array();
+	/**
+	 * @brief Headers
+	 * @var \toolib\Http\HeaderContainer
+	 */
+	private $_headers;
 	
+	/**
+	 * @brief Body of the response message
+	 * @var string
+	 */
 	private $_body = '';
 	
+	/**
+	 * @brief Construct a new empty response
+	 */
 	public function __construct()
 	{
-		
+		$this->_headers = new HeaderContainer();
 	}
-	
+
 	public function addHeader($name, $value, $replace = true)
 	{
-		if ($replace || !isset($this->_headers[$name])) {
-			$this->_headers[$name] = $value;
-			return;
-		} 
-		
-		if (is_array($this->_headers[$name]))
-			$this->_headers[$name][] = $value; 
+		if ($replace)
+			$this->_headers->replace($name, $value);
 		else
-			$this->_headers[$name] = array($this->_headers[$name], $value);		
+			$this->_headers->add($name, $value);				
+	}
+	
+	/**
+	 * @brief Get the headers of this message
+	 * @return \toolib\Http\HeaderContainer
+	 */
+	public function getHeaders()
+	{
+		return $this->_headers;
 	}
 	
     public function redirect($url, $auto_exit = true)
     {   
         $this->addHeader('Location', $url);
         if ($auto_exit)
-            exit;
+            throw new ImmediateExitRequest();
     }
 
     public function setContentType($mime)
     {   
-        $this->addHeader('Content-type', $mime);
+        $this->addHeader('Content-Type', $mime);
     }
 
-    static public function setErrorCode($code, $message)
+    public function setStatusCode($code, $message)
     {   
-        $this->$_status['code'] = $code;
-        $this->$_status['message'] = $message;
+    	if ($code < 100 || $code > 999)
+    		throw new \InvalidArgumentException("Code \"{$code}\" is not valid HTTP Status code.");
+    	
+        $this->_status['code'] = $code;
+        $this->_status['message'] = $message;
+    }
+    
+    /**
+     * @brief Get the status code of this message
+     * @return array With 'code' and 'message' keys
+     */
+    public function getStatusCode()
+    {
+    	return $this->_status;
     }
     
     public function appendContent($data)
     {
-    	$this->$_body .= (string)$data;
+    	$this->_body .= (string)$data;
     }
     
     /**
-     * @brief Send cookie to the http response layer
-     * 
-     * It will use the php's setcookie() function to send
-     * all cookie data to the response.
+     * @brief Get the content (body) of this message
      */
-    public function sendCookie(Http\Cookie $cookie)
+    public function getContent()
     {
-        setcookie($cookie->getName(),
-            $cookie->getValue(),
-            ($cookie->isSessionCookie()?0:$cookie->getExpirationTime()),
-            $cookie->getPath(),
-            $this->getDomain(),
-            $this->isSecure(),
-            $this->isHttponly()
-        );
+    	return $this->_body;
+    }
+    
+    public function setCookie(Http\Cookie $cookie)
+    {
+    	$this->addHeader('Set-Cookie', (string)$cookie, false);        
     }
 }
