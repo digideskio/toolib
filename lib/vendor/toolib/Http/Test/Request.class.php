@@ -19,133 +19,119 @@
  *  
  */
 
-/**
- * All classes related with HTTP protocol. 
- * @author sque
- */
-namespace toolib\Http;
+namespace toolib\Http\Test;
+use toolib\Http\HeaderContainer;
+
 use toolib\Http\ParameterContainer;
+use toolib\Http;
 
-require_once __DIR__ . '/ParameterContainer.class.php';
+require_once __DIR__ . '/../Request.class.php';
 
-
-class Request
+/**
+ * @brief Request implementation for Test package.
+ */
+class Request extends Http\Request 
 {
-	public $uri;
 	
-	public $method;
-	
-	public $http_method;
-	
-	public $scheme;
-	
-	public $cookies;
-	
-	public $headers;
-	
-	public $query;
-	
-	public $raw_content;
-	
-	public $content;
+	/**
+	 * All the parameters of request
+	 * @var array
+	 */
+	private $_params;
 	
 	/**
 	 * @brief Create an empty Request object
 	 */
-    public function __construct()
+    public function __construct($uri = '/', $post_data = null, $headers = null)
     {
-        $this->uri = '/';
-        $this->method = 'GET';
-        $this->http_version = 1.1;
-        $this->scheme = 'HTTP';
+        $this->_params = array(
+        	'uri' => $uri,
+        	'protocol_version' => 1.1,
+        	'method' => $post_data === null ? 'GET' : 'POST',
+        	'scheme' => 'HTTP',
+        	'cookies' => array(),
+        	'raw_content' => $post_data,
+        	'content' => $post_data,
+        	'headers' => new HeaderContainer($headers)
+        );
+
+        // Analyze URL
+        $url_parts = parse_url($this->_params['uri']);
+        $this->_params['path'] = isset($url_parts['path'])?$url_parts['path']: '/';
+        $this->_params['query'] = 
+        	$this->_params['query_string'] = isset($url_parts['query'])?$url_parts['query']: null;
+        $this->_params['fragment'] = isset($url_parts['fragment'])?$url_parts['fragment']: null;
+        
+        // Parse query string
+        parse_str($this->_params['query_string'], $this->_params['query']);
+        $this->_params['query'] = new ParameterContainer($this->_params['query']);        
+        
+        // Parse submitted content
+        if ($post_data !== null) {
+        	parse_str($this->_params['raw_content'], $this->_params['content']);
+        	$this->content = new ParameterContainer($this->_params['content']);
+        }
         $this->cookies = new ParameterContainer();
-        $this->headers = new ParameterContainer();
-        $this->query = new ParameterContainer();
-        $this->raw_content = null;
-        $this->content = new ParameterContainer();
     }
     
-
-    /**
-     * @brief Get the full requested uri
-     */
     public function getRequestUri()
     {
-    	return $this->request_uri;
+    	return $this->_params['uri'];
     }
     
-    /**
-     * @brief Get only the uri requested after the script
-     * (PATH_INFO)
-     */
-    public function getUri()
+    public function getPath()
     {
-    	return $this->uri;
+    	return $this->_params['path'];
+    }
+
+    public function getFragment()
+    {
+    	return $this->_params['fragment'];
+    }
+
+    public function getQuery()
+    {
+    	return $this->_params['query'];
+    }
+    
+    public function getQueryString()
+    {
+    	return $this->_params['query_string'];
     }
     
     public function getCookies()
     {
-    	
+    	$cookie_headers = $this->getHeaders();
+    	return array();
     }
     
     public function getScheme()
     {
-    	
+    	return $this->_params['scheme'];
     }
     
     public function getMethod()
     {
-    	
+    	return $this->_params['method'];
     }
     
     public function getHeaders()
     {
-    	
+    	return $this->_params['headers'];
     }
     
     public function getProtocolVersion()
     {
-    	
+    	return $this->_params['protocol_version'];
     }
     
     public function getContent()
     {
-    	
+    	return $this->_params['content'];
     }
     
     public function getRawContent()
     {
-    	
-    }
-    /**
-     * @brief Check if this request is of 'POST' method
-     */
-    public function isPost()
-    {
-    	return ($this->getMethod() == 'POST');
-    }
-    
-    /**
-     * @brief Check if this request is of 'GET' method
-     */
-    public function isGet()
-    {
-    	return ($this->getMethod() == 'GET');
-    }
-    
-    /**
-     * @brief Check if this request is through https
-     */
-    public function isSecure()
-    {
-    	return ($this->getScheme() == 'HTTPS');
-    }
-    
-    /**
-    * @brief Get the reponse from the current gateway instance
-    */
-    public function getInstance()
-    {
-    	return \toolib\Http\Gateway::getInstance()->getRequest();
+    	return $this->_params['raw_content'];
     }
 }

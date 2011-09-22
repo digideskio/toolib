@@ -24,7 +24,7 @@ use toolib\Http\Cookie;
 
 require_once __DIR__ .  '/../path.inc.php';
 
-class Net_ParameterContainerTest extends PHPUnit_Framework_TestCase
+class Http_ParameterContainerTest extends PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
@@ -192,5 +192,41 @@ class Net_ParameterContainerTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals($default_date, $c->getDateTimeFromFormat('param_2', 'Y-m-d H:i:sP', $default_date));
     	$this->assertEquals($date, $c->getDateTimeFromFormat('param_date', 'Y-m-d H:i:sP', $default_date));
     	$this->assertEquals($default_date, $c->getDateTimeFromFormat('param_int', 'Y-m-d H:i:sP', $default_date));
+    }
+    
+    public function testRecursiveContainers()
+    {
+    	$c = new ParameterContainer($orig_array = array(
+    			'param1' => 'value1',
+    			'param_2' => 'big_long',
+    			'param_int' => '8',
+    			'param_date' => '2010-04-25 02:24:16+12:00',
+    			'param_simplearray' => array('aval', 'bval', '8'),
+    			'param_simple_doublearray' => array('aval', 'bval', array('caval', 'cbval')),
+    			'param_complexarray' => array('key1' => 'val1', 'key2' => 'val2')
+    	));
+
+    	$this->assertType('\toolib\Http\ParameterContainer', $c['param_simplearray']);
+    	$this->assertType('\toolib\Http\ParameterContainer', $c['param_simple_doublearray']);
+    	$this->assertType('\toolib\Http\ParameterContainer', $c['param_complexarray']);
+    	
+    	// Check simple array
+    	$this->assertEquals('aval', $c['param_simplearray'][0]);
+    	$this->assertEquals('bval', $c['param_simplearray'][1]);
+    	$this->assertEquals('8', $c['param_simplearray'][2]);
+
+    	// Check double simple array
+    	$this->assertEquals('aval', $c['param_simple_doublearray'][0]);
+    	$this->assertEquals('bval', $c['param_simple_doublearray'][1]);
+    	$this->assertType('\toolib\Http\ParameterContainer', $c['param_simple_doublearray'][2]);
+    	$this->assertEquals('caval', $c['param_simple_doublearray'][2][0]);
+    	$this->assertEquals('cbval', $c['param_simple_doublearray'][2][1]);
+    	
+    	// Check complex array
+    	$this->assertEquals('val1', $c['param_complexarray']['key1']);
+    	$this->assertEquals('val2', $c['param_complexarray']['key2']);
+
+    	// Check extracted array
+    	$this->assertEquals($orig_array, $c->getArrayCopy());
     }
 }

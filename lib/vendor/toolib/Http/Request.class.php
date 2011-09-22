@@ -30,15 +30,6 @@ require_once __DIR__ . '/ParameterContainer.class.php';
 
 /**
  * @brief Base class for managing HTTP Requests.
- * @property string $uri The requested uri
- * @property string $method The HTTP Request method that was used.
- * @property string $http_version The HTTP protocol version.
- * @property string $scheme The scheme of the url. 'HTTPS' or 'HTTP'.
- * @property toolib\Http\ParameterContainer $cookies Cookies sent with the request. 
- * @property toolib\Http\ParameterContainer $headers The headers sent with the request.
- * @property toolib\Http\ParameterContainer $query The query string parsed and structured.
- * @property sting $raw_content The actual raw message body.
- * @property toolib\Http\ParameterContainer $content The analyzed content (post parameters).  
  */
 abstract class Request
 {
@@ -52,8 +43,24 @@ abstract class Request
      * @brief Get only the uri requested after the script
      * (PATH_INFO)
      */
-    abstract public function getUri();
-        
+    abstract public function getPath();
+
+    /**
+    * @brief Get the part of url after hash #
+    */
+    abstract public function getFragment();
+
+    /**
+    * @brief It will return processed the URL's query string.
+     * @return \toolib\Http\ParameterContainer
+    */
+    abstract public function getQuery();
+    
+    /**
+     * @brief URL Query is the part between ? and end/#.
+     */
+    abstract public function getQueryString();
+    
     /**
      * @brief Cookies sent with the request. 
      */
@@ -69,9 +76,9 @@ abstract class Request
      */
     abstract public function getMethod();
     
-    
     /**
      * @brief The headers sent with the request.
+     * @return \toolib\Http\HeaderContainer
      */
     abstract public function getHeaders();    
     
@@ -82,6 +89,7 @@ abstract class Request
     
     /**
      * @brief Get the content of the request
+     * @return \toolib\Http\ParameterContainer
      */
     abstract public function getContent();
 

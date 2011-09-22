@@ -20,7 +20,7 @@
  */
 
 namespace toolib\Http\Test;
-use toolib\Http as H;
+use toolib\Http ;
 
 require_once __DIR__ . '/../Cookie.class.php';
 
@@ -79,7 +79,7 @@ class Response
      * It will use the php's setcookie() function to send
      * all cookie data to the response.
      */
-    public function sendCookie(H\Cookie $cookie)
+    public function sendCookie(Http\Cookie $cookie)
     {
         setcookie($cookie->getName(),
             $cookie->getValue(),

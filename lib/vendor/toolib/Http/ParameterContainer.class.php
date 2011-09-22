@@ -34,7 +34,12 @@ class ParameterContainer extends \ArrayObject
 	 */
 	public function __construct($parameters = array())
 	{
-		parent::__construct($parameters);
+		foreach($parameters as $key => $value) {
+			if(is_array($value)){
+				$value = new self($value);
+			}
+			$this->offsetSet($key, $value);
+		}		
 	}
 
 	/**
@@ -62,7 +67,7 @@ class ParameterContainer extends \ArrayObject
 	/**
 	 * @brief Check if a parameter is equal to a value
 	 * @param string $name The name of the parameter
-	 * @param mixed $default The expected value of parameter to check.
+	 * @param mixed $expected The expected value of parameter to check.
 	 * @param boolean $strict Flag if comparisson should be done in strict mode.
 	 */
 	public function is($name, $expected, $strict = false)
@@ -138,5 +143,15 @@ class ParameterContainer extends \ArrayObject
 		if (preg_match($regex, $this->offsetGet($name)) > 0)
 			return $this->offsetGet($name);
 		return $default;
+	}
+	
+	public function getArrayCopy()
+	{
+		// Overide ArrayObject implementation to return recursively object as arrays.
+		$values = array();
+		foreach($this as $key => $value)
+			$values[$key] = ! is_object($value) ? $value:
+				($value instanceof ParameterContainer ? $value->getArrayCopy() : $value);
+		return $values;
 	}
 }

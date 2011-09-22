@@ -23,7 +23,7 @@ use toolib\Http\Cookie;
 
 require_once __DIR__ .  '/../path.inc.php';
 
-class Net_CookieTest extends PHPUnit_Framework_TestCase
+class Http_CookieTest extends PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
