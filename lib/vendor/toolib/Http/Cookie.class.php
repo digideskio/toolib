@@ -228,7 +228,7 @@ class Cookie
     }
 
     /**
-     * @brief Open a cookie received through php $_COOKIE superglobal.
+     * @brief Open a cookie received through Http request layer
      * @param string $name The name of the cookie
      * @return Cookie
      *   - Cookie object with all data for this cookie
@@ -237,29 +237,29 @@ class Cookie
      */
     public static function openReceived($name)
     {
-        if (!isset($_COOKIE[$name]))
+    	$gw = \toolib\Http\Gateway::getInstance();
+    	if (!$gw)
+    		return false;
+    	$cookies = $gw->getRequest()->getCookies();
+    	
+        if (!isset($cookies[$name]))
             return false;
 
-        $cookie = new self($name, $_COOKIE[$name]);
+        $cookie = new self($name, $cookies[$name]);
         return $cookie;
     }
 
     /**
-     * @brief Send cookie to the http response layer
+     * @brief Send cookie to the Http response layer
      * 
-     * It will use the php's setcookie() function to send
+     * It will use the php's Http\Gateway instance to send
      * all cookie data to the response.
      */
     public function send()
     {
-        setcookie($this->name,
-            $this->value,
-            ($this->isSessionCookie()?0:$this->expiration_time),
-            $this->path,
-            $this->domain,
-            $this->secure,
-            $this->httponly
-        );
+        $gw = \toolib\Http\Gateway::getInstance();
+        if ($gw)
+        	$gw->getResponse()->setCookie($this);
     }
     
     /**

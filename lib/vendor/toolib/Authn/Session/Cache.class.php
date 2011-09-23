@@ -23,8 +23,10 @@
 namespace toolib\Authn\Session;
 use toolib\Authn\Identity;
 use toolib\Cache;
+use toolib\Cookie;
 
 require_once __DIR__ . '/../Session.class.php';
+require_once __DIR__ . '/../../Http/Cookie.class.php';
 
 /**
  * @brief Use a cache engine to store tracked identities
@@ -45,7 +47,7 @@ class Cache implements \toolib\Authn\Session
 
     /**
      * @brief The cookie that will be used to save id.
-     * @var unknown_type
+     * @var \toolib\Http\Cookie
      */
     private $cookie;
 
@@ -56,13 +58,13 @@ class Cache implements \toolib\Authn\Session
      *  All the parameters of cookie will be used except of value which will
      *  be changed to the appropriate one.
      */
-    public function __construct(Cache $cache, Net_HTTP_Cookie $cookie)
+    public function __construct(Cache $cache, Cookie $cookie)
     {
         $this->cache = $cache;
         $this->cookie = $cookie;
 
         // Check if there is already a cookie
-        $received_cookie = Net_HTTP_Cookie::open($cookie->getName());
+        $received_cookie = Cookie::open($cookie->getName());
         if ($received_cookie)
             $this->session_id = $received_cookie->get_value();
     }
