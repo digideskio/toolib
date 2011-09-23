@@ -133,11 +133,7 @@ class Request extends \toolib\Http\Request
 	 */
 	public function __get($property)
 	{
-		if ($property == 'query') {
-			if ($this->_php_request)
-				$this->$property = new ParameterContainer($_GET);
-			else
-				$this->$property = $this->queryStringToContainer();
+		
 				
 		} else if ($property == 'uri') {
 			$this->$property = $this->_meta_variables['REQUEST_URI'];
@@ -217,7 +213,12 @@ class Request extends \toolib\Http\Request
 	
 	public function getQuery()
 	{
+		if (isset($this->_parsed_objects['scheme']))
+			return $this->_parsed_objects['scheme'];
 		
+		return $this->_parsed_objects['scheme']
+			= new ParameterContainer($_GET);
+
 	}
 	
 	public function getQueryString()
