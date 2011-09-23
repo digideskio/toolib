@@ -21,25 +21,47 @@
 
 namespace toolib;
 
-//! The event object transmitted by EventDispatcher
+/**
+ * @brief The event object transmitted by EventDispatcher
+ */
 class Event
 {
-    //! The name of the event
+    /**
+     * @brief  The name of the event
+     * @var string
+     */
     public $name;
 
-    //! User arguments passed to event
+    /**
+     * @brief User arguments passed to event
+     * @var array
+     */
     public $arguments = array();
 
-    //! Value to be filtered by the event
+    /**
+     * @brief Value to be filtered by the event
+     * @var mixed
+     */
     public $filtered_value = NULL;
 
-    //! Type of notification
+    /**
+     * @brief Type of notification
+     * @var string
+     */
     public $type;
 
-    //! Flag if event has been processed
+    /**
+     * @brief Flag if event has been processed
+     * @var boolean
+     */
     public $processed = false;
 
-    //! Construct event object
+    /**
+     * @brief Construct event object
+     * @param string $name
+     * @param string $type
+     * @param array $arguments
+     */
     public function __construct($name, $type, $arguments = array())
     {
     	$this->name = $name;
@@ -48,71 +70,25 @@ class Event
     }
 }
 
-//! Dispatch events to their listeners
 /**
- EventDispatcher holds an array with all events. Events can
- be declared at the dispatcher using declare_event() function. The
- concept is that an object raises_events and the registered listeners
- get informed using the callback function that they previously defined.
-
- @b Example \n
- To understand the concept of EventDispatcher we will demonstrate it with Cat,
- Bob and Alice. Let's say Bob wants to listen TheirCat if it is hungry to feed it,
- and Alice wants to listen TheirCat to see if it is bored so that she entertains it.
-
- First we define the Cat class and PetHolder class and we create our actors.
- @code
- class Cat
- {
- 	public $events;
-
-     public function __construct()
-     {
-     	$this->events = new EventDispatcher(array('hungry', 'bored'));
-     }
-
-     public function randomMood()
-     {
-     	if (my_random())
-     		$this->events->notify('hungry', $this);
-     	else
-     		$this->events->notify('bored', $this);
-     }
- }
-
- class PetHolder
- {
- 	public function feedPet($pet)
- 	{}
-
- 	public function entertainPet($pet)
- 	{}
- }
-
- $TheirCat = new Cat();
- $Bob = new PetHolder();
- $Alice = new PetHolder();
- @endcode
-
- Now that we have all our actors we need to declare who wants to be informed for.
- @code
- $TheirCat->events->connect('hungry', array($Bob, 'feedPet'));
- $TheirCat->events->connect('bored', array($Alice, 'entertainPet'));
- @endcode
-
- When ever $TheirCat->randomMood() the appropriate callback of Bob or Alice will be called
- to handle the event.
+ * @brief Dispatch events to their listeners 
  */
 class EventDispatcher
 {
-    //! An array with all events and their listeners.
+	/**
+	 * @brief An array with all events and their listeners.
+	 * @var array
+	 */
     private $event_listeners = array();
 
-    //! An array with global listeners
+    /**
+     * @brief An array with global listeners
+     * @var unknown_type
+     */
     private $global_listeners = array();
     
-    //! Create an EventDispatcher object and declare the events.
     /**
+     * @brief Create an EventDispatcher object and declare the events.
      * @param array $event_names An array with all events that will be declared
      */
     public function __construct($event_names = array())
@@ -121,8 +97,8 @@ class EventDispatcher
             self::declareEvent($e);
     }
     
-    //! Declare an event on this dispatcher
     /**
+     * @brief Declare an event on this dispatcher
      * @param string $event_name The name of the event to declare
      * @return boolean @b true if it was declared otherwise @b false
      */
@@ -141,8 +117,8 @@ class EventDispatcher
         return true;
     }
     
-    //! Check if an event is already declared
     /**
+     * @brief Check if an event is already declared
      * @param string $event_name The name of the event
      * @return boolean @b true if exists otherwise @b false
      */
@@ -151,8 +127,8 @@ class EventDispatcher
     	return array_key_exists($event_name, $this->event_listeners);
     }
 
-    //! Get all events
     /**
+     * @brief Get all events
      * @return array All events declared at this dispatcher.
      */
     public function getEvents()
@@ -160,8 +136,8 @@ class EventDispatcher
     	return array_keys($this->event_listeners);
     }
 
-    //! Check if event has a specific listener
     /**
+     * @brief Check if event has a specific listener
      * @param string $event_name The name of the event or @b NULL for global listeners.
      * @param callable $callable The callable of the listener.
      * @return boolean @b true if it has listener otherwise @b false
@@ -179,8 +155,8 @@ class EventDispatcher
         return (array_search($callable, $this->event_listeners[$event_name], true) !== false);
     }
     
-    //! Get all listeners of an event
     /**
+     * @brief Get all listeners of an event
      * @param string $event_name The name of the event or @b NULL for global listeners.
      * @return array @b All callbacks or @b NULL if event is unknown.
      */
@@ -196,8 +172,8 @@ class EventDispatcher
         return $this->event_listeners[$event_name];
     }
     
-    //! Connect on event
-    /** 
+    /**
+     * @brief Connect on event 
      * @param string $event_name The name of the event or @b NULL for @e any event.
      * @param callable $callable The callable object to be called when the event is raised.
      * @return boolean @b true if it was connected succesfully or @b false on any error.
@@ -225,8 +201,8 @@ class EventDispatcher
         return true;
     }
 
-    //! Disconnect from event
-    /** 
+    /**
+     * @brief Disconnect from event 
      * @param string $event_name The name of the event or @b NULL for @e any event.
      * @param callable $callable The callable object that was passed on connection.
      * @return boolean @b true if it was disconnected succesfully or @b false on any error.
@@ -259,8 +235,8 @@ class EventDispatcher
         return true;
     }
         
-    //! Notify all listeners for this event
-    /** 
+    /**
+     * @brief Notify all listeners for this event 
      * @param string $event_name The name of the event that notification belongs to.
      * @param array $arguments Array with user defined arguments for the listeners.
      * @return toolib\Event @b Object with the details of the event.
@@ -289,8 +265,8 @@ class EventDispatcher
         return $e;
     }
 
-    //! Notify all listeners for this event until one returns non null value
-    /** 
+    /**
+     * @brief Notify all listeners for this event until one returns non null value 
      * @param string $event_name The name of the event that notification belongs to.
      * @param array $arguments Array with user defined arguments for the listeners.
      * @return toolib\Event @b Object with the details of the event.
@@ -321,8 +297,8 @@ class EventDispatcher
         return $e;
     }
 
-    //! Filter value through listeners
-    /** 
+    /**
+     * @brief Filter value through listeners 
      * @param string $event_name The name of the event that notification belongs to.
      * @param string $value The value that must be filtered by listeners.
      * @param array $arguments Array with user defined arguments for the listeners.
