@@ -45,7 +45,7 @@ class Authn_SessionTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($stor->getIdentity());
 
         $stor->setIdentity(new \toolib\Authn\DB\Identity(true,$this->getBackend(),true));
-        $this->assertType('toolib\Authn\DB\Identity', $stor->getIdentity());
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $stor->getIdentity());
 
         $stor->clearIdentity();
         $this->assertFalse($stor->getIdentity());
@@ -58,7 +58,7 @@ class Authn_SessionTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($stor->getIdentity());
 
         @$stor->setIdentity(new \toolib\Authn\DB\Identity(true,$this->getBackend(),true));
-        $this->assertType('toolib\Authn\DB\Identity', $stor->getIdentity());
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $stor->getIdentity());
 
         $stor->clearIdentity();
         $this->assertFalse($stor->getIdentity());

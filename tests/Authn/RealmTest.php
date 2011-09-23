@@ -94,7 +94,7 @@ class RealmTest extends PHPUnit_Framework_TestCase
     public function check_last_event($type, $name, $check_last)
     {   
         $e = self::pop_event();
-        $this->assertType('Event', $e);
+        $this->assertInstanceOf('\toolib\Event', $e);
         $this->assertEquals($e->type, $type);
         $this->assertEquals($e->name, $name);
         if ($check_last)
@@ -105,7 +105,7 @@ class RealmTest extends PHPUnit_Framework_TestCase
     public function check_first_event($type, $name, $check_last)
     {   
         $e = array_shift(self::$events);
-        $this->assertType('toolib\Event', $e);
+        $this->assertInstanceOf('\toolib\Event', $e);
         $this->assertEquals($e->type, $type);
         $this->assertEquals($e->name, $name);
         if ($check_last)
@@ -116,19 +116,19 @@ class RealmTest extends PHPUnit_Framework_TestCase
     public function testSetters()
     {
         // Check default values
-        $this->assertType('toolib\Authn\Session\Native', Realm::getSession());
+        $this->assertInstanceOf('\toolib\Authn\Session\Native', Realm::getSession());
         $this->assertNull(Realm::getBackend());
         $this->assertFalse(Realm::getIdentity());
         $this->assertFalse(Realm::hasIdentity());
 
         Realm::setSession(self::$storage);
-        $this->assertType('toolib\Authn\Session\Instance', Realm::getSession());
+        $this->assertInstanceOf('\toolib\Authn\Session\Instance', Realm::getSession());
         $this->assertEquals(self::$storage, Realm::getSession());
         $this->assertFalse(Realm::getIdentity());
         $this->assertFalse(Realm::hasIdentity());
 
         Realm::setBackend(self::$auth);
-        $this->assertType('toolib\Authn\DB\Backend', Realm::getBackend());
+        $this->assertInstanceOf('\toolib\Authn\DB\Backend', Realm::getBackend());
         $this->assertEquals(self::$auth, Realm::getBackend());
         $this->assertFalse(Realm::getIdentity());
         $this->assertFalse(Realm::hasIdentity());
@@ -153,14 +153,14 @@ class RealmTest extends PHPUnit_Framework_TestCase
 
         // Successful authentication
         $res = Realm::authenticate('user1', 'password1');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res, Realm::getIdentity());
         $this->assertTrue(Realm::hasIdentity());
         self::check_first_event('notify', 'auth.successful', true);
 
         // Reauthenticate with new user
         $res = Realm::authenticate('user2', 'password2 #');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res, Realm::getIdentity());
         $this->assertTrue(Realm::hasIdentity());
         self::check_first_event('notify', 'ident.clear', false);

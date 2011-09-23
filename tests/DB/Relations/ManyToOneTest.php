@@ -51,7 +51,7 @@ class Record_ManyToOneTest extends PHPUnit_Framework_TestCase
 	public function check_last_event($type, $name, $check_last)
 	{
 		$e = self::pop_event();
-		$this->assertType('Event', $e);
+		$this->assertInstanceOf('Event', $e);
 		$this->assertEquals($e->type, $type);
 		$this->assertEquals($e->name, $name);
 		if ($check_last)
@@ -62,7 +62,7 @@ class Record_ManyToOneTest extends PHPUnit_Framework_TestCase
 	public function check_first_event($type, $name, $check_last)
 	{
 		$e = array_shift(self::$events);
-		$this->assertType('Event', $e);
+		$this->assertInstanceOf('Event', $e);
 		$this->assertEquals($e->type, $type);
 		$this->assertEquals($e->name, $name);
 		if ($check_last)
@@ -88,20 +88,20 @@ class Record_ManyToOneTest extends PHPUnit_Framework_TestCase
 		
 		// Thread (M) => (1) Forum
 		$forum = Thread::open(4)->forum;		
-		$this->assertType('Forum', $forum);
+		$this->assertInstanceOf('Forum', $forum);
 		$this->assertEquals($forum->id, 2);
 		
 		$forum = Thread::open(1)->forum;
-		$this->assertType('Forum', $forum);
+		$this->assertInstanceOf('Forum', $forum);
 		$this->assertEquals($forum->id, 1);
 		
 		// Post (M) => (1) Thread
 		$thread = Post::open(4)->thread;
-		$this->assertType('Thread', $thread);
+		$this->assertInstanceOf('Thread', $thread);
 		$this->assertEquals($thread->id, 2);
 		
 		$thread = Post::open(2)->thread;
-		$this->assertType('Thread', $thread);
+		$this->assertInstanceOf('Thread', $thread);
 		$this->assertEquals($thread->id, 1);
 	}
 	
@@ -143,14 +143,14 @@ class Record_ManyToOneTest extends PHPUnit_Framework_TestCase
 	
 	public function testGet()
 	{
-		$this->AssertType('Thread', $thread = Forum::open(1)->threads->get(1));
+		$this->assertInstanceOf('Thread', $thread = Forum::open(1)->threads->get(1));
 		$this->AssertEquals(1, $thread->id);
 		
-		$this->AssertType('Thread', $thread = Forum::open(1)->threads->get(2));
+		$this->assertInstanceOf('Thread', $thread = Forum::open(1)->threads->get(2));
 		$this->AssertEquals(2, $thread->id);
 		
 		$this->AssertNull(Forum::open(1)->threads->get(4));
 		$this->AssertNull(Forum::open(1)->threads->get(5));
 	}
 }
-?>
+

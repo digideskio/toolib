@@ -68,7 +68,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($res);
 
         $res = $auth->authenticate('user1', 'password1');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->getRecord(), User_plain::open('user1'));
     }
@@ -90,7 +90,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         //exit;
 
         $res = $auth->authenticate('user1', 'password1');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->getRecord(), User_id::open(1));
     }
@@ -112,7 +112,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($res);
 
         $res = $auth->authenticate('user1', 'password1');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->getRecord(), User_md5::open('user1'));
     }
@@ -134,7 +134,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($res);
 
         $res = $auth->authenticate('user1', 'password1');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->getRecord(), User_sha1::open('user1'));
     }
@@ -154,7 +154,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $res = $auth->authenticate($username, $password);
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->getRecord(), User_plain::open($username));
     }
@@ -176,7 +176,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             ));
 
         $res = $auth->authenticate($username, $password);
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->getRecord(), User_id::open($count));
     }
@@ -198,7 +198,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             ));
 
         $res = $auth->authenticate($username, $password);
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->getRecord(), User_md5::open($username));
     }
@@ -219,7 +219,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             ));
 
         $res = $auth->authenticate($username, $password);
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->getRecord(), User_sha1::open($username));
     }
@@ -246,7 +246,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             $this->assertFalse($res);
             return;
         }
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->getRecord(), User_plain::open($username));
     }
@@ -273,7 +273,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
             $this->assertFalse($res);
             return;
         }
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), $username);
         $this->assertEquals($res->getRecord(), User_md5::open($username));
     }
@@ -288,7 +288,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('toolib\Authn\DB\Identity', $identity);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $identity);
         $this->assertTrue($identity->resetPassword('passwordnew'));
 
         // Check same password
@@ -297,7 +297,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->getRecord(), User_plain::open('user1'));
 
@@ -316,7 +316,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('toolib\Authn\DB\Identity', $identity);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $identity);
         $this->assertTrue($identity->resetPassword('passwordnew'));
 
         // Check same password
@@ -325,7 +325,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->getRecord(), User_id::open(1));
 
@@ -346,7 +346,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('toolib\Authn\DB\Identity', $identity);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $identity);
         $this->assertTrue($identity->resetPassword('passwordnew'));
 
         // Check same password
@@ -355,7 +355,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->getRecord(), User_md5::open('user1'));
 
@@ -375,7 +375,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
         ));
 
         $identity = $auth->authenticate('user1', 'password1');
-        $this->assertType('toolib\Authn\DB\Identity', $identity);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $identity);
         $this->assertTrue($identity->resetPassword('passwordnew'));
 
         // Check same password
@@ -384,7 +384,7 @@ class Authn_BackendDBTest extends PHPUnit_Framework_TestCase
 
         // Check with new password
         $res = $auth->authenticate('user1', 'passwordnew');
-        $this->assertType('toolib\Authn\DB\Identity', $res);
+        $this->assertInstanceOf('toolib\Authn\DB\Identity', $res);
         $this->assertEquals($res->id(), 'user1');
         $this->assertEquals($res->getRecord(), User_sha1::open('user1'));
 

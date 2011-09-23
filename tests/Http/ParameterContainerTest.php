@@ -206,9 +206,9 @@ class Http_ParameterContainerTest extends PHPUnit_Framework_TestCase
     			'param_complexarray' => array('key1' => 'val1', 'key2' => 'val2')
     	));
 
-    	$this->assertType('\toolib\Http\ParameterContainer', $c['param_simplearray']);
-    	$this->assertType('\toolib\Http\ParameterContainer', $c['param_simple_doublearray']);
-    	$this->assertType('\toolib\Http\ParameterContainer', $c['param_complexarray']);
+    	$this->assertInstanceOf('\toolib\Http\ParameterContainer', $c['param_simplearray']);
+    	$this->assertInstanceOf('\toolib\Http\ParameterContainer', $c['param_simple_doublearray']);
+    	$this->assertInstanceOf('\toolib\Http\ParameterContainer', $c['param_complexarray']);
     	
     	// Check simple array
     	$this->assertEquals('aval', $c['param_simplearray'][0]);
@@ -218,7 +218,7 @@ class Http_ParameterContainerTest extends PHPUnit_Framework_TestCase
     	// Check double simple array
     	$this->assertEquals('aval', $c['param_simple_doublearray'][0]);
     	$this->assertEquals('bval', $c['param_simple_doublearray'][1]);
-    	$this->assertType('\toolib\Http\ParameterContainer', $c['param_simple_doublearray'][2]);
+    	$this->assertInstanceOf('\toolib\Http\ParameterContainer', $c['param_simple_doublearray'][2]);
     	$this->assertEquals('caval', $c['param_simple_doublearray'][2][0]);
     	$this->assertEquals('cbval', $c['param_simple_doublearray'][2][1]);
     	

@@ -138,7 +138,7 @@ class RegistryTest extends PHPUnit_Framework_TestCase
     
     public function testStatic()
     {
-        $this->assertType('toolib\Registry', Registry::getInstance());
+        $this->assertInstanceOf('toolib\Registry', Registry::getInstance());
         $this->assertEquals(0, count(Registry::getInstance()));
         
         // Set

@@ -28,9 +28,9 @@ class Http_TestRequestTest extends PHPUnit_Framework_TestCase
 	
 	public function commonDefaultConditions(Request $r, $must_be_post = false, $is_secure = false )
 	{
-		$this->assertType('\toolib\Http\ParameterContainer', $r->getQuery());
-		$this->assertType('\toolib\Http\HeaderContainer', $r->getHeaders());
-		$this->assertType('array', $r->getCookies());
+		$this->assertInstanceOf('\toolib\Http\ParameterContainer', $r->getQuery());
+		$this->assertInstanceOf('\toolib\Http\HeaderContainer', $r->getHeaders());
+		$this->assertInternalType('array', $r->getCookies());
 		
 		$this->assertEquals(1.1, $r->getProtocolVersion());
 		if ($is_secure){

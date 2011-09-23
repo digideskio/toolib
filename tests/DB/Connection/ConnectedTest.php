@@ -67,7 +67,7 @@ class Connection_ConnectedTest extends PHPUnit_Framework_TestCase
 	public function check_last_event($type, $name, $check_last)
 	{
 		$e = self::pop_event();
-		$this->assertType('toolib\Event', $e);
+		$this->assertInstanceOf('toolib\Event', $e);
 		$this->assertEquals($e->type, $type);
 		$this->assertEquals($e->name, $name);
 		if ($check_last)
@@ -78,7 +78,7 @@ class Connection_ConnectedTest extends PHPUnit_Framework_TestCase
 	public function check_first_event($type, $name, $check_last)
 	{
 		$e = array_shift(self::$events);
-		$this->assertType('toolib\Event', $e);
+		$this->assertInstanceOf('toolib\Event', $e);
 		$this->assertEquals($e->type, $type);
 		$this->assertEquals($e->name, $name);
 		if ($check_last)
@@ -89,7 +89,7 @@ class Connection_ConnectedTest extends PHPUnit_Framework_TestCase
 	public function testQuery()
 	{
 		$mres = Connection::query('SELECT * FROM forums');
-		$this->assertType('mysqli_result', $mres);
+		$this->assertInstanceOf('mysqli_result', $mres);
 
 		$res = array();
 		while($row = $mres->fetch_array())
@@ -106,7 +106,7 @@ class Connection_ConnectedTest extends PHPUnit_Framework_TestCase
 	public function testQueryFetchAll()
 	{
 		$res = Connection::queryFetchAll('SELECT * FROM forums');
-		$this->assertType('array', $res);
+		$this->assertInternalType('array', $res);
 
 		$this->assertEquals(count($res), 3);
 		$this->assertEquals(count($res[0]), 4);
@@ -160,7 +160,7 @@ class Connection_ConnectedTest extends PHPUnit_Framework_TestCase
 
 		// Execute unprepared statement
 		$res = Connection::execute('mynick');
-		$this->assertType('mysqli_stmt', $res);
+		$this->assertInstanceOf('mysqli_stmt', $res);
 		$this->check_first_event('notify', 'stmt.prepared', false);
 		$this->check_first_event('notify', 'stmt.executed', false);
 
@@ -226,7 +226,7 @@ class Connection_ConnectedTest extends PHPUnit_Framework_TestCase
 
 		// Execute and fetch the same prepared statement
 		$res = Connection::executeFetchAll('mynick');
-		$this->assertType('array', $res);
+		$this->assertInternalType('array', $res);
 		$this->assertEquals(count($res), 3);
 		$this->assertEquals(count($res[0]), 4);
 		$this->assertEquals($res[0][1], 'The first');
@@ -268,7 +268,7 @@ class Connection_ConnectedTest extends PHPUnit_Framework_TestCase
 
 		// Execute prepared statement
 		$res = Connection::execute('mynick');
-		$this->assertType('mysqli_stmt', $res);
+		$this->assertInstanceOf('mysqli_stmt', $res);
 		$this->check_last_event('notify', 'stmt.executed', true);
 
 		// Check has key
@@ -276,7 +276,7 @@ class Connection_ConnectedTest extends PHPUnit_Framework_TestCase
 
 		// Execute and fetch the same prepared statement
 		$res = Connection::executeFetchAll('mynick');
-		$this->assertType('array', $res);
+		$this->assertInternalType('array', $res);
 		$this->assertEquals(count($res), 3);
 		$this->assertEquals(count($res[0]), 4);
 		$this->assertEquals($res[0][1], 'The first');
@@ -340,13 +340,12 @@ class Connection_ConnectedTest extends PHPUnit_Framework_TestCase
 		$this->check_first_event('notify', 'query', true);	// Intialization		
 
 		// Lets read initialization data
-		$this->assertType('array', $res = Connection::queryFetchAll('SELECT @test_variable'));
+		$this->assertInternalType('array', $res = Connection::queryFetchAll('SELECT @test_variable'));
 		$this->assertEquals(123, $res[0][0]);
 		$this->check_first_event('notify', 'query', true);	// Real
 		
-		$this->assertType('array', $res = Connection::queryFetchAll('SELECT @second_test_variable'));
+		$this->assertInternalType('array', $res = Connection::queryFetchAll('SELECT @second_test_variable'));
 		$this->assertEquals(456, $res[0][0]);
 		$this->check_first_event('notify', 'query', true);	// Real
 	}
 }
-?>

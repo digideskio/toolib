@@ -111,17 +111,17 @@ class ModelTest extends PHPUnit_Framework_TestCase
 
         // Open Forum
         $res = Model::open('Forum');
-        $this->assertType('toolib\DB\Model', $res);
+        $this->assertInstanceOf('toolib\DB\Model', $res);
         $this->assertEquals($res->getName(), 'Forum');
 
         // Open Group
         $res = Model::open('Group');
-        $this->assertType('toolib\DB\Model', $res);
+        $this->assertInstanceOf('toolib\DB\Model', $res);
         $this->assertEquals($res->getName(), 'Group');
 
         // Open Group_Members
         $res = Model::open('Group_Members');
-        $this->assertType('toolib\DB\Model', $res);
+        $this->assertInstanceOf('toolib\DB\Model', $res);
         $this->assertEquals($res->getName(), 'Group_Members');
     }
 
@@ -181,7 +181,7 @@ class ModelTest extends PHPUnit_Framework_TestCase
             $this->assertTrue($m->hasField($field));
 
             $info = $m->getFieldInfo($field);
-            $this->assertType('array', $info);
+            $this->assertInternalType('array', $info);
             $this->assertEquals($field, $info['name']);
 
             // PK

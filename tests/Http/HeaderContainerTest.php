@@ -30,7 +30,7 @@ class Http_HeaderContainerTest extends PHPUnit_Framework_TestCase
     	$c = new HeaderContainer();
     	$this->assertEquals(0, count($c));
     	$this->assertNull($c->getValue('unknown'));
-		$this->assertType('array', $c->getValues('unknown'));
+		$this->assertInternalType('array', $c->getValues('unknown'));
     	$this->assertEquals(0, count($c->getValues('unknown')));		
     }
     
@@ -39,7 +39,7 @@ class Http_HeaderContainerTest extends PHPUnit_Framework_TestCase
     	$c = new HeaderContainer(null);
     	$this->assertEquals(0, count($c));
     	$this->assertNull($c->getValue('unknown'));
-    	$this->assertType('array', $c->getValues('unknown'));
+    	$this->assertInternalType('array', $c->getValues('unknown'));
     	$this->assertEquals(0, count($c->getValues('unknown')));    
     }
     
@@ -50,7 +50,7 @@ class Http_HeaderContainerTest extends PHPUnit_Framework_TestCase
     	$this->assertNull($c->getValue('unknown'));
     	$this->assertEquals('va', $c->getValue('a'));
     	$this->assertEquals('vb', $c->getValue('b'));
-    	$this->assertType('array', $c->getValues('unknown'));
+    	$this->assertInternalType('array', $c->getValues('unknown'));
     	$this->assertEquals(0, count($c->getValues('unknown')));
     }
     

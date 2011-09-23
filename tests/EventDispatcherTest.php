@@ -245,7 +245,7 @@ class EventDispatcherTest extends PHPUnit_Framework_TestCase
 
 		// Notify with no listeners
 		$s = $d->notify('event2');
-		$this->assertType('toolib\Event', $s);
+		$this->assertInstanceOf('toolib\Event', $s);
 		$this->assertFalse($s->processed);
 		$this->assertEquals($s->name, 'event2');
 		$this->assertEquals($s->type, 'notify');
@@ -255,7 +255,7 @@ class EventDispatcherTest extends PHPUnit_Framework_TestCase
 		// Notify with global listener
 		$d->connect(NULL, array($this, 'consumer1'));
 		$s = $d->notify('group.event1');
-		$this->assertType('toolib\Event', $s);
+		$this->assertInstanceOf('toolib\Event', $s);
 		$this->assertTrue($s->processed);
 		$this->assertEquals($s->name, 'group.event1');
 		$this->assertEquals($s->type, 'notify');
@@ -270,7 +270,7 @@ class EventDispatcherTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($this->called_listener[2]['func'], 'consumer1');
 		foreach($this->called_listener as $l) {
 			$s = $l['event'];
-			$this->assertType('toolib\Event', $s);
+			$this->assertInstanceOf('toolib\Event', $s);
 			$this->assertTrue($s->processed);
 			$this->assertEquals($s->name, 'event1');
 			$this->assertEquals($s->type, 'notify');
@@ -289,7 +289,7 @@ class EventDispatcherTest extends PHPUnit_Framework_TestCase
 
 		// Notify with no listeners
 		$s = $d->notifyUntil('event2');
-		$this->assertType('toolib\Event', $s);
+		$this->assertInstanceOf('toolib\Event', $s);
 		$this->assertFalse($s->processed);
 		$this->assertEquals($s->name, 'event2');
 		$this->assertEquals($s->type, 'notifyUntil');
@@ -298,7 +298,7 @@ class EventDispatcherTest extends PHPUnit_Framework_TestCase
 
 		// Notify with non-consuming listeners
 		$s = $d->notifyUntil('event1');
-		$this->assertType('toolib\Event', $s);
+		$this->assertInstanceOf('toolib\Event', $s);
 		$this->assertFalse($s->processed);
 		$this->assertEquals($s->name, 'event1');
 		$this->assertEquals($s->type, 'notifyUntil');
@@ -311,7 +311,7 @@ class EventDispatcherTest extends PHPUnit_Framework_TestCase
 		$d->connect('event2', array($this, 'consumer2'));
 		$this->called_listener = array();
 		$s = $d->notifyUntil('event2');
-		$this->assertType('toolib\Event', $s);
+		$this->assertInstanceOf('toolib\Event', $s);
 		$this->assertTrue($s->processed);
 		$this->assertEquals($s->name, 'event2');
 		$this->assertEquals($s->type, 'notifyUntil');
@@ -335,7 +335,7 @@ class EventDispatcherTest extends PHPUnit_Framework_TestCase
 		// Filter with no listeners
 		$value = 'passed variable';
 		$s = $d->filter('event2', $value);
-		$this->assertType('toolib\Event', $s);
+		$this->assertInstanceOf('toolib\Event', $s);
 		$this->assertFalse($s->processed);
 		$this->assertEquals($s->name, 'event2');
 		$this->assertEquals($s->type, 'filter');
@@ -345,7 +345,7 @@ class EventDispatcherTest extends PHPUnit_Framework_TestCase
 		// Filter with global listener
 		$d->connect(NULL, array($this, 'consumer1'));
 		$s = $d->filter('group.event1', $value);
-		$this->assertType('toolib\Event', $s);
+		$this->assertInstanceOf('toolib\Event', $s);
 		$this->assertTrue($s->processed);
 		$this->assertEquals($s->name, 'group.event1');
 		$this->assertEquals($s->type, 'filter');
@@ -365,7 +365,7 @@ class EventDispatcherTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($value, 'big sp-.');
 		foreach($this->called_listener as $l) {
 			$s = $l['event'];
-			$this->assertType('toolib\Event', $s);
+			$this->assertInstanceOf('toolib\Event', $s);
 			$this->assertTrue($s->processed);
 			$this->assertEquals($s->name, 'event1');
 			$this->assertEquals($s->type, 'filter');

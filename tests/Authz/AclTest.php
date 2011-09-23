@@ -123,7 +123,7 @@ class AclTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($acl->getAces(), array());
         
         $acl->allow(null, 'read');
-        $this->assertType('array', $acl->getAces());
+        $this->assertInternalType('array', $acl->getAces());
         $this->assertEquals(count($acl->getAces()), 1);
         $acl->deny('@logger', 'read');
         $this->assertEquals(count($acl->getAces()), 2);

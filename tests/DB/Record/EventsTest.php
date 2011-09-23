@@ -79,7 +79,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 	public function check_last_event($type, $name, $check_last)
 	{
 		$e = self::pop_event();
-		$this->assertType('toolib\Event', $e);
+		$this->assertInstanceOf('toolib\Event', $e);
 		$this->assertEquals($e->type, $type);
 		$this->assertEquals($e->name, $name);
 		if ($check_last)
@@ -90,7 +90,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 	public function check_first_event($type, $name, $check_last)
 	{
 		$e = array_shift(self::$events);
-		$this->assertType('toolib\Event', $e);
+		$this->assertInstanceOf('toolib\Event', $e);
 		$this->assertEquals($e->type, $type);
 		$this->assertEquals($e->name, $name);
 		if ($check_last)
@@ -108,20 +108,20 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($e->filtered_value, 1);
 		// Post-Open
 		$e = self::check_last_event('notify', 'post-open', true);
-		$this->assertType('array', $e->arguments['records']);
+		$this->assertInternalType('array', $e->arguments['records']);
 		$this->assertEquals(count($e->arguments['records']), 1);
-		$this->assertType('Forum', $e->arguments['records'][0]);
+		$this->assertInstanceOf('Forum', $e->arguments['records'][0]);
 		$this->assertEquals($e->arguments['model'], 'Forum');
 
 		// openAll() 1PK
 		$res = Forum::openAll();
 		// Post-Open
 		$e = self::check_last_event('notify', 'post-open', true);
-		$this->assertType('array', $e->arguments['records']);
+		$this->assertInternalType('array', $e->arguments['records']);
 		$this->assertEquals(count($e->arguments['records']), 3);
 		$this->assertEquals($e->arguments['model'], 'Forum');
 		$this->assertEquals($e->arguments['records'], $res);
-		$this->assertType('Forum', $e->arguments['records'][0]);
+		$this->assertInstanceOf('Forum', $e->arguments['records'][0]);
 
 		// Open() 2PK
 		$res = Group_Members::open(array('username' => 'user1','groupname' => 'group1'));
@@ -131,20 +131,20 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($e->filtered_value, array('username' => 'user1','groupname' => 'group1'));
 		// Post-Open
 		$e = self::check_last_event('notify', 'post-open', true);
-		$this->assertType('array', $e->arguments['records']);
+		$this->assertInternalType('array', $e->arguments['records']);
 		$this->assertEquals(count($e->arguments['records']), 1);
-		$this->assertType('Group_Members', $e->arguments['records'][0]);
+		$this->assertInstanceOf('Group_Members', $e->arguments['records'][0]);
 		$this->assertEquals($e->arguments['model'], 'Group_Members');
 
 		// openAll() 2PK
 		$res = Group_Members::openAll();
 		// Post-Open
 		$e = self::check_last_event('notify', 'post-open', true);
-		$this->assertType('array', $e->arguments['records']);
+		$this->assertInternalType('array', $e->arguments['records']);
 		$this->assertEquals(count($e->arguments['records']), 8);
 		$this->assertEquals($e->arguments['model'], 'Group_Members');
 		$this->assertEquals($e->arguments['records'], $res);
-		$this->assertType('Group_Members', $e->arguments['records'][0]);
+		$this->assertInstanceOf('Group_Members', $e->arguments['records'][0]);
 
 	}
 
@@ -158,7 +158,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($e->filtered_value, array('title' => 'test'));
 		// Post-Create
 		$e = self::check_last_event('notify', 'post-create', true);
-		$this->assertType('Forum', $e->arguments['record']);
+		$this->assertInstanceOf('Forum', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $f);
 
 		// Create() 2PK
@@ -169,7 +169,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($e->filtered_value, array('username' => 'user5', 'groupname' => 'group1'));
 		// Post-Create
 		$e = self::check_last_event('notify', 'post-create', true);
-		$this->assertType('Group_Members', $e->arguments['record']);
+		$this->assertInstanceOf('Group_Members', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $gm);
 
 		// Recreate Database
@@ -195,7 +195,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($e->filtered_value, false);
 		// Post-Update
 		$e = self::check_last_event('notify', 'post-update', true);
-		$this->assertType('Forum', $e->arguments['record']);
+		$this->assertInstanceOf('Forum', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $f);
 		$this->assertTrue($res);
 
@@ -215,7 +215,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($e->filtered_value, false);
 		// Post-Update
 		$e = self::check_last_event('notify', 'post-update', true);
-		$this->assertType('Group_Members', $e->arguments['record']);
+		$this->assertInstanceOf('Group_Members', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $gm);
 		$this->assertTrue($res);
 
@@ -238,7 +238,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($e->filtered_value, false);
 		// Post-delete
 		$e = self::check_last_event('notify', 'post-delete', true);
-		$this->assertType('Forum', $e->arguments['record']);
+		$this->assertInstanceOf('Forum', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $f);
 		$this->assertTrue($res);
 
@@ -254,7 +254,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($e->filtered_value, false);
 		// Post-delete
 		$e = self::check_last_event('notify', 'post-delete', true);
-		$this->assertType('Group_Members', $e->arguments['record']);
+		$this->assertInstanceOf('Group_Members', $e->arguments['record']);
 		$this->assertEquals($e->arguments['record'], $gm);
 		$this->assertTrue($res);
 
@@ -278,7 +278,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$gm = Group_Members::open(array('username' => 'user1','groupname' => 'group1'));
 		self::check_first_event('filter', 'pre-open', false);
 		self::check_first_event('notify', 'post-open', true);
-		$this->assertType('Group_Members', $gm);
+		$this->assertInstanceOf('Group_Members', $gm);
 
 		Forum::events()->disconnect('pre-open', $filter_open_cancel);
 
@@ -287,14 +287,14 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		$res = Forum::open(1);
 		self::check_first_event('filter', 'pre-open', false);
 		self::check_first_event('notify', 'post-open', true);
-		$this->assertType('Forum', $res);
+		$this->assertInstanceOf('Forum', $res);
 		$this->assertEquals($res->id, 2);
 
 		// Group_Members pre-open should be left intact
 		$gm = Group_Members::open(array('username' => 'user1','groupname' => 'group1'));
 		self::check_first_event('filter', 'pre-open', false);
 		self::check_first_event('notify', 'post-open', true);
-		$this->assertType('Group_Members', $gm);
+		$this->assertInstanceOf('Group_Members', $gm);
 
 		Forum::events()->disconnect('pre-open', $filter_open_set_2);
 	}
@@ -372,7 +372,7 @@ class Record_EventsTest extends PHPUnit_Framework_TestCase
 		// Filter cancel for forum
 		Forum::events()->connect('pre-create', $filter_create_set_test5);
 		$f = Forum::create(array('title' => 'test'));
-		$this->assertType('Forum',  $f);
+		$this->assertInstanceOf('Forum',  $f);
 		$this->assertEquals($f->title, '5');
 		self::check_first_event('filter', 'pre-create', false);
 		self::check_first_event('notify', 'post-create', true);

@@ -51,7 +51,7 @@ class Relations_ManyToManyTest extends PHPUnit_Framework_TestCase
 	public function check_last_event($type, $name, $check_last)
 	{
 		$e = self::pop_event();
-		$this->assertType('Event', $e);
+		$this->assertInstanceOf('Event', $e);
 		$this->assertEquals($e->type, $type);
 		$this->assertEquals($e->name, $name);
 		if ($check_last)
@@ -62,7 +62,7 @@ class Relations_ManyToManyTest extends PHPUnit_Framework_TestCase
 	public function check_first_event($type, $name, $check_last)
 	{
 		$e = array_shift(self::$events);
-		$this->assertType('Event', $e);
+		$this->assertInstanceOf('Event', $e);
 		$this->assertEquals($e->type, $type);
 		$this->assertEquals($e->name, $name);
 		if ($check_last)
@@ -131,7 +131,7 @@ class Relations_ManyToManyTest extends PHPUnit_Framework_TestCase
 	{
 		// Add one new user in group1
 		$user5 = User::open('user5');
-		$this->assertType('Group_Members', $gm = Group::open('group1')->users->add($user5));
+		$this->assertInstanceOf('Group_Members', $gm = Group::open('group1')->users->add($user5));
 		
 		// Check membership
 		$users = Group::open('group1')->users->subquery()

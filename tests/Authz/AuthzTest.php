@@ -45,7 +45,7 @@ class Authz_AuthzTest extends PHPUnit_Framework_TestCase
     public function testSetGet()
     {
         $list = Authz::getResourceList();
-        $this->assertType('toolib\Authz\ResourceList', $list);
+        $this->assertInstanceOf('toolib\Authz\ResourceList', $list);
         $list2 = new AZ\ResourceList();
         Authz::setResourceList($list2);
         $this->assertSame(Authz::getResourceList(), $list2);

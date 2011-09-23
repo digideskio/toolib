@@ -67,7 +67,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
     public function check_last_event($type, $name, $check_last)
     {   
         $e = array_pop(self::$events);
-        $this->assertType('Event', $e);
+        $this->assertInstanceOf('Event', $e);
         $this->assertEquals($e->type, $type);
         $this->assertEquals($e->name, $name);
         if ($check_last)
@@ -78,7 +78,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
     public function check_first_event($type, $name, $check_last)
     {   
         $e = array_shift(self::$events);
-        $this->assertType('Event', $e);
+        $this->assertInstanceOf('Event', $e);
         $this->assertEquals($e->type, $type);
         $this->assertEquals($e->name, $name);
         if ($check_last)
@@ -89,7 +89,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
     public function testQueryFetch()
     {
         $data = Connection::queryFetchAll('SELECT * from forums LIMIT 1');
-        $this->assertType('array', $data);
+        $this->assertInternalType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, 
         	array(
@@ -107,7 +107,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
     {
         Connection::prepare('test', 'SELECT * from forums LIMIT 1');
         $data = Connection::executeFetchAll('test');
-        $this->assertType('array', $data);
+        $this->assertInternalType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
         array(
@@ -123,7 +123,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
     {
         Connection::prepare('test', 'SELECT * from forums LIMIT ?,?');
         $data = Connection::executeFetchAll('test', array(0,1));
-        $this->assertType('array', $data);
+        $this->assertInternalType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
             array(
@@ -136,7 +136,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
 
         // Re run with other parameters
         $data = Connection::executeFetchAll('test', array(1, 1));
-        $this->assertType('array', $data);
+        $this->assertInternalType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
             array(
@@ -152,7 +152,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
     {
         Connection::prepare('test', 'SELECT * from forums LIMIT ?,?');
         $data = Connection::executeFetchAll('test', array(0,1), array('i', 's'));
-        $this->assertType('array', $data);
+        $this->assertInternalType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
             array(
@@ -165,7 +165,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
 
         // Re run with other parameters
         $data = Connection::executeFetchAll('test', array(1,1), array('i', 's'));
-        $this->assertType('array', $data);
+        $this->assertInternalType('array', $data);
         $this->assertEquals(count($data), 1);
         $this->assertEquals($data, array(
             array(
@@ -183,10 +183,10 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
 
         Connection::prepare('test', 'INSERT posts (thread_id, posted_text, poster) VALUES (?,?,?)');
         $res = Connection::execute('test', array(3, 'boob', 'poster'));
-        $this->assertType('mysqli_stmt', $res);
+        $this->assertInstanceOf('mysqli_stmt', $res);
 
         $res = Connection::execute('test', array(3, $big_post, 'poster'), array('s', 'b', 's'));
-        $this->assertType('mysqli_stmt', $res);
+        $this->assertInstanceOf('mysqli_stmt', $res);
         $last_id = Connection::getLastInsertId();
 
         $res = Connection::queryFetchAll("SELECT * FROM posts WHERE id ='{$last_id}'");
@@ -200,7 +200,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
     {   
         $big_post = str_repeat('1234567890', 100000);
         $data = Connection::queryFetchAll('SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
-        $this->assertType('array', $data);
+        $this->assertInternalType('array', $data);
         $this->assertEquals(1, count($data));
         $this->assertEquals(
         	array(
@@ -227,7 +227,7 @@ class Connection_TransferTest extends PHPUnit_Framework_TestCase
         $big_post = str_repeat('1234567890', 100000);
         Connection::prepare('test', 'SELECT id, thread_id, posted_text, poster from posts WHERE poster = \'long\'');
         $data = Connection::executeFetchAll('test');
-        $this->assertType('array', $data);
+        $this->assertInternalType('array', $data);
         $this->assertEquals(1, count($data));
         $this->assertEquals(
 	        array(

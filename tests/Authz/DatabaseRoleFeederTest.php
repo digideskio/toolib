@@ -84,9 +84,9 @@ class Authz_DatabaseRoleFeederTest extends PHPUnit_Framework_TestCase
         
         $user1 = $list->getRole('user1');
         $user2 = $list->getRole('user2');
-        $this->assertType('toolib\Authz\Database\Role', $user1);
+        $this->assertInstanceOf('toolib\Authz\Database\Role', $user1);
         $this->assertEquals($user1->getName(), 'user1');
-        $this->assertType('toolib\Authz\Database\Role', $user2);
+        $this->assertInstanceOf('toolib\Authz\Database\Role', $user2);
         $this->assertEquals($user2->getName(), 'user2');
         
         $this->assertFalse($user1->hasParent('test'));
@@ -121,11 +121,11 @@ class Authz_DatabaseRoleFeederTest extends PHPUnit_Framework_TestCase
         $user1 = $list->getRole('user1');
         $user4 = $list->getRole('user4');
         $user5 = $list->getRole('user5');
-        $this->assertType('toolib\Authz\Database\Role', $user1);
+        $this->assertInstanceOf('toolib\Authz\Database\Role', $user1);
         $this->assertEquals($user1->getName(), 'user1');
-        $this->assertType('toolib\Authz\Database\Role', $user5);
+        $this->assertInstanceOf('toolib\Authz\Database\Role', $user5);
         $this->assertEquals($user5->getName(), 'user5');
-        $this->assertType('toolib\Authz\Database\Role', $user4);
+        $this->assertInstanceOf('toolib\Authz\Database\Role', $user4);
         $this->assertEquals($user4->getName(), 'user4');
         
         $this->assertFalse($user1->hasParent('wrong'));
@@ -134,7 +134,7 @@ class Authz_DatabaseRoleFeederTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($user5->hasParent('group46'));
         $this->assertFalse($user5->hasParent('group12'));
 
-        $this->assertType('array', $user5->getParents());
+        $this->assertInternalType('array', $user5->getParents());
         $this->assertEquals(count($user5->getParents()), 1);
         $parents = $user5->getParents();
         $group46 = $parents['group46'];
@@ -142,7 +142,7 @@ class Authz_DatabaseRoleFeederTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($group46->hasParent('test'));
         $this->assertEquals($group46->getParents(), array());
         
-        $this->assertType('array', $user4->getParents());
+        $this->assertInternalType('array', $user4->getParents());
         $this->assertEquals(count($user4->getParents()), 2);
         $parents = $user4->getParents();
         $group34 = $parents['group34'];
@@ -184,11 +184,11 @@ class Authz_DatabaseRoleFeederTest extends PHPUnit_Framework_TestCase
         $user1 = $list->getRole('user1');
         $user4 = $list->getRole('user4');
         $user5 = $list->getRole('user5');
-        $this->assertType('toolib\Authz\Database\Role', $user1);
+        $this->assertInstanceOf('toolib\Authz\Database\Role', $user1);
         $this->assertEquals($user1->getName(), 'user1');
-        $this->assertType('toolib\Authz\Database\Role', $user5);
+        $this->assertInstanceOf('toolib\Authz\Database\Role', $user5);
         $this->assertEquals($user5->getName(), 'user5');
-        $this->assertType('toolib\Authz\Database\Role', $user4);
+        $this->assertInstanceOf('toolib\Authz\Database\Role', $user4);
         $this->assertEquals($user4->getName(), 'user4');
         
         $this->assertFalse($user1->hasParent('wrong'));
@@ -197,7 +197,7 @@ class Authz_DatabaseRoleFeederTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($user5->hasParent('@group46'));
         $this->assertFalse($user5->hasParent('@group12'));
 
-        $this->assertType('array', $user5->getParents());
+        $this->assertInternalType('array', $user5->getParents());
         $this->assertEquals(count($user5->getParents()), 1);
         $parents = $user5->getParents();
         $group46 = $parents['@group46'];
@@ -205,7 +205,7 @@ class Authz_DatabaseRoleFeederTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($group46->hasParent('test'));
         $this->assertEquals($group46->getParents(), array());
         
-        $this->assertType('array', $user4->getParents());
+        $this->assertInternalType('array', $user4->getParents());
         $this->assertEquals(count($user4->getParents()), 2);
         $parents = $user4->getParents();
         $group34 = $parents['@group34'];

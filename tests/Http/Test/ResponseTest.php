@@ -34,7 +34,7 @@ class Http_TestResponseTest extends PHPUnit_Framework_TestCase
         
 		$this->assertEquals('', $r->getContent());
         $this->assertEquals(array('code' => '200', 'message' => 'OK'), $r->getStatusCode());
-        $this->assertType('\toolib\Http\HeaderContainer', $r->getHeaders());
+        $this->assertInstanceOf('\toolib\Http\HeaderContainer', $r->getHeaders());
         $this->assertEquals(0, count($r->getHeaders()));
     }
     

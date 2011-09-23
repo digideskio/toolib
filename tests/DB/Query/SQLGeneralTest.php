@@ -50,7 +50,7 @@ class Record_Query_SQLGeneralTest extends PHPUnit_Framework_TestCase
     public function testDefaultModelQueryInfo()
     {
         $mq = Forum::rawQuery();
-        $this->assertType('toolib\DB\ModelQuery', $mq);
+        $this->assertInstanceOf('toolib\DB\ModelQuery', $mq);
         $this->assertEquals($mq->getType(), null);
     }
     

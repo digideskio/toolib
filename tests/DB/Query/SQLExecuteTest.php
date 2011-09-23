@@ -54,7 +54,7 @@ class Record_Query_SQLExecuteTest extends PHPUnit_Framework_TestCase
             ->set('title', 'new title');
         $res = $mq->execute();
         $rec = Thread::open(1);
-        $this->assertType('Thread', $rec);
+        $this->assertInstanceOf('Thread', $rec);
         $this->assertEquals('new title', $rec->title);
 
         $mq = Post::rawQuery();
@@ -63,7 +63,7 @@ class Record_Query_SQLExecuteTest extends PHPUnit_Framework_TestCase
             ->set('image');
         $res = $mq->execute(serialize('dokimi image'));
         $rec = Post::open(1);
-        $this->assertType('Post', $rec);
+        $this->assertInstanceOf('Post', $rec);
         $this->assertEquals('test post updated', $rec->post);
         $this->assertEquals('dokimi image', $rec->image);
 
@@ -73,7 +73,7 @@ class Record_Query_SQLExecuteTest extends PHPUnit_Framework_TestCase
             ->set('image', null);
         $res = $mq->execute();
         $rec = Post::open(1);
-        $this->assertType('Post', $rec);
+        $this->assertInstanceOf('Post', $rec);
         $this->assertEquals('test post updated', $rec->post);
         $this->assertEquals(null, $rec->image);
     }
@@ -86,7 +86,7 @@ class Record_Query_SQLExecuteTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($mq->execute() !== false);
         
         $rec = Post::open(Connection::getLastInsertId());
-        $this->assertType('Post', $rec);
+        $this->assertInstanceOf('Post', $rec);
         $this->assertEquals('image1', $rec->image);
         $this->assertEquals('post1', $rec->post);
         
@@ -97,7 +97,7 @@ class Record_Query_SQLExecuteTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($mq->execute() !== false);
         
         $rec = Post::open(Connection::getLastInsertId());
-        $this->assertType('Post', $rec);
+        $this->assertInstanceOf('Post', $rec);
         $this->assertEquals('image2', $rec->image);
         $this->assertEquals('post2', $rec->post);
         

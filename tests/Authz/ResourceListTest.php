@@ -50,13 +50,13 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
 
         $list->addResource('directory');
         $this->assertTrue($list->hasResource('directory'));
-        $this->assertType('toolib\Authz\Resource', $list->getResource('directory'));
+        $this->assertInstanceOf('toolib\Authz\Resource', $list->getResource('directory'));
 
         $list->addResource('file', 'directory');
         $this->assertTrue($list->hasResource('directory'));
-        $this->assertType('toolib\Authz\Resource', $list->getResource('directory'));
+        $this->assertInstanceOf('toolib\Authz\Resource', $list->getResource('directory'));
         $this->assertTrue($list->hasResource('file'));
-        $this->assertType('toolib\Authz\Resource', $list->getResource('file'));
+        $this->assertInstanceOf('toolib\Authz\Resource', $list->getResource('file'));
     }
     
     public function testRemoveResource()
@@ -105,7 +105,7 @@ class Authz_ResourceListTest extends PHPUnit_Framework_TestCase
         $this->assertSame($list->getResource('file')->getParent(), $dir);
         
         // Instances
-        $this->assertType('toolib\Authz\Resource', $list->getResource('directory', 'test'), $dir);
+        $this->assertInstanceOf('toolib\Authz\Resource', $list->getResource('directory', 'test'), $dir);
         $this->assertSame($list->getResource('directory', 'test'), $list->getResource('directory', 'test'));
         $this->assertSame($list->getResource('directory', 'test')->getParent(), $dir);
         $this->assertSame($list->getResource('file', 'test')->getParent(), $file);

@@ -116,7 +116,7 @@ class Http_CookieTest extends PHPUnit_Framework_TestCase
     	
     	// Check cookie 1
     	$cookie = Cookie::openReceived('cookie1');
-    	$this->assertType('toolib\Http\Cookie', $cookie);
+    	$this->assertInstanceOf('toolib\Http\Cookie', $cookie);
 		$this->assertEquals('cookie1', $cookie->getName());
 		$this->assertEquals('value1', $cookie->getValue());
 		$this->assertEquals('', $cookie->getDomain());
