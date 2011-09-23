@@ -19,7 +19,7 @@
  *  
  */
 
-namespace toolib\Http\Test;
+namespace toolib\Http\Mock;
 use toolib\Http\HeaderContainer;
 use toolib\Http ;
 

@@ -119,11 +119,4 @@ abstract class Request
     	return ($this->getScheme() == 'HTTPS');
     }
     
-    /**
-    * @brief Get the reponse from the current gateway instance
-    */
-    public function getInstance()
-    {
-    	return \toolib\Http\Gateway::getInstance()->getRequest();
-    }
 }

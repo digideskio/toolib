@@ -19,11 +19,11 @@
  *  
  */
 
-use toolib\Http\Test\Request;
+use toolib\Http\Mock\Request;
 
 require_once __DIR__ .  '/../../path.inc.php';
 
-class Http_TestRequestTest extends PHPUnit_Framework_TestCase
+class Http_MockRequestTest extends PHPUnit_Framework_TestCase
 {
 	
 	public function commonDefaultConditions(Request $r, $must_be_post = false, $is_secure = false )

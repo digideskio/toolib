@@ -68,12 +68,4 @@ abstract class Response
      * @param \toolib\Http\Cookie $cookie
      */    
     abstract public function setCookie(Cookie $cookie);
-    
-    /**
-     * @brief Get the current reponse instance
-     */
-	public function getInstance()
-    {
-    	return \toolib\Http\Gateway::getInstance()->getResponse();
-    }
 }

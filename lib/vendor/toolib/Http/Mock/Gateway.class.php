@@ -19,21 +19,32 @@
  *  
  */
 
+namespace toolib\Http\Mock;
 
-use toolib\Http\Cgi;
-use toolib\Http;
+require_once __DIR__ . '/../Gateway.class.php';
+require_once __DIR__ . '/Request.class.php';
+require_once __DIR__ . '/Response.class.php';
 
-require_once __DIR__ .  '/../../path.inc.php';
-
-class Http_CgiServiceTest extends PHPUnit_Framework_TestCase
+/**
+* @brief Gateway implementation for Test package.
+*/
+class Gateway extends \toolib\Http\Gateway
 {
-    public function testConstructor()
-    {
-		$gw = new Http\Cgi\Gateway();
-		$request = $gw->getRequest();
-		$this->assertInstanceOf('\toolib\Http\Cgi\Request', $request);
-
-		$response = $gw->getResponse();
-		$this->assertInstanceOf('\toolib\Http\Cgi\Response', $response);
-    }
+	public function __construct()
+	{
+		parent::__construct();
+		
+		$this->request = new Request();
+		$this->response = new Response();		
+	}
+	
+	public function getRequest()
+	{
+		return $this->request;
+	}
+	
+	public function getResponse()
+	{
+		return $this->response;
+	}
 }

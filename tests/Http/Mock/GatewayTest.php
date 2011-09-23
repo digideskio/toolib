@@ -19,32 +19,20 @@
  *  
  */
 
-namespace toolib\Http\Test;
+use toolib\Http;
 
-require_once __DIR__ . '/../Gateway.class.php';
-require_once __DIR__ . '/Request.class.php';
-require_once __DIR__ . '/Response.class.php';
+require_once __DIR__ .  '/../../path.inc.php';
 
-/**
-* @brief Gateway implementation for Test package.
-*/
-class Gateway extends \toolib\Http\Gateway
+class Http_MockServiceTest extends PHPUnit_Framework_TestCase
 {
-	public function __construct()
-	{
-		parent::__construct();
-		
-		$this->request = new Request();
-		$this->response = new Response();		
-	}
-	
-	public function getRequest()
-	{
-		return $this->request;
-	}
-	
-	public function getResponse()
-	{
-		return $this->response;
-	}
+
+    public function testConstructor()
+    {
+		$gw = new Http\Mock\Gateway();
+		$request = $gw->getRequest();
+		$this->assertInstanceOf('\toolib\Http\Mock\Request', $request);
+
+		$response = $gw->getResponse();
+		$this->assertInstanceOf('\toolib\Http\Mock\Response', $response);
+    }
 }

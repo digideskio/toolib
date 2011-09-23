@@ -103,30 +103,6 @@ class Http_CookieTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($cookie->isHttponly(), true);
     }
     
-    public function testopenReceived()
-    {
-    	$this->assertFalse(Cookie::openReceived('unknown'));
-    	
-    	$_COOKIE = array(
-    		'cookie1' => 'value1',
-    		'cookie2' => 'value2'
-    	);
-    	
-    	$this->assertFalse(Cookie::openReceived('cookie3'));
-    	
-    	// Check cookie 1
-    	$cookie = Cookie::openReceived('cookie1');
-    	$this->assertInstanceOf('toolib\Http\Cookie', $cookie);
-		$this->assertEquals('cookie1', $cookie->getName());
-		$this->assertEquals('value1', $cookie->getValue());
-		$this->assertEquals('', $cookie->getDomain());
-		$this->assertEquals('/', $cookie->getPath());
-		$this->assertEquals(0, $cookie->getExpirationTime());
-		$this->assertTrue($cookie->isSessionCookie());
-		$this->assertFalse($cookie->isSecure());
-		$this->assertFalse($cookie->isHttponly());
-    }
-    
     public function testToString()
     {
     	$c = new Cookie('parameter', 'value=2');

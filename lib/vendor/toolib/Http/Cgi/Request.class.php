@@ -21,8 +21,10 @@
 
 namespace toolib\Http\Cgi;
 use toolib\Http\ParameterContainer;
+use toolib\Http\HeaderContainer;
 
 require_once __DIR__ . '/../Request.class.php';
+require_once __DIR__ . '/../ParameterContainer.class.php';
 
 /**
  * @brief Request implementation for Cgi package.
@@ -30,23 +32,15 @@ require_once __DIR__ . '/../Request.class.php';
 class Request extends \toolib\Http\Request
 {
 	/**
-	 * All the cgi meta-variables
+	 * Storage for already parsed objects.
 	 * @var array
 	 */
-	private $_meta_variables = array();
+	private $_parsed_objects = array();
 	
 	/**
-	 * Flag if this is a request wrapping php
-	 * @var boolean
-	 */
-	private $_php_request;
-
-	/**
 	 * @param array $meta_variables The meta variables as defined in CGI protocol.
-	 * @param boolean $php_request Flag if this instance represents actual php request.
-	 *  Enabling it, other superglobal variables will also be used.
 	 */
-	public function __construct($meta_variables = null, $php_request = false)
+	public function __construct($meta_variables = null)
 	{
 
 		if ($meta_variables !== null) {
@@ -119,7 +113,7 @@ class Request extends \toolib\Http\Request
 	 */
 	private function headersToContainer()
 	{
-		$container = new ParameterContainer();
+		$container = new HeaderContainer();
 		
 		// Loop around meta variables
 		foreach($this->_meta_variables as $key => $value) {
@@ -154,10 +148,6 @@ class Request extends \toolib\Http\Request
 		} else if ($property == 'http_version') {
 			$this->$property = isset($this->_meta_variables['SERVER_PROTOCOL'])?
 				substr($this->_meta_variables['SERVER_PROTOCOL'], -3):'1.0';
-			
-		} else if ($property == 'scheme') {
-			$this->$property = ((!isset($this->_meta_variables['HTTPS']))
-				|| $this->_meta_variables['HTTPS'] == 'off')?'HTTP': 'HTTPS';
 				
 		} else if ($property == 'cookies') {
 			if ($this->_php_request)
@@ -212,7 +202,7 @@ class Request extends \toolib\Http\Request
 	
 	public function getRequestUri()
 	{
-		
+		return $_SERVER['REQUEST_URI'];
 	}
 	
 	public function getPath()
@@ -232,7 +222,7 @@ class Request extends \toolib\Http\Request
 	
 	public function getQueryString()
 	{
-		
+		return $_SERVER['QUERY_STRING'];
 	}
 	
 	public function getCookies()
@@ -242,7 +232,12 @@ class Request extends \toolib\Http\Request
 	
 	public function getScheme()
 	{
+		if (isset($this->_parsed_objects['scheme']))
+			return $this->_parsed_objects['scheme'];
 		
+		return $this->_parsed_objects['scheme'] 
+			= ((!isset($this->_meta_variables['HTTPS']))
+				|| $this->_meta_variables['HTTPS'] == 'off')?'HTTP': 'HTTPS';
 	}
 	
 	public function getMethod()
@@ -257,7 +252,7 @@ class Request extends \toolib\Http\Request
 	
 	public function getProtocolVersion()
 	{
-		
+		return $_SERVER['SERVER_PROTOCOL'];
 	}
 	
 	public function getContent()

@@ -237,16 +237,7 @@ class Cookie
      */
     public static function openReceived($name)
     {
-    	$gw = \toolib\Http\Gateway::getInstance();
-    	if (!$gw)
-    		return false;
-    	$cookies = $gw->getRequest()->getCookies();
-    	
-        if (!isset($cookies[$name]))
-            return false;
 
-        $cookie = new self($name, $cookies[$name]);
-        return $cookie;
     }
 
     /**
@@ -257,9 +248,7 @@ class Cookie
      */
     public function send()
     {
-        $gw = \toolib\Http\Gateway::getInstance();
-        if ($gw)
-        	$gw->getResponse()->setCookie($this);
+
     }
     
     /**

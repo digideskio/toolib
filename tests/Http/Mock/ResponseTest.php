@@ -19,13 +19,13 @@
  *  
  */
 
-use toolib\Http\Test\Response;
-use toolib\Http\Test\ImmediateExitRequest;
+use toolib\Http\Mock\Response;
+use toolib\Http\Mock\ImmediateExitRequest;
 use toolib\Http\Cookie;
 
 require_once __DIR__ .  '/../../path.inc.php';
 
-class Http_TestResponseTest extends PHPUnit_Framework_TestCase
+class Http_MockResponseTest extends PHPUnit_Framework_TestCase
 {
 	
     public function testEmptyConstructor()
