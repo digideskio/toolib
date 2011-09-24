@@ -36,6 +36,12 @@ abstract class Response
 	 */
 	abstract public function addHeader($name, $value, $replace = true);
 	
+	/**
+	* @brief Remove a header from response
+	* @param string $name Name of header
+	*/
+	abstract public function removeHeader($name);
+	
     /**
      * @brief Ask user-agent to redirect in a new url
      * @param $url The absolute or relative url to redirect.

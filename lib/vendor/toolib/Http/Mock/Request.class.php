@@ -29,7 +29,7 @@ require_once __DIR__ . '/../ParameterContainer.class.php';
 require_once __DIR__ . '/../HeaderContainer.class.php';
 
 /**
- * @brief Request implementation for Test package.
+ * @brief Request implementation for Mock package.
  */
 class Request extends Http\Request 
 {

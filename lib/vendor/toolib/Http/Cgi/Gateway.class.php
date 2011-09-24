@@ -19,6 +19,9 @@
  *  
  */
 
+/**
+* @brief HTTP Cgi support package
+*/
 namespace toolib\Http\Cgi;
 
 require_once __DIR__ . '/../Gateway.class.php';

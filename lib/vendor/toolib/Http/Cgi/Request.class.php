@@ -38,162 +38,74 @@ class Request extends \toolib\Http\Request
 	private $_parsed_objects = array();
 	
 	/**
-	 * @param array $meta_variables The meta variables as defined in CGI protocol.
-	 */
-	public function __construct($meta_variables = null)
-	{
-
-		if ($meta_variables !== null) {
-			$this->_meta_variables = $meta_variables;
-			return;
-		}
-		
-		// Create default Request
-		$this->_meta_variables = array(
-			'SERVER_SOFTWARE' => 'toolib',
-			'SERVER_NAME' => 'localhost',
-			'GATEWAY_INTERFACE' => 'CGI/1.1',
-			'SERVER_PROTOCOL' => 'HTTP/1.1',
-			'SERVER_PORT' => 80,
-			'REQUEST_METHOD' => 'GET',
-			'PATH_INFO' => null,
-			'SCRIPT_NAME' => '',
-			'REQUEST_URI' => '/',
-			'QUERY_STRING' => null,
-			'REMOTE_HOST' => '',
-			'REMOTE_ADDR' => '',
-			'CONTENT_TYPE' => 'text/html',
-			'CONTENT_LENGTH' => null
-		);
-	}
-
-	
-	/**
-	 * @brief Create ParameterContainer from the query string
-	 * @return \toolib\Http\ParameterContainer
-	 */
-	private function queryStringToContainer()
-	{
-		$container = new ParameterContainer();
-		if( !isset($this->_meta_variables['QUERY_STRING']))
-			return $container;
-			
-		$chunks = explode('&', $this->_meta_variables['QUERY_STRING']);
-		
-		foreach ($chunks as $chunk) {
-			$parts = explode('=', $chunk);
-			$container[urldecode($parts[0])] = urldecode($parts[1]);
-		}
-
-		return $container;			
-	}
-	
-	/**
-	 * @brief Create an array of Cookie objects
-	 */
-	private function cookiesToContainer()
-	{
-		$container = new ParameterContainer();
-		if( !isset($this->_meta_variables['HTTP_COOKIE']))
-			return $container;
-			
-		$chunks = explode(';', $this->_meta_variables['HTTP_COOKIE']);		
-		foreach($chunks as $chunk) {
-			$parts = explode('=', trim($chunk));
-			if ($parts[0][0] == '$')
-				continue;
-			$container[urldecode($parts[0])] = urldecode($parts[1]);
-		}
-		
-		return $container;	
-	}
-	
-	/**
-	 * @brief Create an array of Header objects
+	 * @brief Extract headers from CGI enviroment
+	 * @return \toolib\Http\HeaderContainer
 	 */
 	private function headersToContainer()
 	{
 		$container = new HeaderContainer();
 		
 		// Loop around meta variables
-		foreach($this->_meta_variables as $key => $value) {
+		foreach($_SERVER as $key => $value) {
 			if (substr($key, 0, 5) == "HTTP_") {
 				$key = str_replace(" ", "-", ucwords(strtolower(str_replace("_"," ",substr($key,5)))));
 				$container[$key] = $value;
 			}
 		}
 		
-		return $container;	
+		return $container;
 	}
 	
 	/**
-	 * @brief Dynamically convert CGI variables to Request
-	 * interface.
-	 * @param string $property The name of the property.
+	 * @brief Parse requested url and extract data
 	 */
-	public function __get($property)
+	private function parseUrl()
 	{
+		$parts = parse_url($_SERVER['REQUEST_URI']);
 		
+		$this->_parsed_objects['path'] = isset($parts['path'])?$parts['path']:null;
+		$this->_parsed_objects['fragment'] = isset($parts['fragment'])?$parts['fragment']:null;
+	}
+	
+	/**
+	 * @brief Fix bad/wierd order of files posted by php.
+	 */
+	private function fixFileKeys($files)
+	{
+		if (isset($files['name'], $files['tmp_name'], $files['size'], $files['type'], $files['error'])){
+	
+			// Multiple values for post-keys indexes
+			$move_indexes_right = function($files) use(& $move_indexes_right)
+			{
+				if (!is_array($files['name']))
+					return $files;
 				
-		} else if ($property == 'uri') {
-			$this->$property = $this->_meta_variables['REQUEST_URI'];
-			
-		} else if ($property == 'method') {
-			$this->$property = $this->_meta_variables['REQUEST_METHOD'];
-			
-		} else if ($property == 'http_version') {
-			$this->$property = isset($this->_meta_variables['SERVER_PROTOCOL'])?
-				substr($this->_meta_variables['SERVER_PROTOCOL'], -3):'1.0';
-				
-		} else if ($property == 'cookies') {
-			if ($this->_php_request)
-				$this->$property = new ParameterContainer($_COOKIE);
-			else
-				$this->$property = $this->cookiesToContainer();
-				
-		} else if ($property == 'headers') {
-			if ($this->_php_request && function_exists('apache_request_headers')) 
-				$this->$property = new ParameterContainer(apache_request_headers);
-			else
-				$this->$property = $this->headersToContainer();
-				
-		} else if ($property == 'raw_content') {
-			$this->$property = $this->_php_request ? file_get_contents('php://input'):null;
-			
-		} else if ($property == 'content') {
-			$this->$property = ($this->_php_request)?new ParameterContainer($_POST):null;
-			
-		} else if ($property == 'cgi_version') {
-			$this->$property = isset($this->_meta_variables['GATEWAY_INTERFACE'])
-				?substr($this->_meta_variables['GATEWAY_INTERFACE'], -3):'1.1';
-				
-		} else if ($property == 'server_info') {
-			$this->$property = array();
-			if (isset($this->_meta_variables['SERVER_ADDR']))
-				$this->server_info['addr'] = $this->_meta_variables['SERVER_ADDR'];
-			if (isset($this->_meta_variables['SERVER_PORT']))
-				$this->server_info['port'] = $this->_meta_variables['SERVER_PORT'];
-				if (isset($this->_meta_variables['SERVER_NAME']))
-				$this->server_info['name'] = $this->_meta_variables['SERVER_NAME'];
-			if (isset($this->_meta_variables['SERVER_SOFTWARE']))
-				$this->server_info['software'] = $this->_meta_variables['SERVER_SOFTWARE'];
-			if (isset($this->_meta_variables['SERVER_PROTOCOL']))
-				$this->server_info['protocol'] = $this->_meta_variables['SERVER_PROTOCOL'];
-			
-		} else if ($property == 'remote_info') {
-			$this->$property = array();
-			if (isset($this->_meta_variables['REMOTE_ADDR']))
-				$this->remote_info['addr'] = $this->_meta_variables['REMOTE_ADDR'];
-			if (isset($this->_meta_variables['REMOTE_PORT']))
-				$this->remote_info['port'] = $this->_meta_variables['REMOTE_PORT'];
-			if (isset($this->_meta_variables['REMOTE_HOST']))
-				$this->remote_info['name'] = $this->_meta_variables['REMOTE_HOST'];
-
-		} else {
-			throw new \InvalidArgumentException('Unknown ' . __CLASS__ . "->{$property} property was requested.");
+				$results = array();
+				foreach($files['name'] as $index => $name) {
+					$reordered = array(
+								'name' => $files['name'][$index],
+								'tmp_name' => $files['tmp_name'][$index],
+								'size' => $files['size'][$index],
+								'type' => $files['type'][$index],
+								'error' => $files['error'][$index],
+					);
+	
+					// If this is not leaf do it recursivly
+					if (is_array($name))
+						$reordered = $move_indexes_right($reordered);
+	
+					$results[$index] = $reordered;
+				}
+				return $results;
+			};
+			return $move_indexes_right($files);
 		}
-		
-		return $this->$property;
+			
+		// Re order pre-keys indexes
+		array_walk($files, function(&$sub) use(& $fix_files_keys) {
+			$sub = $this->fixFileKeys($sub);
+		});
+		return $files;
 	}
 	
 	public function getRequestUri()
@@ -203,12 +115,20 @@ class Request extends \toolib\Http\Request
 	
 	public function getPath()
 	{
+		if (isset($this->_parsed_objects['path']))
+			return $this->_parsed_objects['path'];
 		
+		$this->parseUrl();
+		return $this->_parsed_objects['path'];
 	}
 	
 	public function getFragment()
 	{
+		if (isset($this->_parsed_objects['fragment']))
+			return $this->_parsed_objects['fragment'];
 		
+		$this->parseUrl();
+		return $this->_parsed_objects['fragment'];
 	}
 	
 	public function getQuery()
@@ -228,7 +148,7 @@ class Request extends \toolib\Http\Request
 	
 	public function getCookies()
 	{
-		
+		return $_COOKIE;
 	}
 	
 	public function getScheme()
@@ -237,32 +157,56 @@ class Request extends \toolib\Http\Request
 			return $this->_parsed_objects['scheme'];
 		
 		return $this->_parsed_objects['scheme'] 
-			= ((!isset($this->_meta_variables['HTTPS']))
-				|| $this->_meta_variables['HTTPS'] == 'off')?'HTTP': 'HTTPS';
+			= ((!isset($_SERVER['HTTPS']))
+				|| $_SERVER['HTTPS'] == 'off')?'HTTP': 'HTTPS';
 	}
 	
 	public function getMethod()
 	{
-		
+		return $_SERVER['REQUEST_METHOD'];				
 	}
 	
 	public function getHeaders()
 	{
+		if (isset($this->_parsed_objects['headers']))
+			return $this->_parsed_objects['headers'];
 		
+		if (function_exists('apache_request_headers'))
+			$this->_parsed_objects['headers'] = new HeadersContainer(apache_request_headers());
+		else
+			$this->_parsed_objects['headers'] = $this->headersToContainer();
+		return $this->_parsed_objects['headers'];
 	}
 	
 	public function getProtocolVersion()
 	{
-		return $_SERVER['SERVER_PROTOCOL'];
+		if (isset($this->_parsed_objects['protocol_version']))
+			return $this->_parsed_objects['protocol_version'];
+
+		return $this->_parsed_objects['protocol_version'] 
+			= $this->$property = isset($this->_meta_variables['SERVER_PROTOCOL'])?
+			substr($this->_meta_variables['SERVER_PROTOCOL'], -3):'1.0';
 	}
 	
 	public function getContent()
 	{
+		if (isset($this->_parsed_objects['content']))
+			return $this->_parsed_objects['content'];
 		
+		if (!$this->isPost())
+			return $this->_parsed_objects['content'] = null;
+			
+		// Get posted arguments
+		$files = $this->fixFileKeys($_FILES);
+		$this->_parsed_objects['content'] = new ParameterContainer(
+			array_merge($_POST, $files));
 	}
 	
 	public function getRawContent()
 	{
-		
+		if (isset($this->_parsed_objects['raw_content']))
+			return $this->_parsed_objects['raw_content'];
+		return $this->_parsed_objects['raw_content']
+			= file_get_contents('php://input');
 	}
 }

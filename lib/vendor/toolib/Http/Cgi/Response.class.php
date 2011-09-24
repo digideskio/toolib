@@ -20,15 +20,23 @@
  */
 
 namespace toolib\Http\Cgi;
-use toolib\Http as H;
+use toolib\Http;
 
 require_once __DIR__ . '/../Cookie.class.php';
 
-class Response
+/**
+* @brief Response implementation for Cgi package.
+*/
+class Response extends Http\Response
 {
 	public function addHeader($name, $value, $replace = true)
 	{
 		header($name .': ' . $value);
+	}
+	
+	public function removeHeader($name)
+	{
+		header_remove($name);
 	}
 	
     public function redirect($url, $auto_exit = true)
@@ -43,7 +51,7 @@ class Response
         $this->addHeader('Content-type', $mime);
     }
 
-    static public function setErrorCode($code, $message)
+    public function setStatusCode($code, $message)
     {   
         header("HTTP/1.1 {$code} {$message}");
     }
@@ -54,13 +62,7 @@ class Response
     	
     }
     
-    /**
-     * @brief Send cookie to the http response layer
-     * 
-     * It will use the php's setcookie() function to send
-     * all cookie data to the response.
-     */
-    public function sendCookie(H\Cookie $cookie)
+    public function setCookie(Http\Cookie $cookie)
     {
         setcookie($cookie->getName(),
             $cookie->getValue(),

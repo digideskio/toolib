@@ -67,6 +67,34 @@ class Http_MockResponseTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals(array('v3', 'v4'), $r->getHeaders()->getValues('h2'));
     }
     
+    public function testRemoveHeader()
+    {
+    	$r = new Response();
+    	$r->addHeader('h1', 'v1');
+    	$r->addHeader('h1', 'v11');
+    	$r->addHeader('h2', 'v2');
+    	$r->addHeader('h3', 'v3');
+    	
+    	// Remove a unknown one
+    	$r->removeHeader('wrong');
+    	$this->assertEquals(3, count($r->getHeaders()));
+    	
+    	// Remove a signle one
+    	$r->removeHeader('h3');
+    	$this->assertEquals(2, count($r->getHeaders()));
+    	$this->assertFalse($r->getHeaders()->has('h3'));
+    	
+    	// Remove double one
+    	$r->removeHeader('h1');
+    	$this->assertEquals(1, count($r->getHeaders()));
+    	$this->assertFalse($r->getHeaders()->has('h1'));
+
+    	// Remove last one
+    	$r->removeHeader('h2');
+    	$this->assertEquals(0, count($r->getHeaders()));
+    	$this->assertFalse($r->getHeaders()->has('h2'));
+    }
+    
     public function testSetStatusCode()
     {
     	$r = new Response();

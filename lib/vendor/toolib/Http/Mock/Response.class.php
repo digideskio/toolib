@@ -35,7 +35,7 @@ class ImmediateExitRequest extends \Exception
 }
 
 /**
-* @brief Response implementation for Test package.
+* @brief Response implementation for Mock package.
 */
 class Response extends Http\Response
 {
@@ -71,6 +71,12 @@ class Response extends Http\Response
 			$this->_headers->replace($name, $value);
 		else
 			$this->_headers->add($name, $value);				
+	}
+	
+	public function removeHeader($name)
+	{
+		if ($this->_headers->has($name))
+			$this->_headers->remove($name);
 	}
 	
 	/**

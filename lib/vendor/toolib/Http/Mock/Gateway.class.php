@@ -19,6 +19,9 @@
  *  
  */
 
+/**
+ * @brief HTTP Mock support package
+ */
 namespace toolib\Http\Mock;
 
 require_once __DIR__ . '/../Gateway.class.php';
@@ -26,7 +29,7 @@ require_once __DIR__ . '/Request.class.php';
 require_once __DIR__ . '/Response.class.php';
 
 /**
-* @brief Gateway implementation for Test package.
+* @brief Gateway implementation for Mock package.
 */
 class Gateway extends \toolib\Http\Gateway
 {
