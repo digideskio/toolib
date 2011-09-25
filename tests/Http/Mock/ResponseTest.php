@@ -20,6 +20,7 @@
  */
 
 use toolib\Http\Mock\Response;
+use toolib\Http\Mock\Request;
 use toolib\Http\Mock\ImmediateExitRequest;
 use toolib\Http\Cookie;
 
@@ -60,7 +61,7 @@ class Http_MockResponseTest extends PHPUnit_Framework_TestCase
     	$this->assertTrue($r->getHeaders()->is('h2', 'v3'));
     	$this->assertEquals(array('v3'), $r->getHeaders()->getValues('h2'));
 
-    	// Append a preivious one
+    	// Append a previous one
     	$r->addHeader('h2', 'v4', false);
     	$this->assertEquals(2, count($r->getHeaders()));
     	$this->assertTrue($r->getHeaders()->is('h2', 'v4'));
@@ -196,4 +197,137 @@ class Http_MockResponseTest extends PHPUnit_Framework_TestCase
     	$r->appendContent('123456');
     	$this->assertEquals('abc123456', $r->getContent());
     }
+    
+    public function testExpirationNoCache()
+    {
+    	$r = new Response();
+    	
+		$r->setCacheDirectiveNoCache();
+    	$this->assertEquals('no-cache', $r->getHeaders()->getValue('Cache-control'));
+    }
+    
+    public function testExpirationDefault()
+    {
+    	$r = new Response();
+    	 
+    	// Set one argument
+    	$r->setCacheMaxAge(10000);
+    	$this->assertEquals('max-age=10000', $r->getHeaders()->getValue('Cache-control'));
+    	
+    	// Set second argument
+    	$r->setCacheSharedMaxAge(999);
+    	$this->assertEquals('max-age=10000, s-max-age=999', $r->getHeaders()->getValue('Cache-control'));
+    	
+    	// Set third
+    	$r->setCachePublic();
+    	$this->assertEquals('max-age=10000, s-max-age=999, public', $r->getHeaders()->getValue('Cache-control'));
+
+    	// Reset shared max age
+    	$r->setCacheSharedMaxAge(888);
+    	$this->assertEquals('max-age=10000, s-max-age=888, public', $r->getHeaders()->getValue('Cache-control'));
+    	
+    	// Reset  max age
+    	$r->setCacheMaxAge(222);
+    	$this->assertEquals('max-age=222, s-max-age=888, public', $r->getHeaders()->getValue('Cache-control'));
+    	
+    	// Set private again
+    	$r->setCachePrivate();
+    	$this->assertEquals('max-age=222, s-max-age=888', $r->getHeaders()->getValue('Cache-control'));
+
+    	// Set custom directive
+    	$r->setCacheDirective('must-revalidate');
+    	$this->assertEquals('max-age=222, s-max-age=888, must-revalidate', $r->getHeaders()->getValue('Cache-control'));
+    }
+    
+    public function testValidation()
+    {
+    	$request = new Request();
+    	$response = new Response();
+    	$this->assertFalse($response->isNotModified($request));
+    	
+    	// Etag check - with no declaration - FALSE
+    	$request = new Request('/', null, array('If-None-Match' => 'qweasd'));
+    	$response = new Response();
+    	$this->assertFalse($response->isNotModified($request));
+    	
+    	// Etag check - with no Ifnone-match- FALSE
+    	$request = new Request();
+    	$response = new Response();
+    	$response->setEtag('qweasd');
+    	$this->assertFalse($response->isNotModified($request));
+    	
+    	// Etag check - one if-none-match TRUE
+    	$request = new Request('/', null, array('If-None-Match' => 'qweasd'));
+    	$response = new Response();
+    	$response->setEtag('qweasd');
+    	$this->assertTrue($response->isNotModified($request));
+    	
+    	// Etag check - multiple if-none-match TRUE
+    	$request = new Request('/', null, array('If-None-Match' => 'qweasd, zxcasd'));
+    	$response = new Response();
+    	$response->setEtag('qweasd');
+    	$this->assertTrue($response->isNotModified($request));
+    	
+    	// Etag check - multiple if-none-match TRUE
+    	$request = new Request('/', null, array('If-None-Match' => 'qweasd, "zxcasd"'));
+    	$response = new Response();
+    	$response->setEtag('"zxcasd"');
+    	$this->assertTrue($response->isNotModified($request));
+    	
+    	
+    	// Last-modified check - with no declaration False
+    	$request = new Request('/', null, array('If-Modified-Since' => 'Sat, 29 Oct 1994 19:43:31 GMT'));
+    	$response = new Response();
+    	$this->assertFalse($response->isNotModified($request));
+    	
+    	// Last-modified check - with  no if-modified False
+    	$request = new Request();
+    	$response = new Response();
+    	$response->setLastModified(date_create('Sat, 29 Oct 1994 19:43:31 GMT'));
+    	$this->assertFalse($response->isNotModified($request));
+    	
+    	// Last-modified check - with exactly same time TRUE
+    	$request = new Request('/', null, array('If-Modified-Since' => 'Sat, 29 Oct 1994 19:43:31 GMT'));
+    	$response = new Response();
+    	$response->setLastModified(date_create('Sat, 29 Oct 1994 19:43:31 GMT'));
+    	$this->assertTrue($response->isNotModified($request));
+
+    	// Last-modified check - with 1 second older TRUE
+    	$request = new Request('/', null, array('If-Modified-Since' => 'Sat, 29 Oct 1994 19:43:31 GMT'));
+    	$response = new Response();
+    	$response->setLastModified(date_create('Sat, 29 Oct 1994 19:43:30 GMT'));
+    	$this->assertTrue($response->isNotModified($request));
+
+    	// Last-modified check - with 1 second newer FALSE
+    	$request = new Request('/', null, array('If-Modified-Since' => 'Sat, 29 Oct 1994 19:43:31 GMT'));
+    	$response = new Response();
+    	$response->setLastModified(date_create('Sat, 29 Oct 1994 19:43:32 GMT'));
+    	$this->assertFalse($response->isNotModified($request));
+    	
+    	
+    	// ETag (TRUE) + Last Modified (TRUE) = TRUE
+    	$request = new Request('/', null, array(
+    	    		'If-None-Match' => 'qweasd, "zxcasd"',
+    	    		'If-Modified-Since' => 'Sat, 29 Oct 1994 19:43:31 GMT'));
+    	$response = new Response();
+    	$response->setEtag('"zxcasd"');
+    	$response->setLastModified(date_create('Sat, 29 Oct 1994 19:43:30 GMT'));
+    	$this->assertTrue($response->isNotModified($request));
+    	
+    	// ETag (TRUE) + Last Modified (FALSE) = TRUE 
+    	$request = new Request('/', null, array(
+    		'If-None-Match' => 'qweasd, "zxcasd"',
+    		'If-Modified-Since' => 'Sat, 29 Oct 1994 19:43:31 GMT'));
+    	$response = new Response();
+    	$response->setEtag('"zxcasd"');
+    	$this->assertTrue($response->isNotModified($request));
+    	
+    	// ETag (FALSE) + Last Modified (FALSE) = FALSE
+    	$request = new Request('/', null, array(
+    	    		'If-None-Match' => 'qweasd, "zxcasd"',
+    	    		'If-Modified-Since' => 'Sat, 29 Oct 1994 19:43:31 GMT'));
+    	$response = new Response();
+    	$this->assertFalse($response->isNotModified($request));
+    }
+    
 }

@@ -136,5 +136,4 @@ abstract class Request
 	{
 		return ($this->getScheme() == 'HTTPS');
 	}
-
 }
