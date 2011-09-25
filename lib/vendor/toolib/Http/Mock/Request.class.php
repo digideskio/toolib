@@ -45,6 +45,16 @@ class Request extends Http\Request
 	 */
     public function __construct($url = '/', $post_data = null, $headers = null)
     {
+    
+    	// Lower case headers before use
+    	if (is_array($headers)) {
+    		$new_headers = array();
+    		foreach(array_keys($headers) as $name ){
+    			$new_headers[strtolower($name)] = $headers[$name];
+    		}
+    		$headers = $new_headers;
+    	}
+    	
         $this->_params = array(
         	'url' => $url,
         	'protocol_version' => 1.1,

@@ -44,6 +44,8 @@ class HeaderContainer extends \ArrayObject
 	 */
 	public function add($name, $value)
 	{
+		$name = strtolower($name);
+		
 		if (!$this->offsetExists($name)) {
 			$this[$name] = $value;
 		} else 	if (is_array($this[$name])) {
@@ -60,6 +62,7 @@ class HeaderContainer extends \ArrayObject
 	 */
 	public function replace($name, $value)
 	{
+		$name = strtolower($name);
 		$this[$name] = $value;		
 	}
 	
@@ -69,6 +72,7 @@ class HeaderContainer extends \ArrayObject
 	 */
 	public function remove($name)
 	{
+		$name = strtolower($name);
 		unset($this[$name]);
 	}
 	
@@ -79,6 +83,7 @@ class HeaderContainer extends \ArrayObject
 	 */
 	public function has($name)
 	{
+		$name = strtolower($name);
 		return $this->offsetExists($name);
 	}
 	
@@ -89,6 +94,7 @@ class HeaderContainer extends \ArrayObject
 	 */
 	public function getValue($name, $default = null)
 	{
+		$name = strtolower($name);
 		if (!$this->offsetExists($name))
 			return $default;
 		if (is_array($this[$name]))
@@ -104,6 +110,7 @@ class HeaderContainer extends \ArrayObject
 	 */
 	public function getValues($name)
 	{
+		$name = strtolower($name);
 		if (!$this->offsetExists($name))
 			return array();
 		if (is_array($this[$name]))
@@ -118,6 +125,7 @@ class HeaderContainer extends \ArrayObject
 	*/
 	public function countValues($name)
 	{
+		$name = strtolower($name);
 		if (!$this->offsetExists($name))
 			return 0;
 		if (is_array($this[$name]))
@@ -134,6 +142,7 @@ class HeaderContainer extends \ArrayObject
 	 */
 	public function is($name, $expected, $case_insensitive = false)
 	{
+		$name = strtolower($name);
 		if (!$this->offsetExists($name))
 			return false;
 		
@@ -157,6 +166,7 @@ class HeaderContainer extends \ArrayObject
 	*/
 	public function contains($name, $needle, $case_insensitive = false)
 	{
+		$name = strtolower($name);
 		if (!$this->offsetExists($name))
 		return false;
 	
