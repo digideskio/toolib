@@ -38,8 +38,8 @@ class Request extends \toolib\Http\Request
 	 * Storage for already parsed objects.
 	 * @var array
 	 */
-	private $_parsed_objects = array();
-	
+	private $parsed_objects = array();
+
 	/**
 	 * @brief Extract headers from CGI enviroment
 	 * @return \toolib\Http\HeaderContainer
@@ -66,8 +66,8 @@ class Request extends \toolib\Http\Request
 	{
 		$parts = parse_url($_SERVER['REQUEST_URI']);
 		
-		$this->_parsed_objects['path'] = isset($parts['path'])?$parts['path']:null;
-		$this->_parsed_objects['fragment'] = isset($parts['fragment'])?$parts['fragment']:null;
+		$this->parsed_objects['path'] = isset($parts['path'])?$parts['path']:null;
+		$this->parsed_objects['fragment'] = isset($parts['fragment'])?$parts['fragment']:null;
 	}
 	
 	/**
@@ -128,6 +128,11 @@ class Request extends \toolib\Http\Request
 		return $fix_file_keys_impl($files, $create_objects);
 	}
 	
+	public function getEnviroment()
+	{
+		return $_SERVER;
+	}
+	
 	public function getRequestUri()
 	{
 		return $_SERVER['REQUEST_URI'];
@@ -140,18 +145,18 @@ class Request extends \toolib\Http\Request
 
 	public function getUriPath()
 	{
-		if (isset($this->_parsed_objects['path']))
-			return $this->_parsed_objects['path'];
+		if (isset($this->parsed_objects['path']))
+			return $this->parsed_objects['path'];
 		$this->parseUrl();
-		return $this->_parsed_objects['path'];
+		return $this->parsed_objects['path'];
 	}
 	
 	public function getScriptPath()
 	{
-		if (isset($this->_parsed_objects['script_path']))
-			return $this->_parsed_objects['script_path'];
+		if (isset($this->parsed_objects['script_path']))
+			return $this->parsed_objects['script_path'];
 		
-		return $this->_parsed_objects['script_path']
+		return $this->parsed_objects['script_path']
 			= (strstr($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']) === false)
 	    		?dirname($_SERVER['SCRIPT_NAME'])
 	    		:$_SERVER['SCRIPT_NAME'];
@@ -159,19 +164,19 @@ class Request extends \toolib\Http\Request
 	
 	public function getFragment()
 	{
-		if (isset($this->_parsed_objects['fragment']))
-			return $this->_parsed_objects['fragment'];
+		if (isset($this->parsed_objects['fragment']))
+			return $this->parsed_objects['fragment'];
 		
 		$this->parseUrl();
-		return $this->_parsed_objects['fragment'];
+		return $this->parsed_objects['fragment'];
 	}
 	
 	public function getQuery()
 	{
-		if (isset($this->_parsed_objects['query']))
-			return $this->_parsed_objects['query'];
+		if (isset($this->parsed_objects['query']))
+			return $this->parsed_objects['query'];
 		
-		return $this->_parsed_objects['query']
+		return $this->parsed_objects['query']
 			= new ParameterContainer($_GET);
 
 	}
@@ -188,10 +193,10 @@ class Request extends \toolib\Http\Request
 	
 	public function getScheme()
 	{
-		if (isset($this->_parsed_objects['scheme']))
-			return $this->_parsed_objects['scheme'];
+		if (isset($this->parsed_objects['scheme']))
+			return $this->parsed_objects['scheme'];
 		
-		return $this->_parsed_objects['scheme'] 
+		return $this->parsed_objects['scheme'] 
 			= ((!isset($_SERVER['HTTPS']))
 				|| $_SERVER['HTTPS'] == 'off')?'HTTP': 'HTTPS';
 	}
@@ -203,45 +208,45 @@ class Request extends \toolib\Http\Request
 	
 	public function getHeaders()
 	{
-		if (isset($this->_parsed_objects['headers']))
-			return $this->_parsed_objects['headers'];
+		if (isset($this->parsed_objects['headers']))
+			return $this->parsed_objects['headers'];
 		
 		if (function_exists('apache_request_headers'))
-			$this->_parsed_objects['headers'] = new HeadersContainer(apache_request_headers());
+			$this->parsed_objects['headers'] = new HeadersContainer(apache_request_headers());
 		else
-			$this->_parsed_objects['headers'] = $this->headersToContainer();
-		return $this->_parsed_objects['headers'];
+			$this->parsed_objects['headers'] = $this->headersToContainer();
+		return $this->parsed_objects['headers'];
 	}
 	
 	public function getProtocolVersion()
 	{
-		if (isset($this->_parsed_objects['protocol_version']))
-			return $this->_parsed_objects['protocol_version'];
+		if (isset($this->parsed_objects['protocol_version']))
+			return $this->parsed_objects['protocol_version'];
 
-		return $this->_parsed_objects['protocol_version'] 
+		return $this->parsed_objects['protocol_version'] 
 			= isset($_SERVER['SERVER_PROTOCOL'])?
 				substr($_SERVER['SERVER_PROTOCOL'], -3):'1.0';
 	}
 	
 	public function getContent()
 	{
-		if (isset($this->_parsed_objects['content']))
-			return $this->_parsed_objects['content'];
+		if (isset($this->parsed_objects['content']))
+			return $this->parsed_objects['content'];
 		
 		if (!$this->isPost())
-			return $this->_parsed_objects['content'] = null;
+			return $this->parsed_objects['content'] = null;
 			
 		// Get posted arguments
 		$files = $this->fixFileKeys($_FILES, true);
-		return $this->_parsed_objects['content'] = new ParameterContainer(
+		return $this->parsed_objects['content'] = new ParameterContainer(
 			array_merge_recursive($_POST, $files));
 	}
 	
 	public function getRawContent()
 	{
-		if (isset($this->_parsed_objects['raw_content']))
-			return $this->_parsed_objects['raw_content'];
-		return $this->_parsed_objects['raw_content']
+		if (isset($this->parsed_objects['raw_content']))
+			return $this->parsed_objects['raw_content'];
+		return $this->parsed_objects['raw_content']
 			= file_get_contents('php://input');
 	}
 }

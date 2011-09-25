@@ -35,8 +35,6 @@ class Gateway extends \toolib\Http\Gateway
 {
 	public function __construct()
 	{
-		parent::__construct();
-		
 		$this->request = new Request();
 		$this->response = new Response();		
 	}

@@ -32,6 +32,12 @@ abstract class Request
 {
 
 	/**
+	 * @brief Get Enviroment variables set by Gateway
+	 * @return array
+	 */
+	abstract public function getEnviroment();
+	
+	/**
 	 * @brief Get the full requested uri
 	 */
 	abstract public function getRequestUri();

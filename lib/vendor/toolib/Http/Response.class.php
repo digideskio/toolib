@@ -32,7 +32,7 @@ abstract class Response
 	 * Repository for meta information, used internally
 	 * @var array
 	 */
-	private $_meta = array('cache' => array());
+	private $meta = array('cache' => array());
 
 	/**
 	 * @brief Add a new header on response
@@ -88,7 +88,7 @@ abstract class Response
 	 */
 	public function setLastModified(\DateTime $last_modified)
 	{
-		$this->_meta['last-modified'] = $last_modified;
+		$this->meta['last-modified'] = $last_modified;
 		$this->addHeader('Last-Modified',
 			gmdate('D, d M Y H:i:s', $last_modified->format('U')) . ' GMT' );
 	}
@@ -99,7 +99,7 @@ abstract class Response
 	 */
 	public function setEtag($etag)
 	{
-		$this->_meta['etag'] = $etag;
+		$this->meta['etag'] = $etag;
 		$this->addHeader('ETag', $etag);
 	}
 
@@ -110,18 +110,18 @@ abstract class Response
 	public function isNotModified(Request $request)
 	{
 		// Check etag
-		if (isset($this->_meta['etag'])) {
+		if (isset($this->meta['etag'])) {
 			if (($matches = $request->getHeaders()->getValue('if-none-match')) !== null) {
 				$matches = array_map('trim', explode(',', $matches));
-				return in_array($this->_meta['etag'] , $matches)?true:false;
+				return in_array($this->meta['etag'] , $matches)?true:false;
 			}
 		}
 		 
 		// Check last modified
-		if (isset($this->_meta['last-modified'])) {
+		if (isset($this->meta['last-modified'])) {
 			if (($if_modified_since = $request->getHeaders()->getValue('if-modified-since')) !== null) {
 				$if_modified_since = date_create($if_modified_since);
-				return ($this->_meta['last-modified']->format('U') > $if_modified_since->format('U'))?false:true;
+				return ($this->meta['last-modified']->format('U') > $if_modified_since->format('U'))?false:true;
 			}
 		}
 		return false;
@@ -129,7 +129,7 @@ abstract class Response
 
 	private function updateCacheControl()
 	{
-		$this->addHeader('Cache-Control', implode(', ', $this->_meta['cache']));
+		$this->addHeader('Cache-Control', implode(', ', $this->meta['cache']));
 	}
 
 	/**
@@ -137,7 +137,7 @@ abstract class Response
 	 */
 	public function setCachePrivate()
 	{
-		unset($this->_meta['cache']['public']);
+		unset($this->meta['cache']['public']);
 		$this->updateCacheControl();
 	}
 
@@ -146,7 +146,7 @@ abstract class Response
 	 */
 	public function setCachePublic()
 	{
-		$this->_meta['cache']['public'] = 'public';
+		$this->meta['cache']['public'] = 'public';
 		$this->updateCacheControl();
 	}
 	
@@ -155,7 +155,7 @@ abstract class Response
 	 */
 	public function setCacheDirective($directive)
 	{
-		$this->_meta['cache'][$directive] = $directive;
+		$this->meta['cache'][$directive] = $directive;
 		$this->updateCacheControl();
 	}
 	
@@ -164,7 +164,7 @@ abstract class Response
 	 */
 	public function setCacheDirectiveNoCache()
 	{
-		$this->_meta['cache'] = array('no-cache' => 'no-cache');
+		$this->meta['cache'] = array('no-cache' => 'no-cache');
 		$this->updateCacheControl();
 	}
 
@@ -174,7 +174,7 @@ abstract class Response
 	 */
 	public function setCacheMaxAge($delta_seconds)
 	{
-		$this->_meta['cache']['max-age'] = 'max-age=' . $delta_seconds;
+		$this->meta['cache']['max-age'] = 'max-age=' . $delta_seconds;
 		$this->updateCacheControl();
 	}
 
@@ -184,7 +184,7 @@ abstract class Response
 	 */
 	public function setCacheSharedMaxAge($delta_seconds)
 	{
-		$this->_meta['cache']['s-max-age'] = 's-max-age=' . $delta_seconds;
+		$this->meta['cache']['s-max-age'] = 's-max-age=' . $delta_seconds;
 		$this->updateCacheControl();
 	}
 }

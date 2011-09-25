@@ -38,7 +38,7 @@ class Request extends Http\Request
 	 * All the parameters of request
 	 * @var array
 	 */
-	private $_params;
+	private $meta;
 	
 	/**
 	 * @brief Create an empty Request object
@@ -55,7 +55,7 @@ class Request extends Http\Request
     		$headers = $new_headers;
     	}
     	
-        $this->_params = array(
+        $this->meta = array(
         	'url' => $url,
         	'protocol_version' => 1.1,
         	'method' => $post_data === null ? 'GET' : 'POST',
@@ -67,47 +67,52 @@ class Request extends Http\Request
         );
 
         // Analyze URL
-        $url_parts = parse_url($this->_params['url']);
+        $url_parts = parse_url($this->meta['url']);
         if (isset($url_parts['scheme'])) {
         	if (!in_array($url_parts['scheme'], array('http', 'https')))
         		throw new \InvalidArgumentException(
         			"Cannot manipulate URL with \"{$url_parts['scheme']} scheme.\"");
-        	$this->_params['scheme'] = strtoupper($url_parts['scheme']);
+        	$this->meta['scheme'] = strtoupper($url_parts['scheme']);
         }
-        $this->_params['host'] = isset($url_parts['host'])?$url_parts['host']:'localhost';
-        $this->_params['port'] = isset($url_parts['port'])?$url_parts['port']:null;
-        $this->_params['path'] = isset($url_parts['path'])?$url_parts['path']: '/';
-        $this->_params['query'] = 
-        	$this->_params['query_string'] = isset($url_parts['query'])?$url_parts['query']: null;
-        $this->_params['fragment'] = isset($url_parts['fragment'])?$url_parts['fragment']: null;
+        $this->meta['host'] = isset($url_parts['host'])?$url_parts['host']:'localhost';
+        $this->meta['port'] = isset($url_parts['port'])?$url_parts['port']:null;
+        $this->meta['path'] = isset($url_parts['path'])?$url_parts['path']: '/';
+        $this->meta['query'] = 
+        	$this->meta['query_string'] = isset($url_parts['query'])?$url_parts['query']: null;
+        $this->meta['fragment'] = isset($url_parts['fragment'])?$url_parts['fragment']: null;
         
         // Create extra needed data
-        $this->_params['uri'] = $this->_params['path']
-        	. ($this->_params['query'] !== null?('?' . $this->_params['query']):'')
-        	. ($this->_params['fragment'] !== null?('#' . $this->_params['fragment']):'');
-        $this->_params['headers']->replace('Host', $this->_params['host'] 
-        	. ($this->_params['port'] !== null?':' . $this->_params['port']:''));
+        $this->meta['uri'] = $this->meta['path']
+        	. ($this->meta['query'] !== null?('?' . $this->meta['query']):'')
+        	. ($this->meta['fragment'] !== null?('#' . $this->meta['fragment']):'');
+        $this->meta['headers']->replace('Host', $this->meta['host'] 
+        	. ($this->meta['port'] !== null?':' . $this->meta['port']:''));
         
         // Parse query string
-        parse_str($this->_params['query_string'], $this->_params['query']);
-        $this->_params['query'] = new ParameterContainer($this->_params['query']);        
+        parse_str($this->meta['query_string'], $this->meta['query']);
+        $this->meta['query'] = new ParameterContainer($this->meta['query']);        
         
         // Parse submitted content
         if ($post_data !== null) {
-        	parse_str($this->_params['raw_content'], $this->_params['content']);
-        	$this->content = new ParameterContainer($this->_params['content']);
+        	parse_str($this->meta['raw_content'], $this->meta['content']);
+        	$this->content = new ParameterContainer($this->meta['content']);
         }
         $this->cookies = new ParameterContainer();
     }
     
+    public function getEnviroment()
+    {
+    	return $this->meta;
+    }
+    
     public function getRequestUri()
     {
-    	return $this->_params['uri'];
+    	return $this->meta['uri'];
     }
     
     public function getPath($default = null)
     {
-    	return $this->_params['path'];
+    	return $this->meta['path'];
     }
     
     public function getUriPath()
@@ -122,17 +127,17 @@ class Request extends Http\Request
 
     public function getFragment()
     {
-    	return $this->_params['fragment'];
+    	return $this->meta['fragment'];
     }
 
     public function getQuery()
     {
-    	return $this->_params['query'];
+    	return $this->meta['query'];
     }
     
     public function getQueryString()
     {
-    	return $this->_params['query_string'];
+    	return $this->meta['query_string'];
     }
     
     public function getCookies()
@@ -152,31 +157,31 @@ class Request extends Http\Request
     
     public function getScheme()
     {
-    	return $this->_params['scheme'];
+    	return $this->meta['scheme'];
     }
     
     public function getMethod()
     {
-    	return $this->_params['method'];
+    	return $this->meta['method'];
     }
     
     public function getHeaders()
     {
-    	return $this->_params['headers'];
+    	return $this->meta['headers'];
     }
     
     public function getProtocolVersion()
     {
-    	return $this->_params['protocol_version'];
+    	return $this->meta['protocol_version'];
     }
     
     public function getContent()
     {
-    	return $this->_params['content'];
+    	return $this->meta['content'];
     }
     
     public function getRawContent()
     {
-    	return $this->_params['raw_content'];
+    	return $this->meta['raw_content'];
     }
 }
