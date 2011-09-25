@@ -22,9 +22,12 @@
 namespace toolib\Http\Cgi;
 use toolib\Http\ParameterContainer;
 use toolib\Http\HeaderContainer;
+use toolib\Http;
 
 require_once __DIR__ . '/../Request.class.php';
 require_once __DIR__ . '/../ParameterContainer.class.php';
+require_once __DIR__ . '/../HeaderContainer.class.php';
+require_once __DIR__ . '/../UploadedFile.class.php';
 
 /**
  * @brief Request implementation for Cgi package.
@@ -70,42 +73,59 @@ class Request extends \toolib\Http\Request
 	/**
 	 * @brief Fix bad/wierd order of files posted by php.
 	 */
-	private function fixFileKeys($files)
+	private function fixFileKeys($files, $create_objects = true)
 	{
-		if (isset($files['name'], $files['tmp_name'], $files['size'], $files['type'], $files['error'])){
-	
-			// Multiple values for post-keys indexes
-			$move_indexes_right = function($files) use(& $move_indexes_right)
-			{
-				if (!is_array($files['name']))
-					return $files;
+		$fix_file_keys_impl = function($files, $create_objects) use(& $fix_file_keys_impl) {
+			if (isset($files['name'], $files['tmp_name'], $files['size'], $files['type'], $files['error'])){
+		
+				// Multiple values for post-keys indexes
+				$move_indexes_right = function($files) use(& $move_indexes_right, $create_objects)
+				{
+					if (!is_array($files['name']))
+						return (!$create_objects ? $files :
+							new Http\UploadedFile(
+								$files['name'],
+								$files['type'],
+								$files['tmp_name'],
+								$files['size'],
+								$files['error'] ));
+							
+					$results = array();
+					foreach($files['name'] as $index => $name) {
+						$reordered = array(
+									'name' => $files['name'][$index],
+									'tmp_name' => $files['tmp_name'][$index],
+									'size' => $files['size'][$index],
+									'type' => $files['type'][$index],
+									'error' => $files['error'][$index],
+						);
+		
+						// If this is not leaf do it recursivly
+						if (is_array($name))
+							$reordered = $move_indexes_right($reordered);
+						else if ($create_objects)
+							$reordered = new Http\UploadedFile(
+								$reordered['name'],
+								$reordered['type'],
+								$reordered['tmp_name'],
+								$reordered['size'],
+								$reordered['error'] );	
+		
+						$results[$index] = $reordered;
+					}
+					return $results;
+				};
+				return $move_indexes_right($files);
+			}
 				
-				$results = array();
-				foreach($files['name'] as $index => $name) {
-					$reordered = array(
-								'name' => $files['name'][$index],
-								'tmp_name' => $files['tmp_name'][$index],
-								'size' => $files['size'][$index],
-								'type' => $files['type'][$index],
-								'error' => $files['error'][$index],
-					);
-	
-					// If this is not leaf do it recursivly
-					if (is_array($name))
-						$reordered = $move_indexes_right($reordered);
-	
-					$results[$index] = $reordered;
-				}
-				return $results;
-			};
-			return $move_indexes_right($files);
-		}
-			
-		// Re order pre-keys indexes
-		array_walk($files, function(&$sub) use(& $fix_files_keys) {
-			$sub = $this->fixFileKeys($sub);
-		});
-		return $files;
+			// Re order pre-keys indexes
+			array_walk($files, function(&$sub) use(& $fix_file_keys_impl, $create_objects) {
+				$sub = $fix_file_keys_impl($sub, $create_objects);
+			});
+			return $files;
+		};
+		
+		return $fix_file_keys_impl($files, $create_objects);
 	}
 	
 	public function getRequestUri()
@@ -113,13 +133,28 @@ class Request extends \toolib\Http\Request
 		return $_SERVER['REQUEST_URI'];
 	}
 	
-	public function getPath()
+	public function getPath($default = null)
+	{
+		return isset($_SERVER['PATH_INFO'])?$_SERVER['PATH_INFO']:$default;		
+	}
+
+	public function getUriPath()
 	{
 		if (isset($this->_parsed_objects['path']))
 			return $this->_parsed_objects['path'];
-		
 		$this->parseUrl();
 		return $this->_parsed_objects['path'];
+	}
+	
+	public function getScriptPath()
+	{
+		if (isset($this->_parsed_objects['script_path']))
+			return $this->_parsed_objects['script_path'];
+		
+		return $this->_parsed_objects['script_path']
+			= (strstr($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']) === false)
+	    		?dirname($_SERVER['SCRIPT_NAME'])
+	    		:$_SERVER['SCRIPT_NAME'];
 	}
 	
 	public function getFragment()
@@ -133,10 +168,10 @@ class Request extends \toolib\Http\Request
 	
 	public function getQuery()
 	{
-		if (isset($this->_parsed_objects['scheme']))
-			return $this->_parsed_objects['scheme'];
+		if (isset($this->_parsed_objects['query']))
+			return $this->_parsed_objects['query'];
 		
-		return $this->_parsed_objects['scheme']
+		return $this->_parsed_objects['query']
 			= new ParameterContainer($_GET);
 
 	}
@@ -184,8 +219,8 @@ class Request extends \toolib\Http\Request
 			return $this->_parsed_objects['protocol_version'];
 
 		return $this->_parsed_objects['protocol_version'] 
-			= $this->$property = isset($this->_meta_variables['SERVER_PROTOCOL'])?
-			substr($this->_meta_variables['SERVER_PROTOCOL'], -3):'1.0';
+			= isset($_SERVER['SERVER_PROTOCOL'])?
+				substr($_SERVER['SERVER_PROTOCOL'], -3):'1.0';
 	}
 	
 	public function getContent()
@@ -197,9 +232,9 @@ class Request extends \toolib\Http\Request
 			return $this->_parsed_objects['content'] = null;
 			
 		// Get posted arguments
-		$files = $this->fixFileKeys($_FILES);
-		$this->_parsed_objects['content'] = new ParameterContainer(
-			array_merge($_POST, $files));
+		$files = $this->fixFileKeys($_FILES, true);
+		return $this->_parsed_objects['content'] = new ParameterContainer(
+			array_merge_recursive($_POST, $files));
 	}
 	
 	public function getRawContent()

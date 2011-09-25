@@ -1,9 +1,9 @@
 <?php
 
-namespace \toolib\Http;
+namespace toolib\Http;
 
 /**
- * @brief Manager for uploaded files.
+ * @brief Base class for interfacing uploaded files.
  */
 class UploadedFile
 {
@@ -38,7 +38,7 @@ class UploadedFile
 	private $error;
 	
 	/**
-	 * @brief Construct a new wrapper for $_FILES
+	 * @brief Creating an uploaded file object
 	 * @param string $name The actual name of file.
 	 * @param string $type The mime type of file.
 	 * @param string $tmp_name The temporary filename of file.
@@ -55,7 +55,7 @@ class UploadedFile
 	}
 	
 	/**
-	 *  The actual name of the file as it was uploaded
+	 *  @brief The actual name of the file as it was uploaded
 	 */
 	public function getName()
 	{
@@ -63,7 +63,7 @@ class UploadedFile
 	}
 	
 	/**
-	 * Get the name of the temporary file
+	 * @brief Get the name of the temporary file
 	 */
 	public function getTempName()
 	{
@@ -71,7 +71,7 @@ class UploadedFile
 	}
 	
 	/**
-	 * Get the file size.
+	 * @brief Get the file size.
 	 */
 	public function getSize()
 	{
@@ -79,7 +79,7 @@ class UploadedFile
 	}
 	
 	/**
-	 * Get the error code of this upload.
+	 * @brief Get the error code of this upload.
 	 */
 	public function getError()
 	{
@@ -87,16 +87,32 @@ class UploadedFile
 	}
 	
 	/**
-	 * Move this file to a safe area.
-	 * @param string $dest A destination folder to move file
+	 * @brief Check if this file is submitted or false
 	 */
-	public function move($dest)
+	public function isSubmitted()
 	{
-		return move_uploaded_file($this->getTempName(), $dest);
+		return $this->getError() != UPLOAD_ERR_NO_FILE;
+	}
+	
+	/**
+	* @brief Check if this file has been uploaded properly.
+	*/
+	public function isValid()
+	{
+		return $this->getError() == UPLOAD_ERR_OK;
+	}
+	
+	/**
+	 * @brief Move this file to a safe area.
+	 * @param string $dest_dir A destination folder to move file
+	 */
+	public function move($dest_dir)
+	{
+		return move_uploaded_file($this->getTempName(), $dest_dir);
 	} 
 	
 	/**
-	 * Delete temporary file from filesystem
+	 * @brief Delete temporary file from filesystem
 	 */
 	public function delete()
 	{
@@ -105,7 +121,7 @@ class UploadedFile
 	}
 	
 	/**
-	 * To string gets filename
+	 * @brief To string gets filename
 	 */
 	public function __toString()
 	{

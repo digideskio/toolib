@@ -95,9 +95,19 @@ class Request extends Http\Request
     	return $this->_params['uri'];
     }
     
-    public function getPath()
+    public function getPath($default = null)
     {
     	return $this->_params['path'];
+    }
+    
+    public function getUriPath()
+    {
+    	return $this->_param['path'];
+    }
+    
+    public function getScriptPath()
+    {
+    	return $this->_param['path'];
     }
 
     public function getFragment()

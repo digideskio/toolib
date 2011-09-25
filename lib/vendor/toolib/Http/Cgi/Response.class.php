@@ -68,9 +68,9 @@ class Response extends Http\Response
             $cookie->getValue(),
             ($cookie->isSessionCookie()?0:$cookie->getExpirationTime()),
             $cookie->getPath(),
-            $this->getDomain(),
-            $this->isSecure(),
-            $this->isHttponly()
+            $cookie->getDomain(),
+            $cookie->isSecure(),
+            $cookie->isHttponly()
         );
     }
 }
