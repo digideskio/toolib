@@ -44,40 +44,40 @@ class Response extends Http\Response
 	 * @brief Status code reported
 	 * @var array
 	 */
-	private $_status = array('code' => '200', 'message' => 'OK');
+	private $status = array('code' => '200', 'message' => 'OK');
 	
 	/**
 	 * @brief Headers
 	 * @var \toolib\Http\HeaderContainer
 	 */
-	private $_headers;
+	private $headers;
 	
 	/**
 	 * @brief Body of the response message
 	 * @var string
 	 */
-	private $_body = '';
+	private $body = '';
 	
 	/**
 	 * @brief Construct a new empty response
 	 */
 	public function __construct()
 	{
-		$this->_headers = new HeaderContainer();
+		$this->headers = new HeaderContainer();
 	}
 
 	public function addHeader($name, $value, $replace = true)
 	{
 		if ($replace)
-			$this->_headers->replace($name, $value);
+			$this->headers->replace($name, $value);
 		else
-			$this->_headers->add($name, $value);				
+			$this->headers->add($name, $value);
 	}
 	
 	public function removeHeader($name)
 	{
-		if ($this->_headers->has($name))
-			$this->_headers->remove($name);
+		if ($this->headers->has($name))
+			$this->headers->remove($name);
 	}
 	
 	/**
@@ -86,7 +86,7 @@ class Response extends Http\Response
 	 */
 	public function getHeaders()
 	{
-		return $this->_headers;
+		return $this->headers;
 	}
 	
     public function redirect($url, $auto_exit = true)
@@ -106,8 +106,8 @@ class Response extends Http\Response
     	if ($code < 100 || $code > 999)
     		throw new \InvalidArgumentException("Code \"{$code}\" is not valid HTTP Status code.");
     	
-        $this->_status['code'] = $code;
-        $this->_status['message'] = $message;
+        $this->status['code'] = $code;
+        $this->status['message'] = $message;
     }
     
     /**
@@ -116,12 +116,12 @@ class Response extends Http\Response
      */
     public function getStatusCode()
     {
-    	return $this->_status;
+    	return $this->status;
     }
     
     public function appendContent($data)
     {
-    	$this->_body .= (string)$data;
+    	$this->body .= (string)$data;
     }
     
     /**
@@ -129,7 +129,7 @@ class Response extends Http\Response
      */
     public function getContent()
     {
-    	return $this->_body;
+    	return $this->body;
     }
     
     public function setCookie(Http\Cookie $cookie)

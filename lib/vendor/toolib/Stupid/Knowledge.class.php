@@ -26,12 +26,6 @@ class Knowledge
 	public $extractors = array();
 	
 	/**
-	 * @brief Temporary container of results and extractors.
-	 * @var array
-	 */
-	public $assumptions = array('results' => array(), 'extractors' => array());
-	
-	/**
 	 * @brief Construct a new knowledge container
 	 * @param array $facts Predefined facts
 	 */
@@ -64,39 +58,42 @@ class Knowledge
 		return $this->facts[$name];
 	}
 	
-	public function setResult($name, $value, $assumption = true)
+	/**
+	 * @brief Set a result value
+	 * @param string $name Key of the result entry
+	 * @param mixed $value Any value for the result.
+	 */
+	public function setResult($name, $value)
 	{
 		$this->results[$name] = $value;
 	}
 	
 	/**
-	 * @brief Enter description here ...
-	 * @param callable $extractor 
-	 * @param unknown_type $name
-	 * @param unknown_type $assumption
+	 * @brief Direct property access to results.
+	 * @param string $name
 	 */
-	public function setExtractor($extractor, $name = null, $assumption = true)
-	{
-		$this->results[$name] = $value;
-	}
-	
-	/**
-	 * @brief Assumptions were not correct and must be discarded.
-	 */
-	public function discardAssumptions()
-	{
-		$this->assumptions = array('results' => array(), 'extractors' => array());
-	}
-	
-	public function validateAssumptions()
-	{
-		$this->results = array_merge($this->results, $this->assumptions['results']);
-		$this->extractors = array_merge($this->results, $this->assumptions['extractors']);
-	}
-	
 	public function __get($name)
 	{
 		return $this->results[$name];
+	}
+	
+	/**
+	 * @brief Add or replace a named extractor 
+	 * @param string $name The name of the extractor
+	 * @param callable $extractor Callable of the extractor
+	 */
+	public function setExtractor($name, $extractor)
+	{
+		$this->extractors[$name] = $extractor;
+	}
+	
+	/**
+	 * @brief Add an unamed extractor
+	 * @param callable $extractor Callable of the extractor
+	 */
+	public function addExtractor($extractor)
+	{
+		$this->extractors[] = $extractor;
 	}
 	
 	/**
@@ -106,9 +103,20 @@ class Knowledge
 	public function extractFacts($clear_extractors = true)
 	{
 		foreach($this->extractors as $extractor) {
-			$this->facts = array_merge($this->facts, $extractor($this->results));
+			$this->facts = array_merge($this->facts, $extractor($this));
 		}
 		if ($clear_extractors)
 			$this->extractors = array();
+	}
+	
+	/**
+	 * @brief Replace data with those from another container
+	 * @param  Knowledge $src Source of data
+	 */
+	public function replaceBy(Knowledge $src)
+	{
+		$this->extractors = $src->extractors;
+		$this->facts = $src->facts;
+		$this->results = $src->results;
 	}
 }
