@@ -95,7 +95,7 @@ class Request extends Http\Request
         // Parse submitted content
         if ($post_data !== null) {
         	parse_str($this->meta['raw_content'], $this->meta['content']);
-        	$this->content = new ParameterContainer($this->meta['content']);
+        	$this->meta['content'] = new ParameterContainer($this->meta['content']);
         }
         $this->cookies = new ParameterContainer();
     }

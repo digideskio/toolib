@@ -76,6 +76,17 @@ class ParameterContainer extends \ArrayObject
 			return false;
 		return $strict?($this->offsetGet($name) === $expected):($this->offsetGet($name) == $expected);
 	}
+	
+	/**
+	 * @brief Check if a parameter is an array of values
+	 * @param string $name The name of the parameter
+	 */
+	public function isArray($name)
+	{
+		if (!$this->offsetExists($name))
+			return false;
+		return is_object($this->offsetGet($name));
+	}
 
 	/**
 	 * @brief Get a parameter and cast to integer

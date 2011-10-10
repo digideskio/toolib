@@ -178,7 +178,7 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals('/example/path', $r->getPath());
     	$this->assertEquals('bigone?bigtwo', $r->getFragment());
     	$this->assertEquals('pa=1&pa=2&pc[]=3&pc[]=5', $r->getRawContent());
-    	$this->assertEquals(array('pa' => 2, 'pc' => array(3, 5)), $r->getContent());
+    	$this->assertEquals(array('pa' => 2, 'pc' => array(3, 5)), $r->getContent()->getArrayCopy());
     	$this->assertEquals('a=1&a=2&c[]=3&c[]=5', $r->getQueryString());
     
     	$this->commonDefaultConditions($r, true);
@@ -260,5 +260,20 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     	$this->assertFalse($r->isPut());
     	$this->assertFalse($r->isDelete());
     	$this->assertTrue($r->isHead());
+    }
+    
+    public function testContent()
+    {
+    	$r = new Request('/example/path', 'a=1&b=2&c=3');
+    	
+    	$this->assertEquals('/example/path', $r->getRequestUri());
+    	$this->assertEquals('a=1&b=2&c=3', $r->getRawContent());
+    	$this->assertNull($r->getFragment());
+    	$this->assertEquals('', $r->getQueryString());
+    	
+    	$this->commonDefaultConditions($r, true);
+    	$this->assertInstanceOf('\toolib\Http\ParameterContainer', $r->getContent());
+    	$this->assertEquals(3, count($r->getContent()));
+    	$this->assertEquals(array('a' => 1, 'b' => 2, 'c' => 3), $r->getContent()->getArrayCopy());
     }
 }

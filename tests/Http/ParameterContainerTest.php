@@ -209,6 +209,11 @@ class Http_ParameterContainerTest extends PHPUnit_Framework_TestCase
     	$this->assertInstanceOf('\toolib\Http\ParameterContainer', $c['param_simplearray']);
     	$this->assertInstanceOf('\toolib\Http\ParameterContainer', $c['param_simple_doublearray']);
     	$this->assertInstanceOf('\toolib\Http\ParameterContainer', $c['param_complexarray']);
+    	$this->assertFalse($c->isArray('param1'));
+    	$this->assertTrue($c->isArray('param_simplearray'));
+    	$this->assertTrue($c->isArray('param_simple_doublearray'));
+    	$this->assertTrue($c->isArray('param_complexarray'));
+    	
     	
     	// Check simple array
     	$this->assertEquals('aval', $c['param_simplearray'][0]);
