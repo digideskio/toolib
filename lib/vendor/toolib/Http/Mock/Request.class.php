@@ -160,6 +160,14 @@ class Request extends Http\Request
     	return $this->meta['scheme'];
     }
     
+    public function setMethod($method)
+    {
+    	$method = strtoupper($method);
+    	if (! in_array($method, array('GET', 'POST', 'PUT', 'DELETE', 'HEAD')))
+    		throw new \InvalidArgumentException("Unknown HTTP method \"{$method}\"");
+    	$this->meta['method'] = $method;
+    	
+    }
     public function getMethod()
     {
     	return $this->meta['method'];

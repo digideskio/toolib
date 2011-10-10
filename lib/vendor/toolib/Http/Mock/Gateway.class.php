@@ -39,6 +39,24 @@ class Gateway extends \toolib\Http\Gateway
 		$this->response = new Response();		
 	}
 	
+	/**
+	 * @brief Replace request with a new object
+	 * @param Request $request
+	 */
+	public function setRequest(Request $request)
+	{
+		$this->request = $request;
+	}
+	
+	/**
+	 * @brief Replace response with a new object
+	 * @param Response $response
+	 */
+	public function setResponse(Response $response)
+	{
+		$this->response = $response;
+	}
+	 
 	public function getRequest()
 	{
 		return $this->request;

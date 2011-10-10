@@ -23,6 +23,7 @@ namespace toolib\Http\Mock;
 use toolib\Http\HeaderContainer;
 use toolib\Http ;
 
+require_once __DIR__ . '/../Response.class.php';
 require_once __DIR__ . '/../HeaderContainer.class.php';
 require_once __DIR__ . '/../Cookie.class.php';
 

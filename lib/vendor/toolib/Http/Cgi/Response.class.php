@@ -22,6 +22,7 @@
 namespace toolib\Http\Cgi;
 use toolib\Http;
 
+require_once __DIR__ . '/../Response.class.php';
 require_once __DIR__ . '/../Cookie.class.php';
 
 /**

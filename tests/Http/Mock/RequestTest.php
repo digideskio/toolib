@@ -218,4 +218,47 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     	    	'TM=124575346734:LM=12436346234:SG=10:S=8sdfgdfhjasfdga',
     	    'NID' => '51=SDFGSDfg-sdfhsdf-gk3425topui[90sugjsdfgaSGAegasdGasdfasdfqwer_=-'), $r->getCookies());
     }
+    
+    public function testMethod()
+    {
+    	$r = new Request();
+    	$this->assertEquals('GET', $r->getMethod());
+    	$this->assertTrue($r->isGet());
+    	$this->assertFalse($r->isPost());
+    	$this->assertFalse($r->isPut());
+    	$this->assertFalse($r->isDelete());
+    	$this->assertFalse($r->isHead());
+    	
+    	$r->setMethod('Post');
+    	$this->assertEquals('POST', $r->getMethod());
+    	$this->assertFalse($r->isGet());
+    	$this->assertTrue($r->isPost());
+    	$this->assertFalse($r->isPut());
+    	$this->assertFalse($r->isDelete());
+    	$this->assertFalse($r->isHead());
+    	
+    	$r->setMethod('PUT');
+    	$this->assertEquals('PUT', $r->getMethod());
+    	$this->assertFalse($r->isGet());
+    	$this->assertFalse($r->isPost());
+    	$this->assertTrue($r->isPut());
+    	$this->assertFalse($r->isDelete());
+    	$this->assertFalse($r->isHead());
+    	
+    	$r->setMethod('delete');
+    	$this->assertEquals('DELETE', $r->getMethod());
+    	$this->assertFalse($r->isGet());
+    	$this->assertFalse($r->isPost());
+    	$this->assertFalse($r->isPut());
+    	$this->assertTrue($r->isDelete());
+    	$this->assertFalse($r->isHead());
+    	
+    	$r->setMethod('HeAd');
+    	$this->assertEquals('HEAD', $r->getMethod());
+    	$this->assertFalse($r->isGet());
+    	$this->assertFalse($r->isPost());
+    	$this->assertFalse($r->isPut());
+    	$this->assertFalse($r->isDelete());
+    	$this->assertTrue($r->isHead());
+    }
 }

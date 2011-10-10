@@ -121,12 +121,13 @@ class Http_CgiResponseTest extends PHPUnit_Framework_TestCase
     {
     	$r = new Response();
 
-    	
+    	ob_start();
     	// First data
     	$r->appendContent('abc');
 
     	
     	// n-data
     	$r->appendContent('123456');
+    	$this->assertEquals('abc123456', ob_get_clean());
     }
 }

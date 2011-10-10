@@ -136,6 +136,30 @@ abstract class Request
 	}
 
 	/**
+	 * @brief Check if this request is of 'PUT' method
+	 */
+	public function isPut()
+	{
+		return ($this->getMethod() == 'PUT');
+	}
+
+	/**
+	 * @brief Check if this request is of 'DELETE' method
+	 */
+	public function isDelete()
+	{
+		return ($this->getMethod() == 'DELETE');
+	}
+	
+	/**
+	 * @brief Check if this request is of 'HEAD' method
+	 */
+	public function isHead()
+	{
+		return ($this->getMethod() == 'HEAD');
+	}
+	
+	/**
 	 * @brief Check if this request is through https
 	 */
 	public function isSecure()
