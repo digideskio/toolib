@@ -211,10 +211,14 @@ class Request extends \toolib\Http\Request
 		if (isset($this->parsed_objects['headers']))
 			return $this->parsed_objects['headers'];
 		
-		if (function_exists('apache_request_headers'))
-			$this->parsed_objects['headers'] = new HeadersContainer(apache_request_headers());
-		else
+		if (function_exists('apache_request_headers')) {
+			$apache_headers = array();
+			foreach(apache_request_headers() as $name => $value)
+				$apache_headers[strtolower($name)] = $value;
+			$this->parsed_objects['headers'] = new HeaderContainer($apache_headers);
+		} else {
 			$this->parsed_objects['headers'] = $this->headersToContainer();
+		}
 		return $this->parsed_objects['headers'];
 	}
 	
