@@ -30,6 +30,8 @@ require_once __DIR__ . '/../Cookie.class.php';
 */
 class Response extends Http\Response
 {
+	private $status = array('code' => '200', 'message' => 'OK');
+	
 	public function addHeader($name, $value, $replace = true)
 	{
 		header($name .': ' . $value);
@@ -48,13 +50,20 @@ class Response extends Http\Response
     }
 
     public function setContentType($mime)
-    {   
+    {
         $this->addHeader('Content-type', $mime);
     }
 
     public function setStatusCode($code, $message)
-    {   
+    {
+    	$this->status = array('code' => $code, 'message' => $message);
         header("HTTP/1.1 {$code} {$message}");
+    }
+    
+    public function getStatusCode(& $message = null)
+    {
+    	$message = $this->status['message'];
+    	return $this->status['code'];
     }
     
     public function appendContent($data)

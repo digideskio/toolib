@@ -90,19 +90,19 @@ class Response extends Http\Response
 	}
 	
     public function redirect($url, $auto_exit = true)
-    {   
+    {
         $this->addHeader('Location', $url);
         if ($auto_exit)
             throw new ImmediateExitRequest();
     }
 
     public function setContentType($mime)
-    {   
+    {
         $this->addHeader('Content-Type', $mime);
     }
 
     public function setStatusCode($code, $message)
-    {   
+    {
     	if ($code < 100 || $code > 999)
     		throw new \InvalidArgumentException("Code \"{$code}\" is not valid HTTP Status code.");
     	
@@ -110,13 +110,11 @@ class Response extends Http\Response
         $this->status['message'] = $message;
     }
     
-    /**
-     * @brief Get the status code of this message
-     * @return array With 'code' and 'message' keys
-     */
-    public function getStatusCode()
+    
+    public function getStatusCode(& $message = null)
     {
-    	return $this->status;
+    	$message = $this->status['message'];
+    	return $this->status['code'];
     }
     
     public function appendContent($data)

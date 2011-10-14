@@ -52,7 +52,7 @@ abstract class Request
 	abstract public function getPath($default = null);
 
 	/**
-	 * @brief Get all the path part of the url as requested by agent.
+	 * @brief Get only the path part of the requested uri.
 	 */
 	abstract public function getUriPath();
 

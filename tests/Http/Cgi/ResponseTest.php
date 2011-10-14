@@ -30,6 +30,8 @@ class Http_CgiResponseTest extends PHPUnit_Framework_TestCase
     public function testEmptyConstructor()
     {
         $r = new Response();
+        $this->assertEquals(200, $r->getStatusCode($message));
+        $this->assertEquals('OK', $message);
     }
     
     public function testAddHeader()
@@ -78,9 +80,13 @@ class Http_CgiResponseTest extends PHPUnit_Framework_TestCase
     	
     	// Set 302 and a message
     	$r->setStatusCode('302', 'My Message');
+        $this->assertEquals(302, $r->getStatusCode($message));
+        $this->assertEquals('My Message', $message);
     	
     	// Set 500 and empty message
     	$r->setStatusCode(500, '');
+    	$this->assertEquals(500, $r->getStatusCode($message));
+    	$this->assertEquals('', $message);
     }
     
   

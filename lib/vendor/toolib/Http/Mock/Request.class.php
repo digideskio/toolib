@@ -63,7 +63,8 @@ class Request extends Http\Request
         	'cookies' => array(),
         	'raw_content' => $post_data,
         	'content' => $post_data,
-        	'headers' => new HeaderContainer($headers)
+        	'headers' => new HeaderContainer($headers),
+        	'script_path' => ''
         );
 
         // Analyze URL
@@ -117,12 +118,12 @@ class Request extends Http\Request
     
     public function getUriPath()
     {
-    	return $this->_param['path'];
+    	return $this->meta['path'];
     }
     
     public function getScriptPath()
     {
-    	return $this->_param['path'];
+    	return $this->meta['script_path'];
     }
 
     public function getFragment()

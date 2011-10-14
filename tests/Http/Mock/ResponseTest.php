@@ -34,7 +34,8 @@ class Http_MockResponseTest extends PHPUnit_Framework_TestCase
         $r = new Response();
         
 		$this->assertEquals('', $r->getContent());
-        $this->assertEquals(array('code' => '200', 'message' => 'OK'), $r->getStatusCode());
+        $this->assertEquals(200, $r->getStatusCode($message));
+        $this->assertEquals('OK', $message);
         $this->assertInstanceOf('\toolib\Http\HeaderContainer', $r->getHeaders());
         $this->assertEquals(0, count($r->getHeaders()));
     }
@@ -102,11 +103,13 @@ class Http_MockResponseTest extends PHPUnit_Framework_TestCase
     	
     	// Set 302 and a message
     	$r->setStatusCode('302', 'My Message');
-    	$this->assertEquals(array('code' => '302', 'message' => 'My Message'), $r->getStatusCode());
+    	$this->assertEquals(302, $r->getStatusCode($message));
+    	$this->assertEquals('My Message', $message);
     	
     	// Set 500 and empty message
     	$r->setStatusCode(500, '');
-    	$this->assertEquals(array('code' => '500', 'message' => ''), $r->getStatusCode());
+    	$this->assertEquals(500, $r->getStatusCode($message));
+    	$this->assertEquals('', $message);
     }
     
     /**
@@ -324,10 +327,84 @@ class Http_MockResponseTest extends PHPUnit_Framework_TestCase
     	
     	// ETag (FALSE) + Last Modified (FALSE) = FALSE
     	$request = new Request('/', null, array(
-    	    		'If-None-Match' => 'qweasd, "zxcasd"',
-    	    		'If-Modified-Since' => 'Sat, 29 Oct 1994 19:43:31 GMT'));
+    	    'If-None-Match' => 'qweasd, "zxcasd"',
+    	    'If-Modified-Since' => 'Sat, 29 Oct 1994 19:43:31 GMT'));
     	$response = new Response();
     	$this->assertFalse($response->isNotModified($request));
+    }
+    
+    public static function rfcResponseCodes()
+    {
+    	return array(
+    		/*array('100', 'Continue'), Not implemented */
+	    	/*array('101', 'Switching Protocols'), Not implemented */
+	    	array('200', 'OK'),
+	    	array('201', 'Created', '/create/at/201/url'),
+	    	array('202', 'Accepted'),
+	    	/*array('203', 'Non-Authoritative Information'), No purpose */
+	    	array('204', 'No Content'),
+	    	/*array('205', 'Reset Content'), Not implemented */
+	    	/*array('206', 'Partial Content'), Not implemented */
+	    	/*array('300', 'Multiple Choices'), Not implemented */
+	    	array('301', 'Moved Permanently', '/moved/at/url'),
+	    	array('302', 'Found', '/found/at/url'),
+	    	array('303', 'See Other', '/see/at/url'),
+	    	array('304', 'Not Modified'),
+	    	/*array('305', 'Use Proxy'), Not implemented */
+	    	array('307', 'Temporary Redirect', '/go/for/the/moment/at'),
+	    	array('400', 'Bad Request'),
+	    	array('401', 'Unauthorized'),
+	    	/*array('402', 'Payment Required'),  This code is reserved for future use. */
+	    	array('403', 'Forbidden'),
+	    	array('404', 'Not Found'),
+	    	array('405', 'Method Not Allowed', array('GET', 'head'), 'GET, HEAD'),
+	    	array('406', 'Not Acceptable'),
+	    	/*array('407', 'Proxy Authentication Required'), Not implemented */
+	    	array('408', 'Request Timeout'),
+	    	/*array('409', 'Conflict'), Not implemented */
+	    	array('410', 'Gone'),
+	    	array('411', 'Length Required'),
+	    	array('412', 'Precondition Failed'),
+	    	array('413', 'Request Entity Too Large'),
+	    	array('414', 'Request-URI Too Long'),
+	    	/*array('415', 'Unsupported Media Type'), Not implemented */
+	    	array('416', 'Requested Range Not Satisfiable'),
+	    	/*array('417', 'Expectation Failed'), Not implemented */
+	    	array('500', 'Internal Server Error'),
+	    	array('501', 'Not Implemented'),
+	    	array('502', 'Bad Gateway'),
+	    	array('503', 'Service Unavailable', date_create('2011-12-12 12:00:00')),
+	    	array('504', 'Gateway Timeout'),
+	    	array('505', 'HTTP Version Not Supported')
+    	);
+    }
+    
+    /**
+     * @dataProvider rfcResponseCodes
+     */
+    public function testReply($code, $message, $param1 = null, $param2 = null)
+    {
+    	$function = "reply" . $code . str_replace(array(' ', '-', 'HTTP', 'OK'), array('','', 'Http', 'Ok'), $message);
+    	$r = new Response();
+    	$this->assertTrue(method_exists($r, $function));
+    	
+    	if (in_array($code, array(201, 301, 302, 303, 307))) {
+    		// Uri parameter 
+    		$r->$function($param1);
+    		$this->assertTrue($r->getHeaders()->is('Location', $param1));
+    	} else if ($code == 503 ) {
+    		$r->$function($param1);
+    		$this->assertTrue(date_create($r->getHeaders()->getValue('Retry-After')) == $param1);
+    	} else if ($code == 405 ) {
+    			// Allowed methods
+    			$r->$function($param1);
+    			$this->assertEquals($param2, $r->getHeaders()->getValue('Allow'));
+    	} else {
+    		$r->$function();
+    	}
+    	$res_code = $r->getStatusCode($res_message);
+    	$this->assertEquals($code, $res_code);
+    	$this->assertEquals($message, $res_message);
     }
     
 }

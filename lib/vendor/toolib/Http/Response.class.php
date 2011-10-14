@@ -70,6 +70,12 @@ abstract class Response
 	abstract public function setStatusCode($code, $message);
 
 	/**
+	* @brief Get the status code and message of response
+	* @return integer The 3-digit code.
+	*/
+	abstract public function getStatusCode(& $message = null);
+	
+	/**
 	 * @brief Append content data on the response.
 	 * @param string $data
 	 */
@@ -106,6 +112,7 @@ abstract class Response
 	/**
 	 * @brief Check if agent has latest resource modification based on
 	 * the request headers.
+	 * @param Request $request HTTP request to check against.
 	 */
 	public function isNotModified(Request $request)
 	{
@@ -186,5 +193,275 @@ abstract class Response
 	{
 		$this->meta['cache']['s-max-age'] = 's-max-age=' . $delta_seconds;
 		$this->updateCacheControl();
+	}
+	
+	/**
+	 * @brief (DEFAULT) This class of status code indicates that
+	 * the client's request was successfully received, understood, and accepted.
+	 */
+	public function reply200Ok()
+	{
+		$this->setStatusCode(200, 'OK');
+	}
+	
+	/**
+	 * @brief The request has been fulfilled and resulted in a new resource
+	 * being created.
+	 * @param string $uri Uri of the newly created resource
+	 */
+	public function reply201Created($uri = null)
+	{
+		$this->setStatusCode(201, 'Created');
+		if ($uri !== null)
+			$this->addHeader('Location', $uri);
+	}
+	
+	/**
+	 * @brief The request has been accepted for processing,
+	 * but the processing has not been completed.
+	 */
+	public function reply202Accepted()
+	{
+		$this->setStatusCode(202, 'Accepted');
+	}
+	
+	/**
+	 * @brief The server has fulfilled the request but does not need to
+	 * return an entity-body.
+	 * 
+	 * It might want to return updated metainformation.
+	 */
+	public function reply204NoContent()
+	{
+		$this->setStatusCode(204, 'No Content');
+	}
+	
+	/**
+	 * @brief The request has been fulfilled and resulted in a new resource
+	 * being created.
+	 * @param string $uri Uri of the newly created resource
+	 */
+	public function reply301MovedPermanently($uri = null)
+	{
+		$this->setStatusCode(301, 'Moved Permanently');
+		if ($uri !== null)
+			$this->addHeader('Location', $uri);
+	}
+	
+	/**
+	 * @brief The requested resource resides temporarily under a different URI.
+	 * @param string $uri Uri to find the resource
+	 */
+	public function reply302Found($uri = null)
+	{
+		$this->setStatusCode(302, 'Found');
+		if ($uri !== null)
+			$this->addHeader('Location', $uri);
+	}
+	
+	/**
+	 * @brief The response to the request can be found under a different
+	 * URI and SHOULD be retrieved using a GET method on that resource.
+	 * @param string $uri Uri to find the resource
+	 */
+	public function reply303SeeOther($uri = null)
+	{
+		$this->setStatusCode(303, 'See Other');
+		if ($uri !== null)
+			$this->addHeader('Location', $uri);
+	}
+	
+	/**
+	 * @brief If the client has performed a conditional GET request
+	 * and access is allowed, but the document has not been modified.
+	 */
+	public function reply304NotModified()
+	{
+		$this->setStatusCode(304, 'Not Modified');
+	}
+	
+	/**
+	 * @brief The requested resource resides temporarily under a different URI.
+	 * @param string $uri Uri to find the resource
+	 */
+	public function reply307TemporaryRedirect($uri = null)
+	{
+		$this->setStatusCode(307, 'Temporary Redirect');
+		if ($uri !== null)
+			$this->addHeader('Location', $uri);
+	}
+	
+	/**
+	 * @brief The request could not be understood by
+	 * the server due to malformed syntax.
+	 */
+	public function reply400BadRequest()
+	{
+		$this->setStatusCode(400, 'Bad Request');
+	}
+	
+	/**
+	 * @brief The request requires user authentication.
+	 * @todo RFC indicates that it must include www-authenticate challenge.
+	 */
+	public function reply401Unauthorized()
+	{
+		$this->setStatusCode(401, 'Unauthorized');
+	}
+	
+	/**
+	 * @brief The server understood the request, but is refusing to fulfill it.
+	 */
+	public function reply403Forbidden()
+	{
+		$this->setStatusCode(403, 'Forbidden');
+	}
+	
+	/**
+	 * @brief The server has not found anything matching the Request-URI.
+	 */
+	public function reply404NotFound()
+	{
+		$this->setStatusCode(404, 'Not Found');
+	}
+	
+	/**
+	 * @brief The method specified in the Request-Line is not allowed for
+	 * the resource identified by the Request-URI.
+	 * @param array $allowed_methods All the allowed methods
+	 */
+	public function reply405MethodNotAllowed($allowed_methods)
+	{
+		if (!is_array($allowed_methods) || count($allowed_methods) == 0)
+			throw new \InvalidArgumentException('405 HTTP Status codes needs at least one allowed method.');
+		$this->addHeader('Allow', strtoupper(implode(', ', $allowed_methods)));
+		$this->setStatusCode(405, 'Method Not Allowed');
+	}
+	
+	/**
+	 * @brief Agent does not include a generatable entity in its "Accept" header.
+	 */
+	public function reply406NotAcceptable()
+	{
+		$this->setStatusCode(406, 'Not Acceptable');
+	}
+	
+	/**
+	 * @brief The client did not produce a request within the time that the
+	 * server was prepared to wait.
+	 */
+	public function reply408RequestTimeout()
+	{
+		$this->setStatusCode(408, 'Request Timeout');
+	}
+	
+	/**
+	 * @brief The requested resource is no longer available at the server
+	 * and no forwarding address is known.
+	 */
+	public function reply410Gone()
+	{
+		$this->setStatusCode(410, 'Gone');
+	}
+	
+	/**
+	 * @brief The server refuses to accept the request without
+	 * a defined Content-Length.
+	 */
+	public function reply411LengthRequired()
+	{
+		$this->setStatusCode(411, 'Length Required');
+	}
+	
+	/**
+	 * @brief The precondition given in one or more of the
+	 * request-header fields evaluated to false when it was tested on the server.
+	 */
+	public function reply412PreconditionFailed()
+	{
+		$this->setStatusCode(412, 'Precondition Failed');
+	}
+	
+	/**
+	 * @brief The server is refusing to process a request because the request
+	 * entity is larger than the server is willing or able to process.
+	 */
+	public function reply413RequestEntityTooLarge()
+	{
+		$this->setStatusCode(413, 'Request Entity Too Large');
+	}
+	
+	/**
+	 * @brief The server is refusing to service the request because the
+	 * Request-URI is longer than the server is willing to interpret.
+	 */
+	public function reply414RequestURITooLong()
+	{
+		$this->setStatusCode(414, 'Request-URI Too Long');
+	}
+	
+	/**
+	 * @brief A request included a Range request-header field, and none of
+	 * the range-specifier values in this field overlap.
+	 */
+	public function reply416RequestedRangeNotSatisfiable()
+	{
+		$this->setStatusCode(416, 'Requested Range Not Satisfiable');
+	}
+	
+	/**
+	 * @brief The server encountered an unexpected condition which prevented
+	 * it from fulfilling the request.
+	 */
+	public function reply500InternalServerError()
+	{
+		$this->setStatusCode(500, 'Internal Server Error');
+	}
+	
+	/**
+	 * @brief The server does not support the functionality required to 
+	 * fulfill the request.
+	 */
+	public function reply501NotImplemented()
+	{
+		$this->setStatusCode(501, 'Not Implemented');
+	}
+	
+	/**
+	 * @brief The server, received an invalid response from the upstream server.
+	 */
+	public function reply502BadGateway()
+	{
+		$this->setStatusCode(502, 'Bad Gateway');
+	}
+	
+	/**
+	 * @brief The server is currently unable to handle the request due
+	 * to a temporary overloading or maintenance of the server.
+	 * @param \DateTime $retry_after Time indication for when to retry again.
+	 */	
+	public function reply503ServiceUnavailable(\DateTime $retry_after)
+	{
+		$this->addHeader('Retry-After',
+			gmdate('D, d M Y H:i:s', $retry_after->format('U')) . ' GMT' );
+		$this->setStatusCode(503, 'Service Unavailable');
+	}
+	
+	/**
+	 * @brief The server, while acting as a gateway or proxy, did not receive
+	 * a timely response from the upstream server specified by the URI.
+	 */
+	public function reply504GatewayTimeout()
+	{
+		$this->setStatusCode(504, 'Gateway Timeout');
+	}
+	
+	/**
+	 * @brief The server does not support, or refuses to support,
+	 * the HTTP protocol version that was used in the request message.
+	 */
+	public function reply505HttpVersionNotSupported()
+	{
+		$this->setStatusCode(505, 'HTTP Version Not Supported');
 	}
 }

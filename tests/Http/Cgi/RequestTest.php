@@ -26,6 +26,57 @@ require_once __DIR__ .  '/../../path.inc.php';
 class Http_CgiRequestTest extends PHPUnit_Framework_TestCase
 {
 
+	public function SimpleCgiHeadCase()
+	{
+		$server = array(
+				'SERVER_SOFTWARE' => 'toolib',
+				'SERVER_NAME' => 'localhost',
+				'GATEWAY_INTERFACE' => 'CGI/1.1',
+				'SERVER_PROTOCOL' => 'HTTP/1.1',
+				'SERVER_PORT' => 80,
+				'REQUEST_METHOD' => 'HEAD',
+				'PATH_INFO' => null,
+				'SCRIPT_NAME' => '/index.php',
+				'REQUEST_URI' => '/',
+				'QUERY_STRING' => null,
+				'REMOTE_HOST' => '',
+				'REMOTE_ADDR' => '',
+				'CONTENT_TYPE' => 'text/html',
+				'CONTENT_LENGTH' => null,
+				'HTTP_HOST' => 'localhost'
+		);
+	
+		$get = array();
+		$post = array();
+		$files = array();
+		return array('server' => $server, 'get' => $get, 'post' => $post, 'files' => $files);
+	}
+	
+	public function SimpleCgiDeleteCase()
+	{
+		$server = array(
+					'SERVER_SOFTWARE' => 'toolib',
+					'SERVER_NAME' => 'localhost',
+					'GATEWAY_INTERFACE' => 'CGI/1.1',
+					'SERVER_PROTOCOL' => 'HTTP/1.1',
+					'SERVER_PORT' => 80,
+					'REQUEST_METHOD' => 'DELETE',
+					'PATH_INFO' => null,
+					'SCRIPT_NAME' => '/index.php',
+					'REQUEST_URI' => '/',
+					'QUERY_STRING' => null,
+					'REMOTE_HOST' => '',
+					'REMOTE_ADDR' => '',
+					'CONTENT_TYPE' => 'text/html',
+					'CONTENT_LENGTH' => null,
+					'HTTP_HOST' => 'localhost'
+		);
+	
+		$get = array();
+		$post = array();
+		$files = array();
+		return array('server' => $server, 'get' => $get, 'post' => $post, 'files' => $files);
+	}
 
 
 	public function SimpleCgiCase()
@@ -262,6 +313,28 @@ class Http_CgiRequestTest extends PHPUnit_Framework_TestCase
 
 		$this->commonDefaultConditions($r);
 
+		$this->assertEquals(0, count($r->getQuery()));
+		$this->assertEquals(1, count($r->getHeaders()));
+		$this->assertTrue($r->getHeaders()->is('Host', 'localhost'));
+	}
+	
+	public function testSimpleHeadCGI()
+	{
+		$this->loadCGIEnviroment($this->SimpleCgiHeadCase());
+		$r = new Request();
+	
+		$this->assertEquals('/', $r->getRequestUri());
+		$this->assertEquals('/', $r->getUriPath());
+		$this->assertEquals('/', $r->getScriptPath());
+		$this->assertNull($r->getPath());
+		$this->assertNull($r->getFragment());
+		$this->assertNull($r->getContent());
+		$this->assertEmpty($r->getRawContent());
+		$this->assertNull($r->getQueryString());
+	
+		$this->assertEquals('HEAD', $r->getMethod());
+		$this->assertTrue($r->isHead());
+	
 		$this->assertEquals(0, count($r->getQuery()));
 		$this->assertEquals(1, count($r->getHeaders()));
 		$this->assertTrue($r->getHeaders()->is('Host', 'localhost'));

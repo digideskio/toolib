@@ -58,6 +58,8 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
         
         $this->assertEquals('/', $r->getRequestUri());
         $this->assertEquals('/', $r->getPath());
+        $this->assertEquals('/', $r->getUriPath());
+        $this->assertEquals('', $r->getScriptPath());
         $this->assertNull($r->getFragment());
         $this->assertNull($r->getContent());
         $this->assertNull($r->getRawContent());
@@ -76,6 +78,8 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     
     	$this->assertEquals('/example/path', $r->getRequestUri());
     	$this->assertEquals('/example/path', $r->getPath());
+    	$this->assertEquals('/example/path', $r->getUriPath());
+    	$this->assertEquals('', $r->getScriptPath());
     	$this->assertNull($r->getFragment());
     	$this->assertNull($r->getContent());
     	$this->assertNull($r->getRawContent());
@@ -93,6 +97,8 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     
     	$this->assertEquals('/example/path', $r->getRequestUri());
     	$this->assertEquals('/example/path', $r->getPath());
+    	$this->assertEquals('/example/path', $r->getUriPath());
+    	$this->assertEquals('', $r->getScriptPath());
     	$this->assertNull($r->getFragment());
     	$this->assertNull($r->getContent());
     	$this->assertNull($r->getRawContent());
@@ -110,6 +116,7 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     
     	$this->assertEquals('/example/path', $r->getRequestUri());
     	$this->assertEquals('/example/path', $r->getPath());
+    	$this->assertEquals('/example/path', $r->getUriPath());
     	$this->assertNull($r->getFragment());
     	$this->assertNull($r->getContent());
     	$this->assertNull($r->getRawContent());
@@ -127,6 +134,7 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     
     	$this->assertEquals('/example/path?a=1&b=2&c=3', $r->getRequestUri());
     	$this->assertEquals('/example/path', $r->getPath());
+    	$this->assertEquals('/example/path', $r->getUriPath());
     	$this->assertNull($r->getFragment());
     	$this->assertNull($r->getContent());
     	$this->assertNull($r->getRawContent());
@@ -144,6 +152,7 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     
     	$this->assertEquals('/example/path?a=1&a=2&c[]=3&c[]=5', $r->getRequestUri());
     	$this->assertEquals('/example/path', $r->getPath());
+    	$this->assertEquals('/example/path', $r->getUriPath());
     	$this->assertNull($r->getFragment());
     	$this->assertNull($r->getContent());
     	$this->assertNull($r->getRawContent());
@@ -160,6 +169,7 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     
     	$this->assertEquals('/example/path?a=1&a=2&c[]=3&c[]=5#bigone?bigtwo', $r->getRequestUri());
     	$this->assertEquals('/example/path', $r->getPath());
+    	$this->assertEquals('/example/path', $r->getUriPath());
     	$this->assertEquals('bigone?bigtwo', $r->getFragment());
     	$this->assertNull($r->getContent());
     	$this->assertNull($r->getRawContent());
@@ -276,4 +286,5 @@ class Http_MockRequestTest extends PHPUnit_Framework_TestCase
     	$this->assertEquals(3, count($r->getContent()));
     	$this->assertEquals(array('a' => 1, 'b' => 2, 'c' => 3), $r->getContent()->getArrayCopy());
     }
+    
 }
