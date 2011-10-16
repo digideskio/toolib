@@ -455,6 +455,14 @@ class Record
 	}
 	
 	/**
+	 * @brief Check if record has unsaved changes.
+	 */
+	public function isDirty()
+	{
+		return (count($this->dirty_fields) !== 0);
+	}
+	
+	/**
 	 * @brief Dump all changes of this object in the database.
 	 * 
 	 * @note Only the dirty fields will be updated.
@@ -463,8 +471,8 @@ class Record
 	 *  - @b false If no update in database was performed.
 	 */
 	public function update()
-	{	
-		if(count($this->dirty_fields) === 0)
+	{
+		if(!$this->isDirty())
 			return false;	// No changes
 
 		$model_name = $this->model->getName();
@@ -504,7 +512,7 @@ class Record
 
 		// Execute query
 		$res = call_user_func_array(array($q, 'execute'), $update_args);
-		if ((!$res) || ($res->affected_rows !== 1))
+		if (!$res)
             return false;
 
         // Clear dirty fields

@@ -300,7 +300,9 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($u->enabled, 1);
 
 		// Empty update must fail
+		$this->assertFalse($u->isDirty());
 		$this->assertFalse($u->update());
+		$this->assertFalse($u->isDirty());
 
 		// Change and update
 		$u->enabled = 0;
@@ -309,7 +311,9 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($u->enabled, 0);
 
 		// Empty update must fail
+		$this->assertFalse($u->isDirty());
 		$this->assertFalse($u->update());
+		$this->assertFalse($u->isDirty());
 
 		// Re open and validate data
 		$u = User::open('user1');
@@ -320,7 +324,9 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		// Update pk
 		$u->username = 'user-new';
 		$this->assertEquals($u->username, 'user-new');
+		$this->assertTrue($u->isDirty());
 		$this->assertTrue($u->update());
+		$this->assertFalse($u->isDirty());
 		$this->assertEquals($u->username, 'user-new');
 
 		// Create a new record with old primary key
@@ -348,12 +354,16 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($gm->groupname, 'group1');
 
 		// Empty update must fail
+		$this->assertFalse($gm->isDirty());
 		$this->assertFalse($gm->update());
+		$this->assertFalse($gm->isDirty());
 
 		// Change and update
 		$gm->groupname = 'group4';
 		$this->assertEquals($gm->groupname, 'group4');
+		$this->assertTrue($gm->isDirty());
 		$this->assertTrue($gm->update());
+		$this->assertFalse($gm->isDirty());
 		$this->assertEquals($gm->groupname, 'group4');
 
 		// Create a new record with old primary key
@@ -364,7 +374,9 @@ class Record_CRUDTest extends PHPUnit_Framework_TestCase
 		$this->assertInstanceOf('Group_Members', $gm2);
 
 		// Empty update must fail
+		$this->assertFalse($gm->isDirty());
 		$this->assertFalse($gm->update());
+		$this->assertFalse($gm->isDirty());
 
 		// Re open and validate data
 		$gm = Group_Members::open(array('username' => 'user3', 'groupname' => 'group4'));
