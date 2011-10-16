@@ -79,20 +79,28 @@ class Request extends Condition
 	public function pathPatternIs($pattern, $requirements = array())
 	{
 		$this->checkPrefix();
-		$this->subconditions[] = function(Http\Request $request, $knowledge) use($pattern, $requirements) {	
+		$this->subconditions[] = function(Http\Request $request, $knowledge) use($pattern, $requirements) {
 			
+			$path_suffix = substr($request->getPath(), strlen($knowledge->getOptionalFact('request.path_prefix', '')));
+			$requirements = array_merge(array('_start' => '^', '_end' => '$'), $requirements);
+			
+			/*
+			 * non-regex fast rejection of patterns that do not start with same static.
+			 */
+			if ($requirements['_start'] == '^' && $static_part = strstr($pattern, '{', true)) {
+				if (substr($path_suffix, 0, strlen($static_part)) != $static_part)
+					return false;
+			}
 			/*
 			 * 1st stage, extract placeholders from pattern
 			 */
-			$path_suffix = substr($request->getPath(), strlen($knowledge->getOptionalFact('request.path_prefix', '')));
 			$full_pattern = $knowledge->getOptionalFact('request.path_prefix', '') . $pattern;
-			if (preg_match_all('/(?<key>{[^}]+})/', $pattern, $matches, PREG_OFFSET_CAPTURE) === false)
+			if (preg_match_all('/(?<key>{[^}]+})/', $pattern, $matches, PREG_OFFSET_CAPTURE) === false) {
 				return false;
-
+			}
 			/*
 			 * 2nd stage, convert pattern to regular experssion
 			 */
-			$requirements = array_merge(array('_start' => '^', '_end' => '$'), $requirements);
 			$extract_regex = "#{$requirements['_start']}";
 			$offset_start = 0;
 			$params = array();
@@ -221,9 +229,21 @@ class Request extends Condition
 	}
 	
 	/**
+	 * @brief Check if request method is GET or HEAD.
+	 * @return Request
+	 */
+	public function methodIsGetOrHead()
+	{
+		$this->subconditions[] = function(Http\Request $request){
+			return ($request->getMethod() == 'GET' || $request->getMethod() == 'HEAD');
+		};
+		return $this;
+	}
+	
+	/**
 	 * @brief Check if request method is DELETE.
 	 * @return Request
-	 */	
+	 */
 	public function methodIsDelete()
 	{
 		return $this->methodIs('DELETE');

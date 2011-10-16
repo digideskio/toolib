@@ -35,6 +35,7 @@ class Stupid_RequestTest extends PHPUnit_Framework_TestCase
 		
 		$c = new Condition\Request();
 		$c->methodIsGet()
+			->methodIsGetOrHead()
 			->pathIs('/');
 		$this->assertTrue($c($k));
 		
@@ -194,6 +195,8 @@ class Stupid_RequestTest extends PHPUnit_Framework_TestCase
 		$c = new Condition\Request();
 		$c->methodIsGet();
 		$this->assertTrue($c($k));
+		$c = Condition\Request::create()->methodIsGetOrHead();
+		$this->assertTrue($c($k));
 		
 		$c = Condition\Request::create()->methodIsPost();
 		$this->assertFalse($c($k));
@@ -201,9 +204,13 @@ class Stupid_RequestTest extends PHPUnit_Framework_TestCase
 		$g->setRequest($r = new Http\Mock\Request('/', 'blabla'));
 		$c = Condition\Request::create()->methodIsPost();
 		$this->assertTrue($c($k));
+		$c = Condition\Request::create()->methodIsGetOrHead();
+		$this->assertFalse($c($k));
 		
 		$g->setRequest($r = new Http\Mock\Request('/', 'blabla'));
 		$c = Condition\Request::create()->methodIsGet();
+		$this->assertFalse($c($k));
+		$c = Condition\Request::create()->methodIsGetOrHead();
 		$this->assertFalse($c($k));
 		
 		$r->setMethod('put');
@@ -216,6 +223,8 @@ class Stupid_RequestTest extends PHPUnit_Framework_TestCase
 		
 		$r->setMethod('head');
 		$c = Condition\Request::create()->methodIsHead();
+		$this->assertTrue($c($k));
+		$c = Condition\Request::create()->methodIsGetOrHead();
 		$this->assertTrue($c($k));
 	}
 	

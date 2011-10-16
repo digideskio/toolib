@@ -119,7 +119,11 @@ class Stupid_RuleTest extends PHPUnit_Framework_TestCase
 		
 		$r->addCondition($this->invalid);
 		$r->addAction($badaction);
-		$this->assertFalse($r->execute($k));		
+		$this->assertFalse($r->execute($k));
+	}
+	
+	public function actionMethod()
+	{
 	}
 	
 	public function testCallAllActions()
@@ -139,6 +143,7 @@ class Stupid_RuleTest extends PHPUnit_Framework_TestCase
 		$r->addCondition($this->valid);
 		$r->addAction($action1);
 		$r->addAction($action2);
+		$r->addAction(array($this, 'actionMethod'));	// Action array callable
 		$this->assertTrue($r->execute($k));
 		$this->assertEquals(8, $calls);
 	}

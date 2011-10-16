@@ -105,6 +105,7 @@ class Rule
 			return false;
 		
 		$copy_knowledge = clone $knowledge;	// We clone knowledge to remain clean on case of fail.
+		$copy_knowledge->facts['rule.name'] = $this->name;
 		foreach($this->conditions as $cond)
 			if (!$cond($copy_knowledge)) {
 				return false;
@@ -116,8 +117,9 @@ class Rule
 			return false;
 		
 		$knowledge->replaceBy($copy_knowledge);
-		foreach($this->actions as $action)
-			$action($knowledge);
+		foreach($this->actions as $action) {
+			call_user_func($action, $knowledge);
+		}
 		$this->owner->events()->filter('rule.action.executed', $succeeded, array('rule' => $this));
 		return true;
 	}
