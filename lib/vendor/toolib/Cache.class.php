@@ -42,7 +42,7 @@ abstract class Cache
 	/**
 	 * @brief Add or replace the value of a key in cache database 
 	 * @param string $key Unique identifier of the cache entry
-	 * @param $value Value of cache entry
+	 * @param mixed $value Value of cache entry
 	 * @param integer $ttl Maximum time, in seconds, that this entry will be valid
 	 * @return boolean
 	 * - @b true if value was stored succesfully.
@@ -71,7 +71,7 @@ abstract class Cache
 	 * This function will fail if there is already an
 	 * entry with the same key. 
 	 * @param string $key Unique identifier of the cache entry
-	 * @param $value Value of cache entry.
+	 * @param mixed $value Value of cache entry.
 	 * @param integer $ttl Maximum time, in seconds, that this entry will be valid
 	 * @return boolean
 	 * - @b true if value was stored succesfully.
@@ -83,7 +83,7 @@ abstract class Cache
 	/**
 	 * @brief Retrieve an entry from cache db based on its key.
 	 * @param string $key Unique identifier of the cache entry
-	 * @param [out] boolean $succeded By reference variable to store
+	 * @param boolean $succeded @b [out] By reference variable to store
 	 * the result status of the function.
 	 *  - @b true will be stored in case of success.
 	 *  - @b false on any error. 

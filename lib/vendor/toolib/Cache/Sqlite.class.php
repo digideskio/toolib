@@ -103,8 +103,8 @@ class Sqlite extends \toolib\Cache
 	{
 		// Execute query
 		if (($res = sqlite_query($this->dbhandle, 
-				"SELECT * FROM cache_sqlite WHERE key = '" . sqlite_escape_string($key) . "' LIMIT 1;")) === FALSE)
-		{	$succeded = false;
+				"SELECT * FROM cache_sqlite WHERE key = '" . sqlite_escape_string($key) . "' LIMIT 1;")) === FALSE) {
+			$succeded = false;
 			return false;
 		}
 		

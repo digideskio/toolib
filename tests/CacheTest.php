@@ -27,18 +27,34 @@ class CacheTest extends PHPUnit_Framework_TestCase
 {
 	public static function tearDownAfterClass()
 	{
-		unlink(sys_get_temp_dir() . '/cache.db');
+		unlink(sys_get_temp_dir() . '/cache2.db');
+		unlink(sys_get_temp_dir() . '/cache3.db');
 	}
 
 	public function provider_impl()
 	{
 		// Tested cache implementations
-		return array(
+		$tests = array(
 			array(new c\Memcached('127.0.0.1')),
-			array(new c\File()),
-			array(new c\Sqlite(sys_get_temp_dir() . '/cache.db')),
+			array(new c\File())
+			//array(new c\Sqlite(sys_get_temp_dir() . '/cache.db')),
 			//array(new c\Apc('test-subscirpts', true))
 		);
+		
+		// Sqlite v2
+		if (function_exists('sqlite_open')) {
+			$tests[] = array(new c\Sqlite(sys_get_temp_dir() . '/cache2.db'));
+		} else {
+			error_log('Skipping Cache\Sqlite() missing php extension.');
+		}
+
+		// Sqlite v3
+		if (class_exists('SQLite3', false)) {
+			$tests[] = array(new c\Sqlite3(sys_get_temp_dir() . '/cache3.db'));
+		} else {
+			error_log('Skipping Cache\Sqlite3() missing php extension.');
+		}
+		return $tests;
 	}
 
 	public function provider_data1()
@@ -161,11 +177,11 @@ class CacheTest extends PHPUnit_Framework_TestCase
 	public function testNonTTLAdd($cache, $key, $value)
 	{
 		// Add value
-		$res = $cache->add($key, $value);
-		$this->assertTrue($res);
+		$res1 = $cache->add($key, $value);
+		$this->assertTrue($res1);
 
 		// Get value
-		$res = $cache->get($key, $succ);
+		$res = $cache->get($key, $succ);	
 		$this->assertTrue($succ);
 		$this->assertEquals($value, $res);
 
@@ -305,8 +321,9 @@ class CacheTest extends PHPUnit_Framework_TestCase
 	public function testTTLExpiredGet($cache, $key, $value)
 	{   // Skip APC Checks as an optimazation feature does invalidate
 		// cache in same request making unit test useless.
-		if ($cache instanceof Cache_Apc)
-		return;
+		if ($cache instanceof Cache_Apc) {
+			return;
+		}
 
 		// Check that value exists
 		$res = $cache->get($key, $succ);
