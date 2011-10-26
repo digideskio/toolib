@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Site {{ $site_name }} : {% block('title'); %}Default title{% end_block(); %}</title>
+<style type="text/css">
+body{
+	background: #f1f1f1;
+	font-size: 0.8em;
+	color: #454545;
+}
+
+a{
+	font-weight: bold;
+	text-decoration: none;
+	color: #135013;
+}
+</style>
+</head>
+<body>
+{% block('header'); %}
+<h1>{{ show_block('title') }}</h1>
+{% end_block(); %}
+{% block('contents'); %}
+<ul>
+{% foreach(range(0, 4) as $i): %}
+<li>{{ $i }}. {{ $item[$i] }}</li>
+{% endforeach; %}
+</ul>
+{% end_block(); %}
+</body>
+</html>

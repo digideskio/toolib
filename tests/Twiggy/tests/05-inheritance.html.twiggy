@@ -1,0 +1,6 @@
+{% extends_template('05-inheritance-parent.html.twiggy'); %}
+{% block('title'); %}My Custom title{% end_block(); %}
+{% block('contents'); %}
+Derivative content is the {{ $content_is }}
+
+{% end_block(); %}

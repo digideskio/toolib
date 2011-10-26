@@ -1,0 +1,4 @@
+{% include_template('06-include-header.html.twiggy', array('title' => 'Title is 06 Title')); %}
+Lorium ipsioum content 06
+Page is {{$page}}
+{% include_template('06-include-footer.html.twiggy'); %}

@@ -1,0 +1,2 @@
+{% include_template(array('07-included.html.twiggy', 'wrong'), array('id' => '15')); %}
+{% include_template(array('wrong', '07-included.html.twiggy'), array('id' => '16')); %}
