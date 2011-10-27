@@ -71,9 +71,7 @@ class Frame
 		foreach(array_merge($this->enviroment, $extra_env) as $var => $value) {
 			$$var = $value;
 		}
-		ob_start(array($this, 'write'));
 		include $compiled_file;
-		ob_end_clean();
 	}
 	/**
 	 * @brief Create a new block and start capturing
@@ -81,8 +79,6 @@ class Frame
 	 */
 	public function nextBlock($name = null)
 	{
-		ob_flush();
-		
 		if ($name === null) {
 			$this->current_block = $this->next_anonymous_block;
 			$this->next_anonymous_block ++;
@@ -125,13 +121,17 @@ class Frame
 		$this->block_output[$this->current_block] .= $data;
 	}
 	
+	public function rawWrite($data)
+	{
+		$this->block_output[$this->current_block] .= $data;
+	}
+	
 	/**
 	 * @brief Append user data to current block. Data will be escaped if it is enabled.
 	 * @param string $what Data to be appended.
 	 */
 	public function safeWrite($what)
 	{
-		ob_flush();
 		if ($this->auto_escape) {
 			$this->write(Runtime\escape($what, $this->escape_mode));
 		} else {
