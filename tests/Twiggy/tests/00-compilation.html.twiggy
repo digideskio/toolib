@@ -1,0 +1,36 @@
+{{ 'start line'  }}
+
+Print something
+-----------
+{% $a = 'test'; %}
+{{ $a }}
+{{ $a . '-' }}
+{{ 'literal' }}
+number {{ 10.5 }}
+
+Print an array
+------------
+{{ implode(',', range(1,10)) }}
+
+Take care of semicolons
+------------
+{{ 'literal' ; }}
+{{ 'literal' ;; }}
+
+Comment out
+------------
+{{ $a }}{#
+{{ $a . '-' }}
+{{ 'literal' }}
+#}number {{ 10.5 }}
+
+Some extreme cases here
+----------
+bla{
+ελληνικά{{ '{{' }}
+日本国}
+{{ 'a' }}
+bla2
+{% foreach(range(1, 3) as $i): %}
+{{ '{{ }}' }}{{$i }} {{$i}} {{ $i -2}}
+{% endforeach; %}{

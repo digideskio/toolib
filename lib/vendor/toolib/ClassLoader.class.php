@@ -133,7 +133,7 @@ class ClassLoader
 			}
 			$fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . $this->_fileExtension;
 			$filePath = ($this->_includePath !== null ? $this->_includePath . DIRECTORY_SEPARATOR : '') . $fileName;
-			error_log($filePath);
+			//error_log($filePath);
 			if (file_exists($filePath))
 				require $filePath;
 		}

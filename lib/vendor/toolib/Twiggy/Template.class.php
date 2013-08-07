@@ -86,38 +86,53 @@ class Template
 			}
 		}
 		ksort($tokens, SORT_NUMERIC);
+		$tokens_pos = array_keys($tokens);
 
 		// PHASE 2: Extract chunks
-		$chunks[0] = array(-1, 0, -1); /*  tok_id, start, end */
+		$search_close_tok_greedy = function($search_tok_id, $start_at = 0) use($tokens_pos, $tokens) {
+			$total_tokens = count($tokens);
+			$found_at = -1;
+			for($i = $start_at; $i < $total_tokens;$i++){
+				if ($found_at != -1) {
+					// We have already one solution
+					if ($tokens[$tokens_pos[$i]] % 2 == 0) {
+						// New open tag means no other solution
+						return $found_at;
+					}
+				}
+				
+				if ($tokens[$tokens_pos[$i]] == $search_tok_id) {
+					$found_at = $i;
+				}
+			}
+			return $found_at;
+		};
+		
+		$chunks[0] = array(-1, 0, -1); /*  tok_id, start, end */		 
 		$last_chunk = 0;
 		$search_tokid = -1;
-		foreach($tokens as $pos => $tok_id) {
-
-			if ($search_tokid > -1) {
-				// Waiting for close tag
-				if ($tok_id == $search_tokid) {
-					$search_tokid = -1;
-					$chunks[$last_chunk][2] = $pos;
-					$chunks[++$last_chunk] = array(-1, $pos + 2/* strlen($tok)*/);
-				}
-				continue;
-			}
+		for($i = 0; $i < count($tokens);$i++){
+			$tok_id = $tokens[$tokens_pos[$i]];
+			$pos = $tokens_pos[$i];
 			
 			// Waiting for open tag
 			if ($tok_id % 2 == 0) {
-				// Then we wait for close tag
-	 			$search_tokid = $tok_id + 1;
+				// Find close tag
+				$close_tok = $search_close_tok_greedy($tok_id + 1, $i + 1);
+				if ($close_tok < 0) {
+					throw new CompilationException("Searching for token \"{$lang_tokens[$tok_id +1]}\" exceeded end of file",
+					$this->source_path, -1);
+				}
+				
 				$chunks[$last_chunk][2] = $pos;
-				$chunks[++$last_chunk] = array($tok_id, $pos);
+				$chunks[++$last_chunk] = array($tok_id, $pos, $tokens_pos[$close_tok]+2);
+				$chunks[++$last_chunk] = array(-1, $tokens_pos[$close_tok]+2, $source_len);
+				$i = $close_tok;	/* jump to last closed */
 				continue;
 			}
 		}
-		if ($search_tokid != -1) {
-			throw new CompilationException("Searching for token \"{$lang_tokens[$search_tokid]}\" exceeded end of file",
-				$this->source_path, -1);
-		}
-		if (!isset($chunks[$last_chunk][2]))
-			$chunks[$last_chunk][2] = $source_len ;
+		//var_dump($tokens, $chunks);
+		//exit;
 		
 		// PHASE 3: Process & optimize chunks
 		$total_chunks = count($chunks); /* don't put count in for because we unset */
@@ -136,7 +151,7 @@ class Template
 			if ($chunks[$i][0] == -1) {
 				$chunks[$i]['text'] = mb_substr($source, $chunks[$i][1], $chunks[$i][2]- $chunks[$i][1]);
 			} else {
-				$chunks[$i]['text'] = mb_substr($source, $chunks[$i][1]+2, $chunks[$i][2]- $chunks[$i][1]-2);
+				$chunks[$i]['text'] = mb_substr($source, $chunks[$i][1]+2, $chunks[$i][2]- $chunks[$i][1]-4);
 			}
 			
 			// Optimize per case
@@ -146,8 +161,8 @@ class Template
 				$chunks[$i]['text'] = trim($chunks[$i]['text'], ' ;');
 			}
 		}
-		//var_dump($chunks);
-		//exit;
+		//var_dump($tokens, $chunks, $source_len);
+///		exit;
 		
 		// PHASE 4: Generate new code
 		$compiled_data = file_get_contents(__DIR__ . '/ObjectWrapper.php') ;

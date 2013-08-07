@@ -1,0 +1,11 @@
+{% extends_template('layout.html'); %}
+{% block('title', 'Add new'); %} 
+{% block('contents'); %}
+<form method="post" action="./" >
+<fieldset>
+Name: <input name="name" />
+Value: <input name="value" />
+<input type="submit" />
+</fieldset>
+</form>
+{% end_block(); %}

@@ -1,0 +1,15 @@
+{% extends_template('layout.html'); %}
+{% block('contents'); %}
+<h1> Index </h1>
+
+<ul>
+{% foreach($items as $item): %}
+<li>
+  <a href="{{ $item->id }}">{{ defvalue($item, "#item:{$item->id}#") }}</a><br/>
+  <em>{{ raw($item->value) }}</em>
+</li>
+{% endforeach; %}
+</ul>
+
+<a href="+create">Create new one</a>
+{% end_block('contents'); %}

@@ -181,7 +181,15 @@ class CacheTest extends PHPUnit_Framework_TestCase
 		$this->assertTrue($res1);
 
 		// Get value
-		$res = $cache->get($key, $succ);	
+		$res = $cache->get($key, $succ);
+		/*if (!$succ) {
+			echo "--- FAILED -- $key\n";
+			$res = $cache->db->query('select * from cache_sqlite;');
+			while($a = $res->fetchArray()){
+				echo $a['key'], ' ', strlen($a['value']), "\n";
+			}
+			return;
+		}*/
 		$this->assertTrue($succ);
 		$this->assertEquals($value, $res);
 

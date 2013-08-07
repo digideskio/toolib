@@ -92,7 +92,7 @@ class ResourceConstructor
 	 * @param boolean $escape Flag to control escaping of parameters. 
 	 * @throws \InvalidArgumentException
 	 */
-	public function path($params, $escape = true)
+	public function path($params = array(), $escape = true)
 	{
 		if (!is_object($params) && !is_array($params)) {
 			throw new \InvalidArgumentException('Values must be given through object or array');

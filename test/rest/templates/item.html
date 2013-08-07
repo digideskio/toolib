@@ -1,0 +1,14 @@
+{% extends_template('layout.html'); %}
+{% block('title', 'Item: ' . $item); %}
+{% block('content'); %}
+<em>{{ raw($item->value) }}</em>
+
+<ul>
+<li><strong>Created at: </strong>{{ $item->created_at->format(DATE_ATOM) }}</li>
+<li><strong>Modified at: </strong>{{ $item->modified_at->format(DATE_ATOM) }}</li>
+</ul>
+
+<a href="{{ $item->id }}/+edit">Edit</a><br />
+<a href="{{ $item->id }}/+delete">Delete</a><br />
+<a href="./">Show all </a>
+{% end_block(); %}

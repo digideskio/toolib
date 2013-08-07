@@ -34,6 +34,7 @@ class TwiggyTest extends \PHPUnit_Framework_TestCase
 	public function cases()
 	{
 		return array(
+			array('00-compilation.html.twiggy', '00.out-1.html', array()),
 			array('01-simple.html.twiggy', '01.out-1.html', array()),
 			array('02-variables.html.twiggy', '02.out-1.html',
 				array('title' => 'Very nice title', 'contents' => 'content is not that big')),

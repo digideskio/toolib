@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{% block('title', 'My nice title'); %}</title>
+<style type="text/css">
+body{
+	background: #f1f1f1;
+	font-size: 0.8em;
+	color: #454545;
+}
+
+a{
+	font-weight: bold;
+	text-decoration: none;
+	color: #135013;
+}
+</style>
+</head>
+<body>
+<h1>{{ show_block('title') }}</h1>
+{% block('contents'); %}Nothing yet{% end_block(); %}
+</body>
+</html>

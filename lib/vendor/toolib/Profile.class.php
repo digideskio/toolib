@@ -316,7 +316,7 @@ class Profile
 	        else
 	            $color = '#000000';
 
-	        printf("<tr><td>%s<td>&nbsp;%s<td><pre>%12.5f</pre><td style=\"color: %s;\"><pre>%12.5f</pre><td><pre>%9s B</pre><td<pre>%9s B</pre>\n",
+	        printf("<tr><td>%s<td>&nbsp;%s<td><pre>%12.5f</pre><td style=\"color: %s;\"><pre>%12.5f</pre><td><pre>%9s B</pre><td><pre>%9s B</pre>\n",
 	            $pass['checkpoint'],
 	            print_r($pass['data'], true),
                 $pass['time_prog'],
